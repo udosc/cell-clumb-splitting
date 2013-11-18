@@ -1,0 +1,55 @@
+10
+
+dir
+40275
+https://bimsvn.inf.uni-konstanz.de/repository/bioml/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump
+https://bimsvn.inf.uni-konstanz.de/repository/bioml
+
+
+
+2013-11-15T09:15:39.352892Z
+40273
+schlegel
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+ebd13a19-920f-0410-ad0b-d2b0bd89dd30
+
+boundary
+dir
+
+dist
+dir
+
+graph
+dir
+
+nodes
+dir
+
+ops
+dir
+
+split
+dir
+
+types
+dir
+
+util
+dir
+
+warp
+dir
+

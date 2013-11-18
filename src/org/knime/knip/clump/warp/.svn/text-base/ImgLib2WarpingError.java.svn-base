@@ -1,0 +1,44 @@
+package org.knime.knip.clump.warp;
+
+import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.ops.operation.BinaryOperation;
+import net.imglib2.type.logic.BitType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+
+import org.knime.knip.clump.ops.ConvertToImagePlus;
+
+import trainableSegmentation.metrics.WarpingError;
+import trainableSegmentation.metrics.WarpingResults;
+
+/**
+ * 
+ * @author Schlegel
+ *
+ */
+public class ImgLib2WarpingError
+implements BinaryOperation<Img<BitType>, Img<BitType>, Img<UnsignedByteType>> {
+
+	@Override
+	public Img<UnsignedByteType> compute(Img<BitType> inputA, Img<BitType> inputB,
+			Img<UnsignedByteType> output) {
+		WarpingError we = new WarpingError(
+				new ConvertToImagePlus<BitType>().compute(inputA, null),
+				new ConvertToImagePlus<BitType>().compute(inputB, null));
+		WarpingResults wr = we.getWarpingResults(0.1d, false, true, 3);
+		output = new ImagePlusAdapter<UnsignedByteType>( 
+				wr.classifiedMismatches,
+				new ArrayImgFactory<UnsignedByteType>(),
+				new UnsignedByteType()).copy();
+		
+		return output;
+		
+		
+	}
+
+	@Override
+	public BinaryOperation<Img<BitType>, Img<BitType>, Img<UnsignedByteType>> copy() {
+		return new ImgLib2WarpingError();
+	}
+
+}

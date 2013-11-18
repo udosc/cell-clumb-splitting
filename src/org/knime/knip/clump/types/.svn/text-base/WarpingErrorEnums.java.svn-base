@@ -1,0 +1,31 @@
+package org.knime.knip.clump.types;
+
+public enum WarpingErrorEnums {
+	
+	MERGE( 1 ),
+	SPLIT( 2 ),
+	HOLE_ADDITION( 4 ),
+	OBJECT_DELETION( 8 ),
+	OBJECT_ADDITION( 16 ),
+	HOLE_DELETION( 32 ),
+	DEFAUKT_FLAGS( 63 );
+	
+	private int m_value;
+	
+	WarpingErrorEnums(int value){
+		m_value = value;
+	}
+	
+	public int getValue(){
+		return m_value;
+	}
+	
+	public static WarpingErrorEnums getWarpingErrorEnum(int flag){
+		for(WarpingErrorEnums e: WarpingErrorEnums.values()){
+			if( e.getValue() == flag )
+				return e;
+		}
+		return DEFAUKT_FLAGS;
+	}
+
+}

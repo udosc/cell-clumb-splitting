@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repository/bioml/!svn/ver/40273/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/dist
+END
+DFTDistance.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repository/bioml/!svn/ver/40262/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/dist/DFTDistance.java
+END
+ShapeDistance.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repository/bioml/!svn/ver/40262/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/dist/ShapeDistance.java
+END
+ComplexDistance.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repository/bioml/!svn/ver/40262/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/dist/ComplexDistance.java
+END
+CrossCorrelationSimilarity.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repository/bioml/!svn/ver/40273/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/dist/CrossCorrelationSimilarity.java
+END

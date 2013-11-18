@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repository/bioml/!svn/ver/39985/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature
+END
+CurvatureNodeFactory.xml
+K 25
+svn:wc:ra_dav:version-url
+V 149
+/repository/bioml/!svn/ver/38976/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/CurvatureNodeFactory.xml
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repository/bioml/!svn/ver/38976/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/package.html
+END
+CurvatureNodeDialog.java
+K 25
+svn:wc:ra_dav:version-url
+V 149
+/repository/bioml/!svn/ver/39727/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/CurvatureNodeDialog.java
+END
+CurvatureNodeFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 150
+/repository/bioml/!svn/ver/38976/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/CurvatureNodeFactory.java
+END
+CurvatureNodeModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 148
+/repository/bioml/!svn/ver/40290/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/CurvatureNodeModel.java
+END
+CurvatureNodeView.java
+K 25
+svn:wc:ra_dav:version-url
+V 147
+/repository/bioml/!svn/ver/38976/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/CurvatureNodeView.java
+END
+CurvatureNodePlugin.java
+K 25
+svn:wc:ra_dav:version-url
+V 149
+/repository/bioml/!svn/ver/38976/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/CurvatureNodePlugin.java
+END
+default.png
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repository/bioml/!svn/ver/38976/trunk/projects/de.unikn.knime.stud.schlegel/master/src/org/knime/knip/clump/nodes/curvature/default.png
+END

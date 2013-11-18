@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repository/bioml/!svn/ver/40201/trunk/projects/de.unikn.knime.stud.schlegel/master/test/org/knime/knip/ops
+END
+BoundaryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repository/bioml/!svn/ver/38746/trunk/projects/de.unikn.knime.stud.schlegel/master/test/org/knime/knip/ops/BoundaryTest.java
+END
+DTWTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repository/bioml/!svn/ver/39058/trunk/projects/de.unikn.knime.stud.schlegel/master/test/org/knime/knip/ops/DTWTest.java
+END
+DistanceTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repository/bioml/!svn/ver/39227/trunk/projects/de.unikn.knime.stud.schlegel/master/test/org/knime/knip/ops/DistanceTest.java
+END
+AngleTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repository/bioml/!svn/ver/38934/trunk/projects/de.unikn.knime.stud.schlegel/master/test/org/knime/knip/ops/AngleTest.java
+END
+CrossCorrelationOpsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repository/bioml/!svn/ver/40276/trunk/projects/de.unikn.knime.stud.schlegel/master/test/org/knime/knip/ops/CrossCorrelationOpsTest.java
+END
