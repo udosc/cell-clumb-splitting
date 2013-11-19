@@ -2,6 +2,7 @@ package org.knime.knip.clump.nodes;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,113 +14,88 @@ import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
+import org.knime.core.node.defaultnodesettings.SettingsModelNumber;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.util.Pair;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
+import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.exceptions.KNIPException;
+import org.knime.knip.base.node.NodeTools;
 import org.knime.knip.base.node.TwoValuesToCellNodeDialog;
 import org.knime.knip.base.node.TwoValuesToCellNodeFactory;
 import org.knime.knip.base.node.TwoValuesToCellNodeModel;
 import org.knime.knip.clump.types.WarpingErrorEnums;
+import org.knime.knip.clump.warp.ClusterWarpingErrors;
 import org.knime.knip.clump.warp.ImgLib2WarpingError;
 import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
 import org.knime.knip.core.data.img.DefaultLabelingMetadata;
 import org.knime.knip.core.util.ImgUtils;
 
+/**
+ * 
+ * @author Schlegel
+ *
+ */
 public class WarpingErrorFactory 
 extends TwoValuesToCellNodeFactory<ImgPlusValue<BitType>, ImgPlusValue<BitType>>{
-
+	
+	private final SettingsModelInteger m_smSize = 
+			createSizeSettingsModel();
+	
+//	private final SettingsModelString m_smGTIndex = 
+//			new SettingsModelString("Ground truth", "");
+//	
+//	private final SettingsModelString m_smRefIndex =
+//			new SettingsModelString("Reference", "");
+	
+	protected static SettingsModelInteger createSizeSettingsModel(){
+		return new SettingsModelInteger("Sigma: ", 1);
+	}
+			
 	@Override
 	protected TwoValuesToCellNodeDialog<ImgPlusValue<BitType>, ImgPlusValue<BitType>> createNodeDialog() {
 		return new TwoValuesToCellNodeDialog<ImgPlusValue<BitType>, ImgPlusValue<BitType>>() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void addDialogComponents() {
-				// TODO Auto-generated method stub
-				
+		        addDialogComponent("Options", "Labeling",
+		        		new DialogComponentNumber( m_smSize,
+                                "Minimum size ", 1));
+		        
+//		        addDialogComponent("Options", "Columns",
+//                        new DialogComponentColumnNameSelection(m_smGTIndex,
+//                                "Ground truth", 1, true, ImgPlusValue.class));
+//		        
+//		        addDialogComponent("Options", "Columns",
+//                        new DialogComponentColumnNameSelection(m_smRefIndex,
+//                                "Reference", 1, true, ImgPlusValue.class));
 			}
 		};
 	}
 
 	@Override
 	public TwoValuesToCellNodeModel<ImgPlusValue<BitType>, ImgPlusValue<BitType>, LabelingCell<String>> createNodeModel() {
-		return new TwoValuesToCellNodeModel<ImgPlusValue<BitType>, ImgPlusValue<BitType>, LabelingCell<String>>() {
-
-			private LabelingCellFactory m_imgCellFactory;
-			
-			@Override
-			protected void addSettingsModels(List<SettingsModel> settingsModels) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			protected LabelingCell<String> compute(ImgPlusValue<BitType> cellValue1,
-					ImgPlusValue<BitType> cellValue2) throws Exception {
-				
-				Img<BitType> img1 = cellValue1.getImgPlus();
-				Img<BitType> img2 = cellValue2.getImgPlus();
-				
-				if ( !img1.iterationOrder().equals( img2.iterationOrder()))
-					throw new KNIPException(
-							WarpingErrorFactory.class.getCanonicalName() + 
-							": Dimenssion of the images have to be equals");
-				
-				ImgLib2WarpingError we = new ImgLib2WarpingError( 
-						WarpingErrorEnums.MERGE,
-						WarpingErrorEnums.SPLIT);
-				
-				Img<UnsignedByteType> res = we.compute(
-						img1, 
-						img2, 
-						ImgUtils.createEmptyCopy(img1, new UnsignedByteType()));
-				
-				for(WarpingErrorEnums e: we.getErrors()){
-					System.out.println( e.name() + ": " + e.getNumberOfErrors());
-				}
-				
-				
-				Labeling<String> out = new NativeImgLabeling<String, UnsignedByteType>(
-						ImgUtils.createEmptyCopy(res));
-				
-				Cursor<UnsignedByteType> cImg = res.cursor();
-				Cursor<LabelingType<String>> cLabel = out.cursor();
-				final Map<Integer, List<String>> labels = new HashMap<Integer, List<String>>(16);
-				List<String> name;
-				while( cImg.hasNext() ){
-					cImg.fwd();
-					cLabel.fwd();
-					if( cImg.get().get() == 0){
-//						System.out.println( cImg.get().get() );
-						continue;
-					}
-                    if ((name = labels.get(cImg.get().get())) == null) {
-
-                        final List<String> tmp = Arrays.asList( 
-                        		WarpingErrorEnums.getWarpingErrorEnum( cImg.get().getInteger()).name());
-                        labels.put(cImg.get().get(), tmp);
-                        name = cLabel.get().getMapping().intern(tmp);
-
-                    }
-                    cLabel.get().setLabeling(name);
-				}
-						
-				
-				
-				return m_imgCellFactory.createCell(out, 
-						new DefaultLabelingMetadata(cellValue1.getMetadata(), cellValue1
-                                .getMetadata(), cellValue1.getMetadata(),
-                                new DefaultLabelingColorTable()));
-				
-			}
-			
-            @Override
-            protected void prepareExecute(final ExecutionContext exec) {
-                m_imgCellFactory = new LabelingCellFactory(exec);
-            }
-		};
+		return new WarpingErrorModel();
 	}
 
 }

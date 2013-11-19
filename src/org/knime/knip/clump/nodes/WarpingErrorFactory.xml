@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="" type="Manipulator">
+<knimeNode icon="./warping.png" type="Manipulator">
 	<name>Warping Error</name>
 
 	<shortDescription>
@@ -17,6 +17,7 @@
 	<ports>
 		<inPort index="0" name="Images">Images</inPort>
 		<outPort index="0" name="Images">Images</outPort>
+		<outPort index="1" name="Statistics">Statistics</outPort>
 
 	</ports>
 

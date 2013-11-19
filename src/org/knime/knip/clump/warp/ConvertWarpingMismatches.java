@@ -5,6 +5,11 @@ import org.knime.knip.clump.types.WarpingErrorEnums;
 import trainableSegmentation.metrics.ClusteredWarpingMismatches;
 import net.imglib2.ops.operation.UnaryOperation;
 
+/**
+ * 
+ * @author Schlegel
+ *
+ */
 public class ConvertWarpingMismatches 
 	implements UnaryOperation<ClusteredWarpingMismatches, WarpingErrorEnums[]> {
 
