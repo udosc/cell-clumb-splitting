@@ -29,26 +29,19 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 	implements ShapeDescription<T>{
 	
 	private final List<T> m_curvature;
-	
-	private final Img<T> m_img;
-	
+		
 	private final Contour m_contour;
+	
+	private Img<T> m_img;
 		
 	
-	public Curvature(Contour contour, int order, T type, double sigma, ExecutorService exectutor){
-		
-		Img<T> res = 
-				new ArrayImgFactory<T>().create(new long[]{ contour.length(), 1 }, type);
-		
+	public Curvature(Contour contour, int order, T type){
 		m_contour = contour;
 		m_curvature = new ArrayList<T>( contour.length());
-		m_img = ImgUtils.createEmptyCopy(res);
+		m_img = new ArrayImgFactory<T>().create(new long[]{ contour.length(), 1 }, type);
 		
 		
-		Cursor<T> c = res.cursor();
-		
-		Img<T> temp = calc(5);
-		Cursor<T> cTemp = temp.cursor();
+		Cursor<T> c = m_img.cursor();
 		
 		for(int i = 0; i < contour.length(); i++){
 			T t = type.createVariable();
@@ -58,14 +51,18 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 			c.next().set(t);
 		}
 		
-		
+	}
+	
+	
+	public Img<T> gaussian(double sigma, ExecutorService exectutor){
 		//Gaussion fitering to remove noise
-
+		Img<T> res = ImgUtils.createEmptyCopy(m_img);
 		new GaussNativeTypeOp<T, RandomAccessibleInterval<T>>(exectutor, 
 				new double[]{ sigma, 0.0d}, 
 				new OutOfBoundsMirrorFactory<T, RandomAccessibleInterval<T>>(OutOfBoundsMirrorFactory.Boundary.DOUBLE))
-				.compute(res, m_img);
-
+				.compute(m_img, res);
+		m_img = res;
+		return m_img;
 	}
 	
 	private double curvature(int position, int order){
@@ -227,9 +224,8 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 	public int getSize() {
 		return m_contour.length();
 	}
-	
-	public Iterator<T> iterator(){
-		return m_img.iterator();
-	}
 
+	public List<T> getCurvature(){
+		return m_curvature;
+	}
 }

@@ -92,9 +92,7 @@ public class MyCurvatureNode<L extends Comparable<L>>
 					Curvature<DoubleType> curv = new Curvature<DoubleType>(
 							contour, 
 							5, 
-							new DoubleType(), 
-							0.0d,
-							this.getExecutorService());
+							new DoubleType());
 					System.out.println("Printing label: " + i);
 					curv.print(ra);
 				}

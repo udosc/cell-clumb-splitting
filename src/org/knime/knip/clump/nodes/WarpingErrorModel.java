@@ -52,6 +52,8 @@ public class WarpingErrorModel
 
 	private List<Pair<String, WarpingErrorEnums[]>> m_missMatches;
 	
+	private double m_warpingError;
+	
 	public WarpingErrorModel(){
 		super( null, new PortType[]{BufferedDataTable.TYPE} );
 	}
@@ -100,10 +102,14 @@ public class WarpingErrorModel
 				WarpingErrorEnums.MERGE,
 				WarpingErrorEnums.SPLIT);
 		
+		
+		
 		Img<UnsignedByteType> res = we.compute(
 				refImg, 
 				groundTruth, 
 				ImgUtils.createEmptyCopy(refImg, new UnsignedByteType()));
+		m_warpingError = we.getWarpingError();
+		
 		
 		Labeling<String> out = new NativeImgLabeling<String, UnsignedByteType>(
 				ImgUtils.createEmptyCopy(res));
@@ -153,10 +159,12 @@ public class WarpingErrorModel
     	PortObject[] res = super.execute(inObjects, exec);
 		WarpingErrorEnums[] first =  m_missMatches.size() > 0 ? m_missMatches.get(0).getSecond() :
 			WarpingErrorEnums.values();
-    	DataColumnSpec[] dataSpec = new DataColumnSpec[  first.length ];
-        for(int i = 0; i < dataSpec.length; i++)
+    	DataColumnSpec[] dataSpec = new DataColumnSpec[  first.length + 1];
+    	dataSpec[0] = new DataColumnSpecCreator("Warping Error", DoubleCell.TYPE).createSpec();
+        for(int i = 1; i < dataSpec.length; i++)
         	dataSpec[i] = 
-        		new DataColumnSpecCreator(first[i].name(), DoubleCell.TYPE).createSpec();
+        		new DataColumnSpecCreator(first[i-1].name(), DoubleCell.TYPE).createSpec();
+        
         
         BufferedDataContainer container = exec.createDataContainer( 
     			new DataTableSpec( dataSpec ));
@@ -164,8 +172,9 @@ public class WarpingErrorModel
         
         for(Pair<String, WarpingErrorEnums[]> pair: m_missMatches){
         	final DataCell[] cells = new DataCell[ dataSpec.length ];
-        	for(int i = 0; i < dataSpec.length; i++)
-        		cells[i] = new DoubleCell( pair.getSecond()[i].getNumberOfErrors() );
+        	cells[0] = new DoubleCell( m_warpingError * 100000);
+        	for(int i = 1; i < dataSpec.length; i++)
+        		cells[i] = new DoubleCell( pair.getSecond()[i-1].getNumberOfErrors() );
         	container.addRowToTable( new DefaultRow( new RowKey(pair.getFirst()), cells) );
         }
         

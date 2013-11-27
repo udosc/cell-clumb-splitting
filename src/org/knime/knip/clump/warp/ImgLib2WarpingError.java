@@ -25,6 +25,8 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<UnsignedByteType>> {
 	
 	private WarpingErrorEnums[] m_errors;
 	
+	private double m_warpingError;
+	
 	public ImgLib2WarpingError(WarpingErrorEnums... enums){
 		m_errors = enums;
 	}
@@ -48,8 +50,9 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<UnsignedByteType>> {
 		
 
 		
-		WarpingResults wr = we.getWarpingResults(0.1d, true, true, 20);
-
+		final WarpingResults wr = we.getWarpingResults(0.1d, true, true, 100);
+		m_warpingError = wr.warpingError;
+		
 		output = new ImagePlusAdapter<UnsignedByteType>( 
 				wr.classifiedMismatches,
 				new ArrayImgFactory<UnsignedByteType>(),
@@ -76,6 +79,10 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<UnsignedByteType>> {
 	
 	public WarpingErrorEnums[] getErrors(){
 		return m_errors;
+	}
+	
+	public double getWarpingError(){
+		return m_warpingError;
 	}
 
 }

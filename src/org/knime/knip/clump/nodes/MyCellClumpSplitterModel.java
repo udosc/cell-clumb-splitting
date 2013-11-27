@@ -24,7 +24,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.DoubleType;
 
-import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -49,18 +48,14 @@ import org.knime.knip.clump.boundary.BinaryFactory;
 import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.ShapeDescription;
-import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
-import org.knime.knip.clump.dist.DFTDistance;
 import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Floyd;
 import org.knime.knip.clump.graph.Graph;
-import org.knime.knip.clump.graph.Graph2;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureSplit;
 import org.knime.knip.clump.types.DistancesMeasuresEnum;
-import org.knime.knip.core.types.ImgFactoryTypes;
 import org.knime.knip.core.util.ImgUtils;
 
 /**
@@ -180,27 +175,33 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 		
 		Integer i = 0;
 		for(Pair<L, long[]> start: map){
-			Contour c = new BinaryFactory(binaryImg, start.getSecond()).createContour();
+			Contour contour = new BinaryFactory(binaryImg, start.getSecond()).createContour();
 			
 			
-			if( c.length() < 20)
+			if( contour.length() < 20)
 				continue;
 			
 			Curvature<DoubleType> curv = 
-					new Curvature<DoubleType>(c, 5, new DoubleType(), 2.0d, this.getExecutorService());
+					new Curvature<DoubleType>(
+							contour, 
+							5, 
+							new DoubleType());
+			
+			curv.gaussian(m_sigma.getDoubleValue(), 
+							this.getExecutorService() );
 			
 			System.out.println("Processing Label: " + start.getFirst());
-			for(long[] point: c){
+			for(long[] point: contour){
 				ra.setPosition(point);
 //				ra.get().getMapping().intern( Arrays.asList( e.getKey() ));
 				ra.get().setLabel((L) i);
 			}
 			
 			final double mean = new Mean<DoubleType, DoubleType>().
-					compute(curv.iterator(), new DoubleType(0.0d)).getRealDouble();
+					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
 			
 			final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
-					compute(curv.iterator(), new DoubleType(0.0d)).getRealDouble();
+					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
 					
 			
 			System.out.println( mean + std );
@@ -210,7 +211,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 //					m_threshold.getDoubleValue(),
 					mean + std,
 					m_sigma.getDoubleValue()).
-				compute(c, new LinkedList<long[]>());
+				compute(contour, new LinkedList<long[]>());
 			
 			if ( !splittingPoints.isEmpty() ){
 				
@@ -237,8 +238,8 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 				graph.calc(curv, 
 //						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
 //								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
-//								128, 
-//								32), 
+//								256, 
+//								64), 
 //						new CrossCorrelationSimilarity<DoubleType>(),
 						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
 								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
@@ -321,12 +322,12 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 			}
 
             for(Contour contour: cc){
-            	m_templates.add(
-              		new Curvature<DoubleType>(
-              				contour, 
-              				m_smOrder.getIntValue(),new DoubleType(), 
-              				m_sigma.getDoubleValue(),
-              				this.getExecutorService()));
+            	Curvature<DoubleType> curvature = new Curvature<DoubleType>(
+            			contour, 
+          				m_smOrder.getIntValue(),new DoubleType());
+            	curvature.gaussian( m_sigma.getDoubleValue(),
+            			this.getExecutorService());
+            	m_templates.add( curvature );
             }
         }
         

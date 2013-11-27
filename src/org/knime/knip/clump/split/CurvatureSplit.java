@@ -1,11 +1,8 @@
 package org.knime.knip.clump.split;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.imglib2.img.Img;
-import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.LocalMaximaForDistanceMap;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -45,8 +42,9 @@ public class CurvatureSplit<T extends RealType<T> & NativeType<T>, L extends Com
 	public List<long[]> compute(Contour contour, List<long[]> output) {
 		
 		Curvature<DoubleType> c = 
-				new Curvature<DoubleType>(contour, m_order, new DoubleType(), m_sigma, new ThreadPoolExecutorService(
-			            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool(KNIPConstants.THREADS_PER_NODE)));
+				new Curvature<DoubleType>(contour, m_order, new DoubleType());
+		c.gaussian(m_sigma, new ThreadPoolExecutorService(
+	            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool(KNIPConstants.THREADS_PER_NODE)));
 
 		
 		List<long[]> points = new LocalMaximaForDistanceMap<DoubleType>( 
