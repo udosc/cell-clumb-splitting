@@ -7,7 +7,7 @@ import junit.framework.Assert;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.junit.Test;
 import org.knime.knip.clump.dist.MinDistance;
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 
 public class DistanceTest {
 	

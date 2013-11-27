@@ -54,7 +54,7 @@ import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.WatershedFactory;
 import org.knime.knip.clump.ops.FourierShapeDescription;
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
 import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
@@ -138,20 +138,22 @@ public class CurvatureNodeModel<T extends RealType<T> & NativeType<T>, L extends
     							labeling.getArea(label), 
     							new DoubleType()).createContour();
     			
-    			Img<DoubleType> curvature = 
-        				new Curvature<DoubleType>(
+        		Curvature<DoubleType> curvature = new Curvature<DoubleType>(
         						contour, 
         						m_order.getIntValue(), 
-        						new DoubleType(), 
-        						m_sigma.getDoubleValue(),
+        						new DoubleType());
+        		
+        		curvature.gaussian(m_sigma.getDoubleValue(),
         						new ThreadPoolExecutorService(
-        					            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool(KNIPConstants.THREADS_PER_NODE))).getImg();
+        					            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool(KNIPConstants.THREADS_PER_NODE)));
+    			
+        						
         		
-        		List<Double> values = new ArrayList<Double>( (int) curvature.dimension(0) );
+        		List<Double> values = new ArrayList<Double>( (int) curvature.getImg().dimension(0) );
         		
         		
         		
-        		Cursor<DoubleType> c = Views.iterable( curvature ).cursor();
+        		Cursor<DoubleType> c = Views.iterable( curvature.getImg() ).cursor();
         		
         		while( c.hasNext()){
         			values.add( c.next().getRealDouble() );

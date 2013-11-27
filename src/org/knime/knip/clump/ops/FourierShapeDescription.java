@@ -9,7 +9,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
 
@@ -40,7 +40,7 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
 		
 		Complex[] complex = new Complex[ m_numberOfDesc ];
 		
-		final double step = (ClumpUtils.numElements(curvature) - 1.0d)/ (double) m_numberOfDesc ;
+		final double step = (MyUtils.numElements(curvature) - 1.0d)/ (double) m_numberOfDesc ;
 		
 		//Working with 1-dimensional data so fixing dim 1 to 0
 //		rra.setPosition(0, 1);

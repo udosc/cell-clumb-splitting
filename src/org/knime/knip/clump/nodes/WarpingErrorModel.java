@@ -29,6 +29,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.data.img.ImgPlusValue;
@@ -43,6 +44,11 @@ import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
 import org.knime.knip.core.data.img.DefaultLabelingMetadata;
 import org.knime.knip.core.util.ImgUtils;
 
+/**
+ * 
+ * @author Udo
+ *
+ */
 public class WarpingErrorModel 
 	extends TwoValuesToCellNodeModel<ImgPlusValue<BitType>, ImgPlusValue<BitType>, LabelingCell<String>> {
 
@@ -66,21 +72,11 @@ public class WarpingErrorModel
 		
 	}
 	
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-    	DataTableSpec[] res = super.configure(inSpecs);
-    	
-    	
-    	
-    	DataTableSpec[] out = new DataTableSpec[ res.length+ 1];
-    	for(int i = 0; i < res.length; i++){
-    		out[i] = res[i];
-    	}
-    	
-    	out[ res.length ] = null;
-    	
-        return out;
+
+	@Override
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+		final PortObjectSpec firstSpec = super.configure(inSpecs)[0];
+		return new PortObjectSpec[]{firstSpec, null};
     }
 	
 

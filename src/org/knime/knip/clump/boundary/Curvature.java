@@ -16,7 +16,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
 import org.knime.knip.core.util.ImgUtils;
 
@@ -91,7 +91,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 //		
 //		return ( diffPrev/(2*dprev)) + (diffNext/(2*dnext));
 		
-		return  1 - Math.abs(ClumpUtils.calcCos(m_contour.get(position), next, prev) );
+		return  1 - Math.abs(MyUtils.calcCos(m_contour.get(position), next, prev) );
 		
 		
 	}

@@ -16,7 +16,7 @@ import net.imglib2.type.numeric.RealType;
 import org.knime.core.util.Pair;
 import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.dist.ShapeDistance;
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 
 public class Graph2<T extends RealType<T> & NativeType<T>> {
 
@@ -82,8 +82,8 @@ public class Graph2<T extends RealType<T> & NativeType<T>> {
 				
 				final double distance = 
 						dist.getDistanceMeasure().compute( 
-								ClumpUtils.toDoubleArray(p.getFirst()), 
-								ClumpUtils.toDoubleArray(p.getSecond()));
+								MyUtils.toDoubleArray(p.getFirst()), 
+								MyUtils.toDoubleArray(p.getSecond()));
 				
 				d = res.getRealDouble() + w.getRealDouble() ;
 				

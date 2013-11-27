@@ -48,6 +48,7 @@ import org.knime.knip.clump.boundary.BinaryFactory;
 import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.ShapeDescription;
+import org.knime.knip.clump.dist.DynamicTimeWarping;
 import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Floyd;
@@ -78,7 +79,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
     
     private final SettingsModelDouble m_sigma = createSigmaModel();
     
-    private final SettingsModelDouble m_threshold = createThresholdModel();
+//    private final SettingsModelDouble m_threshold = createThresholdModel();
     
     private final SettingsModelDouble m_smFactor = createFactorModel();
     
@@ -126,7 +127,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 		settingsModels.add(m_sigma);
 		settingsModels.add(m_smDistance);
 		settingsModels.add(m_smFactor);
-		settingsModels.add(m_threshold);
+//		settingsModels.add(m_threshold);
 	}
 	
 	@Override
@@ -243,6 +244,8 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 //						new CrossCorrelationSimilarity<DoubleType>(),
 						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
 								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
+//						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
+//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 						m_templates, m_smFactor.getDoubleValue());
 				graph.validate(binaryImg);
 				System.out.println( graph );
@@ -351,5 +354,5 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
     protected void prepareExecute(final ExecutionContext exec) {
         m_labCellFactory = new LabelingCellFactory(exec);
     }
-
+    
 }

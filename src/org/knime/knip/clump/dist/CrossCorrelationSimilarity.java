@@ -12,7 +12,7 @@ import net.imglib2.view.Views;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.algorithm.convolvers.DirectConvolver;
 import org.knime.knip.core.util.ImgUtils;
 

@@ -12,7 +12,7 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.view.Views;
 
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 
 /**
  * 
@@ -141,19 +141,19 @@ public class ShapeBoundary {
 	}
 	
 	public int indefOf(long[] point){
-		return ClumpUtils.indexOf(m_points, point);
+		return MyUtils.indexOf(m_points, point);
 	}
 	
 	public List<long[]> getPointsBetween(long[] start, long[] end){
 	
 		//TODO
 		List<long[]> out = new LinkedList<long[]>();
-		int i = ClumpUtils.indexOf(m_points, start);
+		int i = MyUtils.indexOf(m_points, start);
 		
 		if( i == -1 ) 
 			throw new RuntimeException(start + " not found in the contour!");
 		
-		int j = ClumpUtils.indexOf(m_points, end);
+		int j = MyUtils.indexOf(m_points, end);
 		
 		if ( j == -1 )
 			throw new RuntimeException(end + " not found in the contour!");

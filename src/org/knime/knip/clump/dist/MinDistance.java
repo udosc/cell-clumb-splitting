@@ -8,7 +8,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.knime.knip.clump.util.ClumpUtils;
+import org.knime.knip.clump.util.MyUtils;
 
 /**
  * 
@@ -32,8 +32,8 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 	@Override
 	public T compute(Img<T> inputA, Img<T> inputB, T output) {
 		
-		double[] arrayA = ClumpUtils.toDoubleArray( inputA );
-		double[] arrayB = ClumpUtils.toDoubleArray( inputB );
+		double[] arrayA = MyUtils.toDoubleArray( inputA );
+		double[] arrayB = MyUtils.toDoubleArray( inputB );
 		
 		
 		

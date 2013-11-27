@@ -49,8 +49,8 @@ public class MyCellClumpSplitterFactory<L extends Comparable<L>, T extends RealT
 		        addDialogComponent("Options", "Template", 
 		        		new DialogComponentNumber(MyCellClumpSplitterModel.createSigmaModel(), "Sigma", 0.1d));
 		        
-		        addDialogComponent("Options", "Template", 
-		        		new DialogComponentNumber(MyCellClumpSplitterModel.createThresholdModel(), "Threshold", 0.2d));
+//		        addDialogComponent("Options", "Template", 
+//		        		new DialogComponentNumber(MyCellClumpSplitterModel.createThresholdModel(), "Threshold", 0.2d));
 		        
 		        addDialogComponent("Options", "Factor", 
 		        		new DialogComponentNumber(MyCellClumpSplitterModel.createFactorModel(), "Factor: ", 0.1d));
