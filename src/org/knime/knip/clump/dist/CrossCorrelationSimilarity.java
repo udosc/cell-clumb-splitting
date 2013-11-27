@@ -12,6 +12,7 @@ import net.imglib2.view.Views;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
+import org.knime.knip.clump.util.ClumpUtils;
 import org.knime.knip.core.algorithm.convolvers.DirectConvolver;
 import org.knime.knip.core.util.ImgUtils;
 
@@ -31,6 +32,14 @@ public class CrossCorrelationSimilarity<T extends RealType<T> & NativeType<T>>
 			Img<T> sample, T output) {
 		final Img<T> res = ImgUtils.createEmptyCopy(template);
 		
+//		final int size = ClumpUtils.numElements( sample );
+//		Cursor<T> c = sample.cursor();
+//		while( c.hasNext() ){
+//			c.fwd();
+//			c.get().setReal( c.get().getRealDouble() / size );
+//		}
+
+		
 //		final Img<T> normalized = ImgUtils.createEmptyCopy(sample);
 //		final double elements = ClumpUtils.numElements(normalized);
 //		Cursor<T> c = Views.iterable(normalized).cursor();
@@ -46,7 +55,7 @@ public class CrossCorrelationSimilarity<T extends RealType<T> & NativeType<T>>
 				res);
 		
 		new Max<T, T>().compute(res.iterator(), output);
-		output = similarity2Distance(output);
+//		output = similarity2Distance(output);
 		return output;
 	}
 

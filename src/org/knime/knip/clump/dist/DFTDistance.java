@@ -36,8 +36,8 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 	public T compute(Img<T> arg0, Img<T> arg1, T arg2) {
 		UnaryOperation<Img<T>, Complex[]> op = new FourierShapeDescription<T>(m_numberOfDesc);
 		BinaryOperation<Complex, Complex, Double> dist = new ComplexDistance(m_dist);
-		Complex[] fc0 = op.compute(arg0, new Complex[]{});
-		Complex[] fc1 = op.compute(arg1, new Complex[]{});
+		Complex[] fc0 = op.compute(arg0, new Complex[m_numberOfDesc]);
+		Complex[] fc1 = op.compute(arg1, new Complex[m_numberOfDesc]);
 		double res = 0.0d;
 		for(int i = 0; i < m_usedDesc; i++){
 			res += dist.compute(fc0[i], fc1[i], new Double(0.0d));

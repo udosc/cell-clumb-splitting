@@ -42,7 +42,7 @@ import org.knime.core.util.Pair;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
 import org.knime.knip.base.data.labeling.LabelingValue;
-import org.knime.knip.base.node.NodeTools;
+import org.knime.knip.base.node.NodeUtils;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.nodes.filter.convolver.ConvolverNodeModel;
 import org.knime.knip.clump.boundary.BinaryFactory;
@@ -51,10 +51,13 @@ import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
 import org.knime.knip.clump.dist.DFTDistance;
+import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Floyd;
 import org.knime.knip.clump.graph.Graph;
+import org.knime.knip.clump.graph.Graph2;
 import org.knime.knip.clump.ops.FindStartingPoint;
+import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureSplit;
 import org.knime.knip.clump.types.DistancesMeasuresEnum;
 import org.knime.knip.core.types.ImgFactoryTypes;
@@ -138,7 +141,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
         }
         if ((m_templateIndex == -1) && (inSpecs[1] != null)) {
             if ((m_templateIndex =
-                    NodeTools.autoOptionalColumnSelection((DataTableSpec)inSpecs[1], m_smTemplateColumn,
+            		NodeUtils.autoOptionalColumnSelection((DataTableSpec)inSpecs[1], m_smTemplateColumn,
                                                           LabelingValue.class)) >= 0) {
                 setWarningMessage("Auto-configure Column: " + m_smTemplateColumn.getStringValue());
             } else {
@@ -193,29 +196,55 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 				ra.get().setLabel((L) i);
 			}
 			
-			final double threshold = new Mean<DoubleType, DoubleType>().
+			final double mean = new Mean<DoubleType, DoubleType>().
 					compute(curv.iterator(), new DoubleType(0.0d)).getRealDouble();
 			
-			System.out.println( threshold );
+			final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
+					compute(curv.iterator(), new DoubleType(0.0d)).getRealDouble();
+					
+			
+			System.out.println( mean + std );
 			
 			//Finding the possible splitting points
-			Collection<long[]> splittingPoints  = new CurvatureSplit<T, L>(m_smOrder.getIntValue(),
+			List<long[]> splittingPoints  = new CurvatureSplit<T, L>(m_smOrder.getIntValue(),
 //					m_threshold.getDoubleValue(),
-					threshold,
+					mean + std,
 					m_sigma.getDoubleValue()).
 				compute(c, new LinkedList<long[]>());
 			
 			if ( !splittingPoints.isEmpty() ){
+				
+//				Graph2<DoubleType> gg = new Graph2<DoubleType>(curv, splittingPoints, binaryImg);
+//				
+//				Pair<long[], long[]> pair = gg.calc(
+////						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
+////								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
+////								128, 
+////								64), 
+////						new CrossCorrelationSimilarity<DoubleType>(),
+//						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
+//							Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
+//								m_templates, m_smFactor.getDoubleValue());
+//				
+//				if ( pair != null)
+//					draw(raBinaryImg, pair.getFirst(), pair.getSecond(), new BitType(false));
+//				
+////				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
+//				for(long[] p: splittingPoints){
+//					System.out.println( p[0] + ", "  + p[1]);
+//				}
 				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
 				graph.calc(curv, 
 //						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
 //								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
-//								256, 
+//								128, 
 //								32), 
-						new CrossCorrelationSimilarity<DoubleType>(),
+//						new CrossCorrelationSimilarity<DoubleType>(),
+						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
+								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 						m_templates, m_smFactor.getDoubleValue());
 				graph.validate(binaryImg);
-				
+				System.out.println( graph );
 				//Drawing the path
 				for(Edge edge: new Floyd<L, DoubleType>( graph ).getMinPath()){
 //					draw(ra, edge, (L)new Integer(1338));
@@ -248,6 +277,14 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 		}
 	}
 	
+	private void draw(RandomAccess<BitType> ra, long[] p1, long[] p2, BitType value) {
+		Cursor<BitType> cursor = 
+				new BresenhamLine<BitType>(ra, new Point(p1), new Point(p2));
+		while( cursor.hasNext() ){
+			cursor.next().set( value.get() );
+		}
+	}
+	
 	private void draw(RandomAccess<BitType> ra, Edge edge, BitType value) {
 		Point r1 = new Point(edge.getSource().getPosition());
 		Point r2 = new Point(edge.getDestination().getPosition());
@@ -270,9 +307,6 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
             
             List<Contour> cc = new LinkedList<Contour>();
             Labeling<L> labeling = ((LabelingValue<L>)row.getCell( m_templateIndex )).getLabeling();
-            
-//            final long[] dim = new long[ labeling.numDimensions() ];
-//            labeling.dimensions(dim);
             
 			Collection<Pair<L, long[]>> startPoints = new FindStartingPoint<L>().compute(
 					labeling, 

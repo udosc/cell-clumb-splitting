@@ -15,7 +15,7 @@ import org.knime.knip.core.data.algebra.Complex;
 
 /**
  * 
- * @author Udo Schlegel
+ * @author Schlegel
  *
  * @param <T>
  */
@@ -52,14 +52,14 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
         final Complex[] transformed = InplaceFFT.fft( complex );
         final double dcMagnitude = transformed[0].getMagnitude();
                 
-        out = new Complex[ transformed.length / 2 ];
+//        out = new Complex[ transformed.length / 2 ];
         for (int t = 1; t < transformed.length / 2; t++) {
             out[t - 1] = 
             		new Complex(transformed[t].re() / dcMagnitude, transformed[t].im() / dcMagnitude);
 //            System.out.println(t-1 + ": " + out[t - 1]);
         }
 		
-        return transformed;
+        return out;
         
 //		Complex[] descriptor = new Complex[256];
 //		int n = 0;

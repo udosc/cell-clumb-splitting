@@ -8,15 +8,20 @@ import net.imglib2.type.numeric.RealType;
 
 public class StandardDeviation<T extends RealType<T>, V extends RealType<V>>
 	implements UnaryOperation<Iterator<T>, V>{
+	
+	private final double m_mean;
+	
+	public StandardDeviation(double mean){
+		m_mean = mean;
+	}
 
 	@Override
 	public V compute(Iterator<T> op, V res) {
-		double mean = new Mean<T, V>().compute(op, res.createVariable()).getRealDouble();
 		double variance = 0.0d;
 		int i = 0;
         while( op.hasNext() ){
         	double tmp = op.next().getRealDouble();
-            variance += (mean - tmp) * (mean - tmp);
+            variance += (m_mean - tmp) * (m_mean - tmp);
             i++;
         }
         res.setReal( Math.sqrt( variance / i));
@@ -25,7 +30,7 @@ public class StandardDeviation<T extends RealType<T>, V extends RealType<V>>
 
 	@Override
 	public UnaryOperation<Iterator<T>, V> copy() {
-		return new StandardDeviation<T, V>();
+		return new StandardDeviation<T, V>(m_mean);
 	}
 
 }

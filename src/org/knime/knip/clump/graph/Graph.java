@@ -28,17 +28,17 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 	
 	private List<Node> m_nodes;
 	
-	public Graph(Collection<long[]> nodes){
-		m_weights = new Double[nodes.size()][];
-		m_nodes = new ArrayList<Node>( nodes.size() );
+	public Graph(Collection<long[]> splittingPoints){
+		m_weights = new Double[splittingPoints.size()][];
+		m_nodes = new ArrayList<Node>( splittingPoints.size() );
 		int i = 0;
-		for(long[] point: nodes){
+		for(long[] point: splittingPoints){
 			m_nodes.add(i, new Node(i, point));
-			m_weights[i++] = new Double[nodes.size()];
+			m_weights[i++] = new Double[splittingPoints.size()];
 		}
 	}
 	
-	public void calc(ShapeDescription<T> shape, 
+	public void calc(ShapeDescription<T> clump, 
 			ShapeDistance<T> dist, Collection<ShapeDescription<T>> templates, double factor){
 		
 		double[] minDist = new double[m_weights.length];
@@ -52,10 +52,10 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 					final long[] start = m_nodes.get(i).getPosition();
 					final long[] end   = m_nodes.get(j).getPosition();
 					Img<T> boundary = 
-							shape.getValues(start, end);
-					T w = shape.getType().createVariable();
+							clump.getValues(start, end);
+					T w = clump.getType().createVariable();
 					
-					if ( boundary.dimension(0) < 2 || boundary.dimension(0) > template.getSize() * 1.2d ){
+					if ( boundary.dimension(0) < 2  ){
 						
 						w.setReal(Double.MAX_VALUE);
 						
@@ -65,7 +65,10 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 								boundary, 
 								w);
 						
-						w.mul( boundary.dimension(0) / (double)shape.getSize() );
+						
+						w.mul( boundary.dimension(0) / (double)clump.getSize() );
+						System.out.println( i + ", " + j + ": " + w.getRealDouble() );
+						
 						
 						final double distance = 
 							dist.getDistanceMeasure().compute( 
@@ -95,8 +98,8 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		}
 	}
 	
-	public void validate(Img<BitType> labeling){
-		RandomAccess<BitType> ra = labeling.randomAccess();
+	public void validate(Img<BitType> img){
+		RandomAccess<BitType> ra = img.randomAccess();
 		for(int i=0; i < m_weights.length;i++){
 			for(int j=0; j < m_weights[i].length; j++){
 				Cursor<BitType> cursor = 
@@ -127,6 +130,19 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 	
 	public Edge getEdge(int source, int destination){
 		return new Edge(m_nodes.get(source), m_nodes.get(destination), m_weights[source][destination]);
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		for(Double[] dd: m_weights){
+			for(Double d: dd){
+				sb.append(d == Double.MAX_VALUE ? "-" : d);
+				sb.append( ", ");
+			}
+			sb.append("\r");
+		}
+		return sb.toString();
 	}
 
 	public static double calcPath(Collection<Edge> path){

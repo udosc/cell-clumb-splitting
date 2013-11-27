@@ -14,7 +14,7 @@ import net.imglib2.type.logic.BitType;
 
 /**
  * 
- * @author Udo
+ * @author Schlegel
  *
  * @param <L>
  */

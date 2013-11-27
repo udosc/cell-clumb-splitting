@@ -12,7 +12,7 @@ import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.types.DistancesMeasuresEnum;
-import org.knime.knip.core.util.EnumListProvider;
+import org.knime.knip.core.util.EnumUtils;
 
 /**
  * 
@@ -57,7 +57,7 @@ public class MyCellClumpSplitterFactory<L extends Comparable<L>, T extends RealT
 		        
 		        addDialogComponent("Options", "Distance",  
 		        		new DialogComponentStringSelection(MyCellClumpSplitterModel.createDistancesModel(), 
-		        				"Distace", EnumListProvider.getStringList(DistancesMeasuresEnum.values())));
+		        				"Distace", EnumUtils.getStringListFromToString(DistancesMeasuresEnum.values())));
 				
 			}
 		};

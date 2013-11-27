@@ -53,6 +53,7 @@ import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.WatershedFactory;
+import org.knime.knip.clump.ops.FourierShapeDescription;
 import org.knime.knip.clump.util.ClumpUtils;
 import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
@@ -132,63 +133,73 @@ public class CurvatureNodeModel<T extends RealType<T> & NativeType<T>, L extends
     			
     			
     			Contour contour = 
-    					new WatershedFactory<T, L>(
+    					new WatershedFactory<DoubleType, L>(
     							labeling.getIterableRegionOfInterest(label), 
     							labeling.getArea(label), 
-    							(T) new DoubleType()).createContour();
+    							new DoubleType()).createContour();
     			
-    			Img<T> curvature = 
-        				new Curvature<T>(
+    			Img<DoubleType> curvature = 
+        				new Curvature<DoubleType>(
         						contour, 
         						m_order.getIntValue(), 
-        						(T)new DoubleType(), 
+        						new DoubleType(), 
         						m_sigma.getDoubleValue(),
         						new ThreadPoolExecutorService(
         					            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool(KNIPConstants.THREADS_PER_NODE))).getImg();
         		
         		List<Double> values = new ArrayList<Double>( (int) curvature.dimension(0) );
         		
-        		Cursor<T> c = Views.iterable( curvature ).cursor();
-       
         		
-        		Complex[] complex = new Complex[ 256 ];
-        		Complex[] descriptor = new Complex[256];
-        		int n = 0;
-        		while( c.hasNext() ){
-        			final double res = c.next().getRealDouble();
-        			values.add( res );
-        			complex[n++] = new Complex( res, 0);
+        		
+        		Cursor<DoubleType> c = Views.iterable( curvature ).cursor();
+        		
+        		while( c.hasNext()){
+        			values.add( c.next().getRealDouble() );
         		}
-        		
-        		for(int i = n; i < 256; i++)
-        			complex[i] = new Complex(0,0);
-        		
-	            Complex[] transformed = InplaceFFT.fft( complex );
-	            double dcMagnitude = transformed[0].getMagnitude();
-//	            dcMagnitude = 1.0d;
-	            
-	            for (int t = 1; t < (transformed.length / 2); t++) {
-	                descriptor[t - 1] = 
-	                		new Complex(transformed[t].re() / dcMagnitude, transformed[t].im() / dcMagnitude);
-	                System.out.println(t-1 + ": " + descriptor[t - 1]);
-	            }
-        		
-	            Complex[] nDescriptor = new Complex[256];
-	            nDescriptor[0] = new Complex(0.0d, 0.0d);
-	            for(int i = 0; i < 256; i++){
-	            	nDescriptor[i] = i < 32 ? transformed[i] : new Complex(0,0);
-	            }
-	            transformed = InplaceFFT.ifft(nDescriptor);
-	            
-	            List<Double> fftvalues = new ArrayList<Double>( (int) curvature.dimension(0) );
-	            for(int i = 0; i < (int) curvature.dimension(0); i++){
-	            	fftvalues.add(i, transformed[i].re() );
-	            }
-	           
         		m_data.add( values );
-        		m_data.add( fftvalues );
-//        		Complex[] re = InplaceFFT.ifft(x);
+//       
+//        		
+//        		Complex[] complex = new Complex[ 256 ];
+//        		Complex[] descriptor = new Complex[256];
+//        		int n = 0;
+//        		while( c.hasNext() ){
+//        			final double res = c.next().getRealDouble();
+//        			values.add( res );
+//        			complex[n++] = new Complex( res, 0);
+//        		}
+//        		
+//        		for(int i = n; i < 256; i++)
+//        			complex[i] = new Complex(0,0);
+//        		
+//	            Complex[] transformed = InplaceFFT.fft( complex );
+//	            double dcMagnitude = transformed[0].getMagnitude();
+////	            dcMagnitude = 1.0d;
+//	            
+//	            for (int t = 1; t < (transformed.length / 2); t++) {
+//	                descriptor[t - 1] = 
+//	                		new Complex(transformed[t].re() / dcMagnitude, transformed[t].im() / dcMagnitude);
+//	                System.out.println(t-1 + ": " + descriptor[t - 1]);
+//	            }
         		
+//	            Complex[] nDescriptor = new FourierShapeDescription<DoubleType>(32).compute(curvature,
+//	            		new Complex[16]);
+//
+//	            for(int i = 0; i < nDescriptor.length; i++){
+//	            	if( nDescriptor[i] == null )
+//	            		nDescriptor[i] = new Complex(0.0d, 0.0d);
+//	            }
+//	            
+//	            Complex[] transformed = InplaceFFT.ifft(nDescriptor);
+//	            
+//	            List<Double> fftvalues = new ArrayList<Double>( (int) curvature.dimension(0) );
+//	            for(int i = 0; i < (int) curvature.dimension(0); i++){
+//	            	fftvalues.add(i, transformed[i].re() );
+//	            }
+//	           
+//        		m_data.add( values );
+//        		m_data.add( fftvalues );
+////        		Complex[] re = InplaceFFT.ifft(x);
+//        		
         		if( values.size() > max )
         			max = values.size();
     		}
