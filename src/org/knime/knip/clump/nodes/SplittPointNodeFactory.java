@@ -17,6 +17,7 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.meta.ImgPlus;
+import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
@@ -47,6 +48,8 @@ import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.WatershedFactory;
 import org.knime.knip.clump.ops.FindStartingPoint;
+import org.knime.knip.clump.ops.StandardDeviation;
+import org.knime.knip.clump.split.CurvatureBasedSplitting;
 import org.knime.knip.clump.split.CurvatureSplit;
 import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
 import org.knime.knip.core.data.img.DefaultLabelingMetadata;
@@ -145,17 +148,35 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 					for(long[] point: c){
 						ra.setPosition(point);
 //						ra.get().getMapping().intern( Arrays.asList( e.getKey() ));
-						ra.get().setLabel((L) i);
+						ra.get().setLabel((L) new Integer(1000));
 					}
 					
-					Collection<long[]> split = new CurvatureSplit<T, L>(7,
-							m_threshold.getDoubleValue(),
-							m_sigma.getDoubleValue()).
-						compute(c, new LinkedList<long[]>());
+					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
 					
-					for(long[] point: split){
+					final double mean = new Mean<DoubleType, DoubleType>().
+							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
+					
+					final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
+							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
+						
+					
+					//Finding the possible splitting points
+//					List<long[]> splittingPoints  = new CurvatureSplit<T>(5,
+////							m_threshold.getDoubleValue(),
+//							mean,
+//							m_sigma.getDoubleValue()).
+//						compute(c, new LinkedList<long[]>());
+					
+					List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
+							mean + std, 
+							10, 
+							new DoubleType(),
+							m_sigma.getDoubleValue()).compute(c, new LinkedList<long[]>());
+					
+					Integer number = 0;
+					for(long[] point: splittingPoints){
 						ra.setPosition(point);
-						ra.get().setLabel( (L) new Integer(1337));
+						ra.get().setLabel( (L) number++);
 					}
 				}
 				

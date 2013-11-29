@@ -42,7 +42,7 @@ public enum WarpingErrorEnums {
 	public static int calculateValue(WarpingErrorEnums... enums){
 		int out = 0x0;
 		for(WarpingErrorEnums e: enums)
-			out &= e.getValue(); 
+			out |= e.getValue(); 
 		return out;
 	}
 }

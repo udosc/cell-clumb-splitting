@@ -1,32 +1,20 @@
 package org.knime.knip.clump.nodes;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
-import net.imglib2.labeling.LabelingFactory;
 import net.imglib2.labeling.LabelingType;
-import net.imglib2.labeling.NativeImgLabeling;
-import net.imglib2.meta.ImgPlus;
-import net.imglib2.ops.operation.SubsetOperations;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.type.logic.BitType;
-import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.util.Pair;
-import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusCellFactory;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;

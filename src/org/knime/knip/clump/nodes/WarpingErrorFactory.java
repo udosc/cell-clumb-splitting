@@ -35,7 +35,6 @@ extends TwoValuesToCellNodeFactory<ImgPlusValue<BitType>, ImgPlusValue<BitType>>
 	protected TwoValuesToCellNodeDialog<ImgPlusValue<BitType>, ImgPlusValue<BitType>> createNodeDialog() {
 		return new TwoValuesToCellNodeDialog<ImgPlusValue<BitType>, ImgPlusValue<BitType>>() {
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public void addDialogComponents() {
 		        addDialogComponent("Options", "Labeling",

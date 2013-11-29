@@ -15,7 +15,10 @@ public class ConvertToImagePlus<T extends RealType<T>>
 	@Override
 	public ImagePlus compute(Img<T> input, ImagePlus output) {
 		return output = new ImagePlus("", 
-				new FloatProcessor((int)input.dimension(0), (int)input.dimension(1), toFloatArray(input)));
+				new FloatProcessor(
+						(int)input.dimension(0), 
+						(int)input.dimension(1), 
+						toFloatArray(input)));
 	}
 
 	@Override
@@ -23,12 +26,7 @@ public class ConvertToImagePlus<T extends RealType<T>>
 		return new ConvertToImagePlus<T>();
 	}
 
-	/** Writes the values of a the first 2 dimensions of a {@link RandomAccessibleInterval} in a float array
-	 * 
-	 * @param input {@link RandomAccessibleInterval} 
-	 * @return Float Array
-	 */
-	public static<T extends RealType<T>> float[] toFloatArray( RandomAccessibleInterval<T> input ){
+	private float[] toFloatArray( RandomAccessibleInterval<T> input ){
 		float[] out = new float[ (int) (input.dimension(0) * input.dimension(1)) ];
 		int i = 0;
 		Cursor<T> cursor = Views.iterable(input).cursor();

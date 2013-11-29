@@ -48,6 +48,8 @@ import org.knime.knip.clump.boundary.BinaryFactory;
 import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.ShapeDescription;
+import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
+import org.knime.knip.clump.dist.DFTDistance;
 import org.knime.knip.clump.dist.DynamicTimeWarping;
 import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.graph.Edge;
@@ -55,6 +57,7 @@ import org.knime.knip.clump.graph.Floyd;
 import org.knime.knip.clump.graph.Graph;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
+import org.knime.knip.clump.split.CurvatureBasedSplitting;
 import org.knime.knip.clump.split.CurvatureSplit;
 import org.knime.knip.clump.types.DistancesMeasuresEnum;
 import org.knime.knip.core.util.ImgUtils;
@@ -188,8 +191,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 							5, 
 							new DoubleType());
 			
-			curv.gaussian(m_sigma.getDoubleValue(), 
-							this.getExecutorService() );
+
 			
 			System.out.println("Processing Label: " + start.getFirst());
 			for(long[] point: contour){
@@ -205,14 +207,17 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
 					
 			
-			System.out.println( mean + std );
+			System.out.println( mean  );
+			
+			curv.gaussian(m_sigma.getDoubleValue(), 
+					this.getExecutorService() );
 			
 			//Finding the possible splitting points
-			List<long[]> splittingPoints  = new CurvatureSplit<T, L>(m_smOrder.getIntValue(),
-//					m_threshold.getDoubleValue(),
-					mean + std,
-					m_sigma.getDoubleValue()).
-				compute(contour, new LinkedList<long[]>());
+			List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
+					mean + std, 
+					10, 
+					new DoubleType(),
+					m_sigma.getDoubleValue()).compute(contour, new LinkedList<long[]>());
 			
 			if ( !splittingPoints.isEmpty() ){
 				
@@ -247,7 +252,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 //						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
 //								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 						m_templates, m_smFactor.getDoubleValue());
-				graph.validate(binaryImg);
+//				graph.validate(binaryImg, 2);
 				System.out.println( graph );
 				//Drawing the path
 				for(Edge edge: new Floyd<L, DoubleType>( graph ).getMinPath()){
@@ -258,8 +263,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 			
 		}
 		
-		new CCA<BitType>(AbstractRegionGrowing
-                        .get4ConStructuringElement(2), 
+		new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
                         new BitType(false) ).compute(binaryImg, lab);
 
 		return 

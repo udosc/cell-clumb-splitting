@@ -13,7 +13,7 @@ import org.knime.knip.clump.boundary.Contour;
  *
  * @param <L>
  */
-public interface SplittingPoints<T extends RealType<T>, L extends Comparable<L>> 
+public interface SplittingPoints<T extends RealType<T>> 
 	extends UnaryOperation<Contour, List<long[]>> {
 
 }

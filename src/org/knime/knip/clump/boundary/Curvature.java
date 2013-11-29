@@ -26,7 +26,7 @@ import org.knime.knip.core.util.ImgUtils;
  *
  */
 public class Curvature<T extends RealType<T> & NativeType<T>>
-	implements ShapeDescription<T>{
+	implements ShapeDescription<T>, Iterable<T>{
 	
 	private final List<T> m_curvature;
 		
@@ -225,7 +225,17 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		return m_contour.length();
 	}
 
-	public List<T> getCurvature(){
-		return m_curvature;
+	public T getCurvature(int pos){
+		if( pos >= m_curvature.size() )
+			pos %= m_curvature.size();
+		if ( pos < 0 )
+			pos = m_curvature.size() + pos - 1;
+		return m_curvature.get( pos );
+	}
+
+
+	@Override
+	public Iterator<T> iterator() {
+		return m_curvature.iterator();
 	}
 }

@@ -40,7 +40,8 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 //		out.setReal( 1.0d / Math.min(arrayA.length, arrayB.length) );
 		
 		if( arrayA.length == arrayB.length ){
-			output.setReal( m_dist.compute(arrayA, arrayB) );
+			//output.setReal( m_dist.compute(arrayA, arrayB) );
+			output.setReal( dist(arrayA, arrayB) );
 			return output;
 		}
 		

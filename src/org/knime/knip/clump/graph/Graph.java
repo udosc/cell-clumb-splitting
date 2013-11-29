@@ -24,6 +24,8 @@ import org.knime.knip.clump.util.MyUtils;
  */
 public class Graph<T extends RealType<T> & NativeType<T>> {
 	
+	private static final int MIN_LENGTH = 2;
+
 	private final Double[][] m_weights;
 	
 	private List<Node> m_nodes;
@@ -55,7 +57,10 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 							clump.getValues(start, end);
 					T w = clump.getType().createVariable();
 					
-					if ( boundary.dimension(0) < 2  ){
+					if( i == 2 )
+						System.out.print("");
+					
+					if ( boundary.dimension(0) < MIN_LENGTH  ){
 						
 						w.setReal(Double.MAX_VALUE);
 						
@@ -64,6 +69,9 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 						dist.compute(template.getImg(), 
 								boundary, 
 								w);
+						
+						if ( w.getRealDouble() == Double.MAX_VALUE )
+							continue;
 						
 						
 						w.mul( boundary.dimension(0) / (double)clump.getSize() );
@@ -85,11 +93,6 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 					
 					if( w.getRealDouble() < min)
 						min = w.getRealDouble();
-					
-//						new CrossCorrelationSimilarity<T>().compute(
-//								template.getImg(), 
-//								boundary, 
-//								w);
 
 				}
 				m_weights[i][j] = min;
@@ -98,7 +101,7 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		}
 	}
 	
-	public void validate(Img<BitType> img){
+	public void validate(Img<BitType> img, int tolarate){
 		RandomAccess<BitType> ra = img.randomAccess();
 		for(int i=0; i < m_weights.length;i++){
 			for(int j=0; j < m_weights[i].length; j++){
@@ -106,10 +109,14 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 						new BresenhamLine<BitType>(ra, 
 								new Point(m_nodes.get(i).getPosition()), 
 								new Point(m_nodes.get(j).getPosition()));
+				int res = 0;
 				while( cursor.hasNext() ){
 					if ( !cursor.next().get() ){
-						m_weights[i][j] = Double.MAX_VALUE;
-						break;
+						res++;
+						if( res >= tolarate ){
+							m_weights[i][j] = Double.MAX_VALUE;
+							break;
+						}
 					}
 				}
 			}

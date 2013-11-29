@@ -21,8 +21,8 @@ import org.knime.knip.clump.boundary.Curvature;
  * @param <T>
  * @param <L>
  */
-public class CurvatureSplit<T extends RealType<T> & NativeType<T>, L extends Comparable<L>>
-	implements SplittingPoints<T, L>{
+public class CurvatureSplit<T extends RealType<T> & NativeType<T>>
+	implements SplittingPoints<T>{
 	
 	private final int m_order;
 	
@@ -62,8 +62,8 @@ public class CurvatureSplit<T extends RealType<T> & NativeType<T>, L extends Com
 	}
 
 	@Override
-	public SplittingPoints<T, L> copy() {
-		return new CurvatureSplit<T, L>(m_order, m_threshold, m_sigma);
+	public SplittingPoints<T> copy() {
+		return new CurvatureSplit<T>(m_order, m_threshold, m_sigma);
 	}
 
 }
