@@ -66,16 +66,17 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 						
 					} else { 
 						
-						dist.compute(template.getImg(), 
+						dist.compute(template, 
 								boundary, 
 								w);
 						
 						if ( w.getRealDouble() == Double.MAX_VALUE )
 							continue;
 						
-						
+						System.out.println( i + ", " + j + ": " + w.getRealDouble() 
+								+ " / " +  w.getRealDouble() * boundary.dimension(0) / (double)clump.getSize());
 						w.mul( boundary.dimension(0) / (double)clump.getSize() );
-						System.out.println( i + ", " + j + ": " + w.getRealDouble() );
+						
 						
 						
 						final double distance = 

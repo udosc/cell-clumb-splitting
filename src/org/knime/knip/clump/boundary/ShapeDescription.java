@@ -16,9 +16,13 @@ public interface ShapeDescription<T extends RealType<T> & NativeType<T>> {
 	
 	Img<T> getValues(long[] start, long[] destination);
 	
+	double[] getValues(int start, int end);
+	
 	Img<T> getImg();
 	
 	T getType();
 	
 	int getSize();
+	
+	Contour getContour();
 }

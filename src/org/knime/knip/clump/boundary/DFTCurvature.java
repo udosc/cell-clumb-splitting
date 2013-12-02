@@ -36,5 +36,17 @@ public class DFTCurvature <T extends RealType<T> & NativeType<T>>
 		// TODO Auto-generated method stub
 		return 0;
 	}
+	
+	@Override
+	public Contour getContour(){
+		//TODO
+		return null;
+	}
+
+	@Override
+	public double[] getValues(int start, int end) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

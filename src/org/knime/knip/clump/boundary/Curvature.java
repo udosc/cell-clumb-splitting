@@ -50,7 +50,6 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 			m_curvature.add(i, t);
 			c.next().set(t);
 		}
-		
 	}
 	
 	
@@ -232,10 +231,25 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 			pos = m_curvature.size() + pos - 1;
 		return m_curvature.get( pos );
 	}
+	
+	@Override
+	public Contour getContour(){
+		return m_contour;
+	}
 
 
 	@Override
 	public Iterator<T> iterator() {
 		return m_curvature.iterator();
+	}
+
+
+	@Override
+	public double[] getValues(int start, int end) {
+		double[] res = new double[ Math.abs( end - start )];
+		for( int i = 0; i < res.length; i++){
+			res[i] = getCurvature( start ).getRealDouble();
+		}
+		return res;
 	}
 }

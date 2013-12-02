@@ -3,6 +3,7 @@ package org.knime.knip.clump.dist;
 import java.util.List;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
+import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.util.MyUtils;
 
 import net.imglib2.img.Img;
@@ -24,26 +25,14 @@ public class DynamicTimeWarping<T extends RealType<T> & NativeType<T>>
         return (diff * diff);
     }
 
-
-	@Override
-	public T compute(Img<T> inputA, Img<T> inputB, T output) {
-		
-		double res = 
-				compute(MyUtils.toDoubleArray(inputA), MyUtils.toDoubleArray(inputB));
-		
-		output.setReal( res );
-		
-		return output;
-	}
-
 	@Override
 	public DistanceMeasure getDistanceMeasure() {
 		return m_dist;
 	}
 
 	@Override
-	public BinaryOperation<Img<T>, Img<T>, T> copy() {
-		return new DynamicTimeWarping(m_dist);
+	public BinaryOperation<ShapeDescription<T>, Img<T>, T> copy() {
+		return new DynamicTimeWarping<T>(m_dist);
 	}
 	
 	private double compute(double[] ts1,  double[] ts2) {
@@ -141,6 +130,16 @@ public class DynamicTimeWarping<T extends RealType<T> & NativeType<T>>
         }
         output =  Math.sqrt(dist) / k ;
         return output;	
+	}
+
+	@Override
+	public T compute(ShapeDescription<T> inputA, Img<T> inputB, T output) {
+		double res = 
+				compute(MyUtils.toDoubleArray(inputA.getImg()), MyUtils.toDoubleArray(inputB));
+		
+		output.setReal( res );
+		
+		return output;
 	}
 
 }

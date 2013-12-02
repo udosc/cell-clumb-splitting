@@ -1,13 +1,13 @@
 package org.knime.knip.clump.dist;
 
-import java.util.Arrays;
-
 import net.imglib2.img.Img;
 import net.imglib2.ops.operation.BinaryOperation;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
+import org.knime.knip.clump.boundary.Contour;
+import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.util.MyUtils;
 
 /**
@@ -25,34 +25,53 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 	}
 	
 	@Override
-	public BinaryOperation<Img<T>, Img<T>, T> copy() {
+	public BinaryOperation<ShapeDescription<T>, Img<T>, T> copy() {
 		return new MinDistance<T>(m_dist);
 	}
 
 	@Override
-	public T compute(Img<T> inputA, Img<T> inputB, T output) {
+	public T compute(ShapeDescription<T> inputA, Img<T> inputB, T output) {
+		Contour cA = inputA.getContour();
 		
-		double[] arrayA = MyUtils.toDoubleArray( inputA );
-		double[] arrayB = MyUtils.toDoubleArray( inputB );
-		
-		
-		
-//		out.setReal( 1.0d / Math.min(arrayA.length, arrayB.length) );
-		
-		if( arrayA.length == arrayB.length ){
-			//output.setReal( m_dist.compute(arrayA, arrayB) );
-			output.setReal( dist(arrayA, arrayB) );
-			return output;
-		}
+		final int size = MyUtils.numElements( inputB );
 		
 		double min = Double.MAX_VALUE;
-		for(int i = 0; i < arrayA.length - arrayB.length; i++){
-			double res = 
-					dist(Arrays.copyOfRange(arrayA, i, arrayB.length  + i), arrayB);
-//			res /= (double)arrayB.length;
-			if ( res < min )
-				min = res;
+		
+		if( size < cA.length()){
+			for(int i = 0; i < size; i++){
+				double res = dist(
+						inputA.getValues(i, i + size ), 
+						MyUtils.toDoubleArray( inputB ));
+				
+				if ( res < min )
+					min = res;
+			}
 		}
+		
+
+
+		
+		
+		
+//		double[] arrayA = MyUtils.toDoubleArray( inputA );
+//		double[] arrayB = MyUtils.toDoubleArray( inputB );
+
+//		out.setReal( 1.0d / Math.min(arrayA.length, arrayB.length) );
+		
+//		if( arrayA.length == arrayB.length ){
+//			//output.setReal( m_dist.compute(arrayA, arrayB) );
+//			output.setReal( dist(arrayA, arrayB) );
+//			return output;
+//		}
+//		
+//		double min = Double.MAX_VALUE;
+//		for(int i = 0; i < arrayA.length - arrayB.length; i++){
+//			double res = 
+//					dist(Arrays.copyOfRange(arrayA, i, arrayB.length  + i), arrayB);
+////			res /= (double)arrayB.length;
+//			if ( res < min )
+//				min = res;
+//		}
 //		if( arrayA.length > arrayB.length ){
 //			for(int i = 0; i < arrayA.length - arrayB.length; i++){
 //				double res = 
@@ -75,6 +94,12 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 	@Override
 	public DistanceMeasure getDistanceMeasure() {
 		return m_dist;
+	}
+	
+	private double dist(Img<T> arg0, Img<T> arg1){
+		return dist( MyUtils.toDoubleArray(arg0),
+				MyUtils.toDoubleArray(arg1));
+		
 	}
 	
 	private double dist(double[] arg0, double[] arg1){
