@@ -5,7 +5,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.knime.knip.base.exceptions.KNIPException;
 import org.knime.knip.clump.util.MyUtils;
+import org.knime.knip.core.data.algebra.Complex;
 
 import net.imglib2.AbstractCursor;
 import net.imglib2.Cursor;
@@ -46,6 +48,22 @@ public class Contour
 					minBounds[i] = pos[i];
 			}
 		}
+	}
+	
+	public Complex[] getContour2D(){
+		final Complex[] out = new Complex[ m_points.size() ];
+		
+		if( m_points.get(0).length > 2 )
+			throw new RuntimeException(Contour.class + ": Can only convert 1D or 2D data");
+		
+		
+		for( int i = 0; i < out.length; i++){
+			out[ i ] = new Complex(
+					m_points.get(i)[0],
+					m_points.get(i)[1]);
+		}
+		
+		return out;
 	}
 	
 	public int indefOf(long[] point){

@@ -32,6 +32,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleRange;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
@@ -55,6 +57,7 @@ import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Floyd;
 import org.knime.knip.clump.graph.Graph;
+import org.knime.knip.clump.graph.PrintGraph;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureBasedSplitting;
@@ -103,8 +106,8 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
     	return new SettingsModelDouble("Threshold: ", 0.2d);
     }
     
-    protected static SettingsModelDouble createFactorModel(){
-    	return new SettingsModelDouble("Factor:", 0.1d);
+    protected static SettingsModelDoubleBounded createFactorModel(){
+    	return new SettingsModelDoubleBounded("Factor ", 0.1, 0.0, 1.0);
     }
     
     protected static SettingsModelString createDistancesModel(){
@@ -253,12 +256,10 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 //								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 						m_templates, m_smFactor.getDoubleValue());
 //				graph.validate(binaryImg, 2);
-				System.out.println( graph );
+//				System.out.println( graph );
 				//Drawing the path
-				for(Edge edge: new Floyd<L, DoubleType>( graph ).getMinPath()){
-//					draw(ra, edge, (L)new Integer(1338));
-					draw(raBinaryImg, edge, new BitType(false));
-				}
+				new PrintGraph<DoubleType, BitType>( new BitType( false )).
+					compute(graph, raBinaryImg);
 			}
 			
 		}
@@ -275,6 +276,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 	 * @param ra
 	 * @param edge
 	 */
+	@SuppressWarnings("unused")
 	private void draw(RandomAccess<LabelingType<L>> ra, Edge edge, L value) {
 		Point r1 = new Point(edge.getSource().getPosition());
 		Point r2 = new Point(edge.getDestination().getPosition());
@@ -285,6 +287,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void draw(RandomAccess<BitType> ra, long[] p1, long[] p2, BitType value) {
 		Cursor<BitType> cursor = 
 				new BresenhamLine<BitType>(ra, new Point(p1), new Point(p2));
@@ -292,16 +295,7 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 			cursor.next().set( value.get() );
 		}
 	}
-	
-	private void draw(RandomAccess<BitType> ra, Edge edge, BitType value) {
-		Point r1 = new Point(edge.getSource().getPosition());
-		Point r2 = new Point(edge.getDestination().getPosition());
-		Cursor<BitType> cursor = 
-				new BresenhamLine<BitType>(ra, r1, r2);
-		while( cursor.hasNext() ){
-			cursor.next().set( value.get() );
-		}
-	}
+
 	
 	@Override
 	protected PortObject[] execute(final PortObject[] inObjects, ExecutionContext exec){

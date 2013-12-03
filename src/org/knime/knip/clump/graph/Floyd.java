@@ -11,7 +11,7 @@ import net.imglib2.type.numeric.RealType;
  * @author Schlegel
  *
  */
-public class Floyd<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> {
+public class Floyd<T extends RealType<T> & NativeType<T>> {
 	
 	
 	private final Graph<T> m_graph;

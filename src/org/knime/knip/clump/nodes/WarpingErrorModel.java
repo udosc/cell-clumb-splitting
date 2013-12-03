@@ -94,7 +94,7 @@ public class WarpingErrorModel
 					WarpingErrorFactory.class.getCanonicalName() + 
 					": Dimenssion of the images have to be equals");
 		
-		ImgLib2WarpingError we = new ImgLib2WarpingError( 
+		ImgLib2WarpingError<UnsignedByteType> we = new ImgLib2WarpingError<UnsignedByteType>(new UnsignedByteType(), 100, 
 				WarpingErrorEnums.MERGE,
 				WarpingErrorEnums.SPLIT);
 		
@@ -120,6 +120,7 @@ public class WarpingErrorModel
 			if( cImg.get().get() == 0){
 				continue;
 			}
+			System.out.println( cImg.get().get() );
             if ((name = labels.get(cImg.get().get())) == null) {
 
                 final List<String> tmp = Arrays.asList( 

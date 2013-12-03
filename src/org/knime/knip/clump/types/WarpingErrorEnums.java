@@ -8,7 +8,7 @@ public enum WarpingErrorEnums {
 	OBJECT_DELETION( 8 ),
 	OBJECT_ADDITION( 16 ),
 	HOLE_DELETION( 32 ),
-	DEFAUKT_FLAGS( 63 );
+	DEFAULT_FLAGS( 63 );
 	
 	private int m_value;
 	
@@ -36,7 +36,7 @@ public enum WarpingErrorEnums {
 			if( e.getValue() == flag )
 				return e;
 		}
-		return DEFAUKT_FLAGS;
+		return DEFAULT_FLAGS;
 	}
 	
 	public static int calculateValue(WarpingErrorEnums... enums){
