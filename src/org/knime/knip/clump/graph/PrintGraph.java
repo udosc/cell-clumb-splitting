@@ -1,5 +1,8 @@
 package org.knime.knip.clump.graph;
 
+import java.util.Collection;
+import java.util.Map;
+
 import net.imglib2.Cursor;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
@@ -8,6 +11,13 @@ import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
+/** 
+ * 
+ * @author Udo
+ *
+ * @param <T>
+ * @param <R>
+ */
 public class PrintGraph<T extends RealType<T> & NativeType<T>, R extends RealType<R>> 
 	implements UnaryOperation<Graph<T>, RandomAccess<R>>{
 
@@ -19,9 +29,15 @@ public class PrintGraph<T extends RealType<T> & NativeType<T>, R extends RealTyp
 	
 	@Override
 	public RandomAccess<R> compute(Graph<T> input, RandomAccess<R> output) {
-		for(Edge edge: new Floyd<T>( input ).getMinPath()){
+		Collection<Edge> path = new Floyd<T>( input ).getMinPath();
+		Map<Node, Integer> degrees = input.getDegrees(path);
+		for(Edge edge: path){
 //			draw(ra, edge, (L)new Integer(1338));
-			draw(output, edge, m_value);
+			if ( true )
+				draw(output, edge, m_value);
+			else
+				//TODO
+				draw(output, edge, m_value);
 		}
 		return output;
 	}

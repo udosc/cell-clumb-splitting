@@ -1,30 +1,23 @@
 package org.knime.knip.clump.warp;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-
 import ij.ImagePlus;
 import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.meta.ImgPlus;
 import net.imglib2.ops.operation.BinaryOperation;
-import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.ops.operation.UnaryOutputOperation;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 
 import org.knime.knip.clump.ops.ConvertToImagePlus;
 import org.knime.knip.clump.types.WarpingErrorEnums;
-import org.knime.knip.clump.util.ImagePlusAdapter;
+import org.knime.knip.core.util.MiscViews;
 import org.knime.knip.imagej2.core.util.IJToImg;
 import org.knime.knip.imagej2.core.util.ImgToIJ;
 
-import trainableSegmentation.metrics.ClusteredWarpingMismatches;
 import trainableSegmentation.metrics.WarpingError;
 import trainableSegmentation.metrics.WarpingResults;
 
@@ -68,14 +61,11 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<T>> {
 		int[] res = new int[ m_errors.length ];
 		for(int i = 0; i < res.length; i++)
 			res[i] = m_errors[i].getValue();
-//		
-//		
-//		
-//
 
-		final WarpingResults wr = we.getWarpingResults(0.1d, true, true, 100);
-		final WarpingResults[] wrs = we.simplePointWarp2dMT(0.5d, true, true, m_radius);
-		m_warpingError = wrs[0].warpingError;
+		final WarpingResults wr = we.getWarpingResults(0.1d, true, true, m_radius);
+//		final WarpingResults[] wrs = we.simplePointWarp2dMT(0.5d, true, true, m_radius);
+//		m_warpingError = wrs[0].warpingError;
+		m_warpingError = wr.warpingError;
 
 //		RandomAccess<T> ra = output.randomAccess();
 //		for( Point3f p: wr.mismatches){
@@ -85,9 +75,11 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<T>> {
 		
 		
 		ImagePlus imagePlus = wr.classifiedMismatches;
-		new IJToImg<T>(m_type).compute(
+		output = new IJToImg<T>(m_type).compute(
 				imagePlus, 
 				new ArrayImgFactory<T>().create(imagePlus.getDimensions(), m_type));
+		
+		output = MiscViews.cleanImgPlus( new ImgPlus<T>( output ) );
 		
 //		output = new ImagePlusAdapter<UnsignedByteType>( 
 //				we.getMismatchImage(wrs[0], m_radius),
@@ -112,6 +104,7 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<T>> {
 //				wrs[0].mismatches, 
 //				classify);
 //		new ConvertWarpingMismatches().compute(mismatches, m_errors);
+		
 		
 //		
 		return output;

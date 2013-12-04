@@ -94,15 +94,17 @@ public class WarpingErrorModel
 					WarpingErrorFactory.class.getCanonicalName() + 
 					": Dimenssion of the images have to be equals");
 		
-		ImgLib2WarpingError<UnsignedByteType> we = new ImgLib2WarpingError<UnsignedByteType>(new UnsignedByteType(), 100, 
+		ImgLib2WarpingError<UnsignedByteType> we = new ImgLib2WarpingError<UnsignedByteType>(
+				new UnsignedByteType(), 
+				-1, 
 				WarpingErrorEnums.MERGE,
 				WarpingErrorEnums.SPLIT);
 		
 		
 		
-		Img<UnsignedByteType> res = we.compute(
-				refImg, 
+		Img<UnsignedByteType> res = we.compute( 
 				groundTruth, 
+				refImg,
 				ImgUtils.createEmptyCopy(refImg, new UnsignedByteType()));
 		m_warpingError = we.getWarpingError();
 		
@@ -120,7 +122,6 @@ public class WarpingErrorModel
 			if( cImg.get().get() == 0){
 				continue;
 			}
-			System.out.println( cImg.get().get() );
             if ((name = labels.get(cImg.get().get())) == null) {
 
                 final List<String> tmp = Arrays.asList( 
@@ -132,7 +133,7 @@ public class WarpingErrorModel
             cLabel.get().setLabeling(name);
 		}
 			
-		System.out.println( cellValue1.getMetadata().getName() );
+//		System.out.println( cellValue1.getMetadata().getName() );
 		new ClusterWarpingErrors<String>( m_smSize.getIntValue() ).compute( out, we.getErrors());
 		
 		m_missMatches.add( new Pair<String, WarpingErrorEnums[]>(

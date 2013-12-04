@@ -24,19 +24,17 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 	
 	private final int m_numberOfDesc;
 	
-	private final int m_usedDesc;
 	
 	
-	public DFTDistance(DistanceMeasure dist, int numberOfDesc, int usedDesc){
+	public DFTDistance(DistanceMeasure dist, int numberOfDesc){
 		m_dist = dist;
 		m_numberOfDesc = numberOfDesc;
-		m_usedDesc = usedDesc;
 	}
 
 
 	@Override
 	public BinaryOperation<ShapeDescription<T>, Img<T>, T> copy() {
-		return new DFTDistance<T>(m_dist, m_numberOfDesc, m_usedDesc);
+		return new DFTDistance<T>(m_dist, m_numberOfDesc);
 	}
 
 	@Override
@@ -46,16 +44,17 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 
 	@Override
 	public T compute(ShapeDescription<T> inputA, Img<T> inputB, T output) {
-		UnaryOperation<Img<T>, Complex[]> op = new FourierShapeDescription<T>(m_numberOfDesc);
+		UnaryOperation<Img<T>, Complex[]> op = 
+				new FourierShapeDescription<T>(m_numberOfDesc);
 		BinaryOperation<Complex, Complex, Double> complexDist = new ComplexDistance(m_dist);
 		Complex[] fc0 = op.compute(inputA.getImg(), new Complex[m_numberOfDesc]);
 		Complex[] fc1 = op.compute(inputB, new Complex[m_numberOfDesc]);
 		double res = 0.0d;
-		for(int i = 0; i < m_usedDesc; i++){
+		for(int i = 0; i < fc0.length; i++){
 			res += complexDist.compute(fc0[i], fc1[i], new Double(0.0d));
 		}
 		
-		output.setReal(res /= m_usedDesc);
+		output.setReal(res /= fc0.length);
 		return output;
 	}
 

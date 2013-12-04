@@ -245,13 +245,12 @@ public class MyCellClumpSplitterModel<L extends Comparable<L>, T extends RealTyp
 //				}
 				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
 				graph.calc(curv, 
-//						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
-//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
-//								256, 
-//								64), 
+						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
+								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
+								4), 
 //						new CrossCorrelationSimilarity<DoubleType>(),
-						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
-								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
+//						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
+//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 //						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
 //								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 						m_templates, m_smFactor.getDoubleValue());

@@ -90,8 +90,8 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 							continue;
 						
 						
-						System.out.println( i + ", " + j + ": " + w.getRealDouble() 
-								+ " / " +  w.getRealDouble() * boundary.dimension(0) / (double)clump.getSize());
+//						System.out.println( i + ", " + j + ": " + w.getRealDouble() 
+//								+ " / " +  w.getRealDouble() * boundary.dimension(0) / (double)clump.getSize());
 						w.mul( boundary.dimension(0) / (double)clump.getSize() );
 						
 						
@@ -198,7 +198,7 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 //		System.out.println();
 		return out / path.size();
 	}
-	
+		
 	public Map<Node, Integer> getDegrees(Collection<Edge> path){
 		Map<Node, Integer> map = new HashMap<Node, Integer>(path.size() * 2);
 		for( Edge e: path){

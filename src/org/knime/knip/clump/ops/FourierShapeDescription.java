@@ -2,7 +2,6 @@ package org.knime.knip.clump.ops;
 
 import net.imglib2.RealRandomAccess;
 import net.imglib2.img.Img;
-import net.imglib2.interpolation.randomaccess.LanczosInterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.type.NativeType;
@@ -31,20 +30,20 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
 	@Override
 	public Complex[] compute(Img<T> curvature, Complex[] out) {
 		
+		//Computes the number of descriptors for the FFT
+		int nDesc = (int)Math.pow(2, 
+				Math.ceil( Math.log( curvature.dimension(0) ) / Math.log(2)    )); 
 		
 		RealRandomAccess<T> rra = Views.interpolate( Views.hyperSlice(curvature, 1, 0),
 				new NLinearInterpolatorFactory<T>()).realRandomAccess();
-//				new LanczosInterpolatorFactory<T>()).realRandomAccess();
-				
-//		RandomAccess<T> ra = curvature.randomAccess();
 		
-		Complex[] complex = new Complex[ m_numberOfDesc ];
+		Complex[] complex = new Complex[ nDesc ];
 		
-		final double step = (MyUtils.numElements(curvature) - 1.0d)/ (double) m_numberOfDesc ;
+		final double step = (MyUtils.numElements(curvature) - 1.0d)/ (double) nDesc ;
 		
 		//Working with 1-dimensional data so fixing dim 1 to 0
 //		rra.setPosition(0, 1);
-		for(int i = 0; i < m_numberOfDesc; i++){
+		for(int i = 0; i < nDesc; i++){
 			rra.setPosition((i*step), 0);
 			complex[i] = new Complex( rra.get().getRealDouble(), 0.0d);
 		}
@@ -53,7 +52,7 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
         final double dcMagnitude = transformed[0].getMagnitude();
                 
 //        out = new Complex[ transformed.length / 2 ];
-        for (int t = 1; t < transformed.length / 2; t++) {
+        for (int t = 1; t <= m_numberOfDesc; t++) {
             out[t - 1] = 
             		new Complex(transformed[t].re() / dcMagnitude, transformed[t].im() / dcMagnitude);
 //            System.out.println(t-1 + ": " + out[t - 1]);

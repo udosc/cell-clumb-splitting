@@ -47,7 +47,7 @@ public class ClusterWarpingErrors<L extends Comparable<L>>
 				cImg.get().set( cLabel.get().getLabeling().contains( e.name()) );
 			}
 			
-			Labeling<Integer> labeling = new CCA<BitType>(CCA.get8ConStructuringElement(2), new BitType(false)).
+			Labeling<Integer> labeling = new CCA<BitType>(CCA.get8ConStructuringElement(res.numDimensions()), new BitType(false)).
 				compute( 
 						res, 
 						new NativeImgLabeling<Integer, UnsignedIntType>( 
