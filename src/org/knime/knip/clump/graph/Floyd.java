@@ -83,9 +83,9 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 		for(int i = 0; i < m_graph.numberOfNodes(); i++){
 			Collection<Edge> path = getShortestPath(i, i);
 			printPath(path);
-			if( Graph.calcPath(path) < weight){
+			if( Edge.calcPath(path) < weight){
 				out = path;
-				weight = Graph.calcPath(path);
+				weight = Edge.calcPath(path);
 			}
 		}
 		return out;
@@ -96,7 +96,7 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 			System.out.print(edge.getSource().getIndex() + " -> " + edge.getDestination().getIndex() + ", ");
 			System.out.print(edge.getWeight() + " - ");
 		}
-		System.out.println(" - Total: " + Graph.calcPath(path));
+		System.out.println(" - Total: " + Edge.calcPath(path));
 	}
 
 //	public List<SplitEdge> getMinPath(){

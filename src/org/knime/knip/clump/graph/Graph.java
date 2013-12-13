@@ -15,7 +15,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 
-import org.knime.core.util.Pair;
 import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.dist.ShapeDistance;
 import org.knime.knip.clump.util.MyUtils;
@@ -73,10 +72,10 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 							clump.getValues(start, end);
 					T w = clump.getType().createVariable();
 					
-					if( i == 2 )
+					if( i == 5 && j == 2 )
 						System.out.print("");
 					
-					if ( boundary.dimension(0) < m_contourLength  ){
+					if ( template.getSize() * 1.2d < boundary.dimension(0) ){
 						
 						w.setReal(Double.MAX_VALUE);
 						
@@ -91,14 +90,17 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 						
 						
 //						System.out.println( i + ", " + j + ": " + w.getRealDouble() 
-//								+ " / " +  w.getRealDouble() * boundary.dimension(0) / (double)clump.getSize());
+//								+ " / " +  boundary.dimension(0) / (double)clump.getSize());
 						w.mul( boundary.dimension(0) / (double)clump.getSize() );
 						
 						
 						final double temp = dist.getDistanceMeasure().compute( 
 								MyUtils.toDoubleArray(start), 
 								MyUtils.toDoubleArray(end));
-						distances[i][j] = temp;
+						distances[i][j] =  temp;
+						
+						if( Double.compare( temp , 0.0d) == 0)
+							System.out.println();
 						
 						if( temp < minDist )
 							minDist = temp;
@@ -119,13 +121,19 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		//Min Max Normalization of the distance 
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
-				distances[i][j] =  (distances[i][j] ) / (maxDist);
+				if( i == 5  )
+					System.out.print("");
+				distances[i][j] =  (distances[i][j] - minDist) / (maxDist - minDist);
 //				System.out.print( distances[i][j] + "; ");
 				m_weights[i][j] = factor * m_weights[i][j] + 
 						( 1 - factor ) + distances[i][j];
 			}
 //			System.out.println();
+			
+			
 		}
+		
+		System.out.println();
 	}
 	
 	public void validate(Img<BitType> img, int tolarate){
@@ -187,17 +195,6 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		}
 		return sb.toString();
 	}
-
-	public static double calcPath(Collection<Edge> path){
-		double out = 0.0d;
-//		System.out.println( "---------------------" );
-		for(Edge e: path){
-			out += e.getWeight();
-//			System.out.println( e );
-		}
-//		System.out.println();
-		return out / path.size();
-	}
 		
 	public Map<Node, Integer> getDegrees(Collection<Edge> path){
 		Map<Node, Integer> map = new HashMap<Node, Integer>(path.size() * 2);
@@ -211,9 +208,9 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 	private Map<Node, Integer> increaseDegree(Map<Node, Integer> map, Node node){
 		Integer s = map.get(node );
 		if( s == null )
-			map.put( node, new Integer( 0 ));
+			map.put( node, new Integer( 1 ));
 		else
-			map.put( node, s++); //TODO Replace with s++
+			map.put( node, ++s);
 		return map;
 	}
 

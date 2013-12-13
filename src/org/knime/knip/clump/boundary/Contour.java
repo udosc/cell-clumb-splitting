@@ -1,16 +1,21 @@
 package org.knime.knip.clump.boundary;
 
 import java.awt.Polygon;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.knime.knip.base.exceptions.KNIPException;
+import org.knime.knip.base.exceptions.KNIPRuntimeException;
 import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.data.algebra.Complex;
 
 import net.imglib2.AbstractCursor;
 import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.Sampler;
 import net.imglib2.img.Img;
@@ -20,6 +25,8 @@ import net.imglib2.ops.pointset.PointSet;
 import net.imglib2.ops.pointset.PointSetIterator;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
+import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.view.Views;
 
 /**
  * 
@@ -30,7 +37,6 @@ public class Contour
 	extends AbstractPointSet{
 	
 	private final List<long[]> m_points;
-	
 	
 	public Contour(List<long[]> points) {
 		super();
@@ -70,8 +76,13 @@ public class Contour
 		return MyUtils.indexOf(m_points, point);
 	}
 	
+	//TODO Test
 	public long[] get(int index){
-		return m_points.get(index);
+		if( index >= m_points.size() )
+			index %= m_points.size() - 1 ;
+		if ( index < 0 )
+			index = m_points.size() + index - 1;
+		return m_points.get( index );
 	}
 	
 	public int length(){
@@ -82,17 +93,23 @@ public class Contour
 		return m_points;
 	}
 	
-	public RandomAccessibleInterval<UnsignedIntType> getCoordinates(int dimension){
-		Img<UnsignedIntType> out = new ArrayImgFactory<UnsignedIntType>().create(
-				new long[]{m_points.size(), 1}, new UnsignedIntType());
-		Cursor<UnsignedIntType> c = out.cursor();
+	public RandomAccessible<DoubleType> getCoordinates(int dimension){
+		final Img<DoubleType> out = new ArrayImgFactory<DoubleType>().create(
+				new long[]{m_points.size(), 1}, new DoubleType());
 		
-		for(int i=0; i < m_points.size(); i++){
+		Cursor<DoubleType> c = out.cursor();
+		for(long[] p: m_points){
 			c.fwd();
-			c.get().set( m_points.get(i)[dimension]);
+			c.get().set( p[dimension] );
 		}
 		
-		return out;
+		return Views.extendPeriodic( out );
+	}
+	
+	//TODO
+	public boolean isSimple(){
+		Set<long[]> res = new HashSet<long[]>( m_points );
+		return res.size() == m_points.size();
 	}
 	
 	public List<long[]> getPointsInbetween(long[] start, long[] end){
@@ -102,12 +119,12 @@ public class Contour
 		int i = MyUtils.indexOf(m_points, start);
 		
 		if( i == -1 ) 
-			throw new RuntimeException(start + " not found in the contour!");
+			throw new KNIPRuntimeException(Contour.class.getCanonicalName() + ": " + start + " not found in the contour!");
 		
 		int j = MyUtils.indexOf(m_points, end);
 		
 		if ( j == -1 )
-			throw new RuntimeException(end + " not found in the contour!");
+			throw new KNIPRuntimeException(Contour.class.getCanonicalName() + ": " + end + " not found in the contour!");
 		
 		if( i == j ){
 			//Return the whole contour

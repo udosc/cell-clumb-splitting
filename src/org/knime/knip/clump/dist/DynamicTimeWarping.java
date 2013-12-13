@@ -1,15 +1,13 @@
 package org.knime.knip.clump.dist;
 
-import java.util.List;
-
-import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.knime.knip.clump.boundary.ShapeDescription;
-import org.knime.knip.clump.util.MyUtils;
-
 import net.imglib2.img.Img;
 import net.imglib2.ops.operation.BinaryOperation;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+
+import org.apache.commons.math3.ml.distance.DistanceMeasure;
+import org.knime.knip.clump.boundary.ShapeDescription;
+import org.knime.knip.clump.util.MyUtils;
 
 public class DynamicTimeWarping<T extends RealType<T> & NativeType<T>>
 	implements ShapeDistance<T> {

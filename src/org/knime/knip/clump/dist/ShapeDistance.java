@@ -6,7 +6,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.ShapeDescription;
 
 public interface ShapeDistance<T extends RealType<T> & NativeType<T>> 

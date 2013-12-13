@@ -168,7 +168,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 //						compute(c, new LinkedList<long[]>());
 					
 					List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
-							mean + std, 
+							mean +std, 
 							10, 
 							new DoubleType(),
 							m_sigma.getDoubleValue()).compute(c, new LinkedList<long[]>());

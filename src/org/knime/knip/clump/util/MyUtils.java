@@ -93,14 +93,12 @@ public class MyUtils {
 		
 		long scalar = 0L;
 		
-		//TODO Change to MathUtils.scalar.....	
+		
 		for(int i = 0; i < center.length; i++){		
-			scalar += ( p1[i] - center[i] ) * ( p2[i] - center[i] );
+			scalar += ( center[i] - p1[i] ) * ( center[i] - p2[i]  );
 		}
 		
-		//Preventing a division with 0 in the case one of the distances is 0:
-		double eta = 0.00000001d;
-		double d = scalar / ( eta + distance(center, p1) * distance(center, p2));
+		double d = scalar / (distance(center, p1) * distance(center, p2));
 //
 //		if( crossProduct(center, p1, p2) < 0.0d )
 //			System.out.println( d );

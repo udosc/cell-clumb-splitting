@@ -28,12 +28,15 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 				"/master");
 		m_nodeFactories.put(MyContourExtracter.class.getCanonicalName(), 
 				"/master");
-		m_nodeFactories.put(MyCellClumpSplitterFactory.class.getCanonicalName(),
+		m_nodeFactories.put(TemplateCellClumpSplitterFactory.class.getCanonicalName(),
 				"/master");
-		m_nodeFactories.put(MyCurvatureNode.class.getCanonicalName(),
+		m_nodeFactories.put(CurvatureNodeFactory.class.getCanonicalName(),
 				"/master");
 		m_nodeFactories.put(WarpingErrorFactory.class.getCanonicalName(), 
 				"/master");
+		m_nodeFactories.put(CSSFactory.class.getCanonicalName(),
+				"/master");
+
 
 
 		return m_nodeFactories.keySet();
@@ -67,7 +70,7 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 	 */
 	@Override
 	public String getAfterID(String id) {
-		return "/";
+		return "";
 	}
 
 	/**

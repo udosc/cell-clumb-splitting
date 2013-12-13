@@ -21,11 +21,8 @@ import org.knime.knip.core.data.algebra.Complex;
 public class FourierShapeDescription<T extends RealType<T> & NativeType<T>> 
 	implements UnaryOperation<Img<T>, Complex[]>{
 		
-	private final int m_numberOfDesc;	
 		
-	public FourierShapeDescription(int numberOfDesc){
-		m_numberOfDesc = numberOfDesc;
-	}
+		
 
 	@Override
 	public Complex[] compute(Img<T> curvature, Complex[] out) {
@@ -34,7 +31,7 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
 		int nDesc = (int)Math.pow(2, 
 				Math.ceil( Math.log( curvature.dimension(0) ) / Math.log(2)    )); 
 		
-		RealRandomAccess<T> rra = Views.interpolate( Views.hyperSlice(curvature, 1, 0),
+		RealRandomAccess<T> rra = Views.interpolate( curvature,
 				new NLinearInterpolatorFactory<T>()).realRandomAccess();
 		
 		Complex[] complex = new Complex[ nDesc ];
@@ -49,13 +46,21 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
 		}
 		
         final Complex[] transformed = InplaceFFT.fft( complex );
-        final double dcMagnitude = transformed[0].getMagnitude();
-                
+        double dcMagnitude = transformed[0].getMagnitude();
+         
+        dcMagnitude = 1.0d;
+        
 //        out = new Complex[ transformed.length / 2 ];
-        for (int t = 1; t <= m_numberOfDesc; t++) {
-            out[t - 1] = 
-            		new Complex(transformed[t].re() / dcMagnitude, transformed[t].im() / dcMagnitude);
-//            System.out.println(t-1 + ": " + out[t - 1]);
+//        for (int t = 1; t <= out.length; t++) {
+//            out[t - 1] = 
+//            		new Complex(
+//            				transformed[t].re() / dcMagnitude, 
+//            				transformed[t].im() / dcMagnitude);
+////            System.out.println(t-1 + ": " + out[t - 1]);
+//        }
+        
+        for( int i = 0; i < out.length; i++){
+        	out[i] = new Complex(transformed[i].re(), transformed[i].im());
         }
 		
         return out;
@@ -88,7 +93,7 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
 
 	@Override
 	public UnaryOperation<Img<T>, Complex[]> copy() {
-		return new FourierShapeDescription<T>(m_numberOfDesc);
+		return new FourierShapeDescription<T>();
 	}
 
 }

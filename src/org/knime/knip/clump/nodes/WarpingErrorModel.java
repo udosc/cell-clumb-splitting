@@ -39,10 +39,13 @@ import org.knime.knip.base.exceptions.KNIPException;
 import org.knime.knip.base.node.TwoValuesToCellNodeModel;
 import org.knime.knip.clump.types.WarpingErrorEnums;
 import org.knime.knip.clump.warp.ClusterWarpingErrors;
-import org.knime.knip.clump.warp.ImgLib2WarpingError;
+import org.knime.knip.clump.warp.ConvertWarpingMismatches;
+import org.knime.knip.clump.warp.MyWarpingError;
 import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
 import org.knime.knip.core.data.img.DefaultLabelingMetadata;
 import org.knime.knip.core.util.ImgUtils;
+
+import trainableSegmentation.metrics.ClusteredWarpingMismatches;
 
 /**
  * 
@@ -56,9 +59,11 @@ public class WarpingErrorModel
 	
 	private LabelingCellFactory m_imgCellFactory;
 
-	private List<Pair<String, WarpingErrorEnums[]>> m_missMatches;
+	private List<Pair<String, ClusteredWarpingMismatches>> m_missMatches;
 	
-	private double m_warpingError;
+	private List<Double> m_warpingError;
+	
+	private List<Double> m_randError;
 	
 	public WarpingErrorModel(){
 		super( null, new PortType[]{BufferedDataTable.TYPE} );
@@ -94,9 +99,9 @@ public class WarpingErrorModel
 					WarpingErrorFactory.class.getCanonicalName() + 
 					": Dimenssion of the images have to be equals");
 		
-		ImgLib2WarpingError<UnsignedByteType> we = new ImgLib2WarpingError<UnsignedByteType>(
+		MyWarpingError<UnsignedByteType> we = new MyWarpingError<UnsignedByteType>(
 				new UnsignedByteType(), 
-				-1, 
+				100, 
 				WarpingErrorEnums.MERGE,
 				WarpingErrorEnums.SPLIT);
 		
@@ -106,7 +111,8 @@ public class WarpingErrorModel
 				groundTruth, 
 				refImg,
 				ImgUtils.createEmptyCopy(refImg, new UnsignedByteType()));
-		m_warpingError = we.getWarpingError();
+		m_warpingError.add( we.getWarpingError() * 100000);
+		m_randError.add( we.getRandError() * 100000 );
 		
 		
 		Labeling<String> out = new NativeImgLabeling<String, UnsignedByteType>(
@@ -134,10 +140,10 @@ public class WarpingErrorModel
 		}
 			
 //		System.out.println( cellValue1.getMetadata().getName() );
-		new ClusterWarpingErrors<String>( m_smSize.getIntValue() ).compute( out, we.getErrors());
+//		new ClusterWarpingErrors<String>( m_smSize.getIntValue() ).compute( out, we.getErrors());
 		
-		m_missMatches.add( new Pair<String, WarpingErrorEnums[]>(
-				cellValue1.getMetadata().getName(), we.getErrors()) );
+		m_missMatches.add( new Pair<String, ClusteredWarpingMismatches>(
+				cellValue1.getMetadata().getName(), we.getMismatches()) );
 		
 		return m_imgCellFactory.createCell(out, 
 				new DefaultLabelingMetadata(cellValue1.getMetadata(), cellValue1
@@ -148,32 +154,44 @@ public class WarpingErrorModel
 	
     @Override
     protected void prepareExecute(final ExecutionContext exec) {
-        m_imgCellFactory = new LabelingCellFactory(exec);
-        m_missMatches = new LinkedList<Pair<String, WarpingErrorEnums[]>>();
+        m_imgCellFactory 	= new LabelingCellFactory(exec);
+        m_missMatches 		= new LinkedList<Pair<String, ClusteredWarpingMismatches>>();
+        m_randError 		= new LinkedList<Double>();
+        m_warpingError 		= new LinkedList<Double>();
     }
     
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
     	PortObject[] res = super.execute(inObjects, exec);
-		WarpingErrorEnums[] first =  m_missMatches.size() > 0 ? m_missMatches.get(0).getSecond() :
-			WarpingErrorEnums.values();
-    	DataColumnSpec[] dataSpec = new DataColumnSpec[  first.length + 1];
+    	DataColumnSpec[] dataSpec = new DataColumnSpec[  WarpingErrorEnums.values().length + 2];
     	dataSpec[0] = new DataColumnSpecCreator("Warping Error", DoubleCell.TYPE).createSpec();
-        for(int i = 1; i < dataSpec.length; i++)
-        	dataSpec[i] = 
-        		new DataColumnSpecCreator(first[i-1].name(), DoubleCell.TYPE).createSpec();
+        for(int i = 0; i < WarpingErrorEnums.values().length; i++)
+        	dataSpec[i+1] = 
+        		new DataColumnSpecCreator(WarpingErrorEnums.values()[i].name(), DoubleCell.TYPE).createSpec();
+        
+        dataSpec[ dataSpec.length - 1 ] =
+        		new DataColumnSpecCreator("Rand Error", DoubleCell.TYPE).createSpec();
         
         
         BufferedDataContainer container = exec.createDataContainer( 
     			new DataTableSpec( dataSpec ));
        
+       
         
-        for(Pair<String, WarpingErrorEnums[]> pair: m_missMatches){
+        int n = 0;
+        for(Pair<String, ClusteredWarpingMismatches> pair: m_missMatches){
         	final DataCell[] cells = new DataCell[ dataSpec.length ];
-        	cells[0] = new DoubleCell( m_warpingError * 100000);
-        	for(int i = 1; i < dataSpec.length; i++)
-        		cells[i] = new DoubleCell( pair.getSecond()[i-1].getNumberOfErrors() );
+        	cells[0] = new DoubleCell( m_warpingError.get( n ) );
+        	
+        	 WarpingErrorEnums[] tmp = new ConvertWarpingMismatches().compute(
+        			 pair.getSecond(), 
+        			 WarpingErrorEnums.values());
+        	
+        	for(int i = 0; i <  tmp.length; i++)
+        		cells[i + 1] = new DoubleCell( tmp[i].getNumberOfErrors() );
+        	cells[ dataSpec.length -1 ] = new DoubleCell( m_randError.get( n ) );
         	container.addRowToTable( new DefaultRow( new RowKey(pair.getFirst()), cells) );
+        	n++;
         }
         
         container.close();
