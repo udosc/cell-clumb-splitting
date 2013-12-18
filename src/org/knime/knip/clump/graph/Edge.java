@@ -2,6 +2,8 @@ package org.knime.knip.clump.graph;
 
 import java.util.Collection;
 
+import org.knime.knip.core.data.algebra.Complex;
+
 
 /**
  * 
@@ -29,6 +31,18 @@ public class Edge {
 
 	public Node getSource(){
 		return m_source;
+	}
+	
+	public Complex getVector(){
+		final long[] destination 	= m_destination.getPosition();
+		final long[] source 		= m_source.getPosition();
+		return new Complex( destination[0] - source[0], destination[1] - source[1]);
+	}
+	
+	public Complex getReverseVector(){
+		final long[] source 		= m_destination.getPosition();
+		final long[] destination 	= m_source.getPosition();
+		return new Complex( destination[0] - source[0], destination[1] - source[1]);
 	}
 	
 	public Node getDestination(){

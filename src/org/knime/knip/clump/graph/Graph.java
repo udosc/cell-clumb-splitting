@@ -3,6 +3,7 @@ package org.knime.knip.clump.graph;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ import org.knime.knip.clump.util.MyUtils;
  * @author Udo
  *
  */
-public class Graph<T extends RealType<T> & NativeType<T>> {
+public class Graph<T extends RealType<T> & NativeType<T>>{
 	
 	private int m_contourLength;
 
@@ -37,10 +38,13 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		m_weights = new Double[splittingPoints.size()][];
 //		m_distances = new Double[splittingPoints.size()][];
 		m_nodes = new ArrayList<Node>( splittingPoints.size() );
-		int i = 0;
+		int i = -1;
 		for(long[] point: splittingPoints){
+			++i;
 			m_nodes.add(i, new Node(i, point));
-			m_weights[i++] = new Double[splittingPoints.size()];
+			m_weights[i] = new Double[splittingPoints.size()];
+			for(int j = 0; j < m_weights[i].length; j++)
+				m_weights[i][j] = 0.0d;
 		}
 	}
 	
@@ -72,8 +76,8 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 							clump.getValues(start, end);
 					T w = clump.getType().createVariable();
 					
-					if( i == 5 && j == 2 )
-						System.out.print("");
+//					if( i == 5 && j == 2 )
+//						System.out.print("");
 					
 					if ( template.getSize() * 1.2d < boundary.dimension(0) ){
 						
@@ -99,8 +103,11 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 								MyUtils.toDoubleArray(end));
 						distances[i][j] =  temp;
 						
-						if( Double.compare( temp , 0.0d) == 0)
-							System.out.println();
+//						if( temp <= 1.0d )
+//							w.setReal( 0.0d );
+						
+//						if( Double.compare( temp , 0.0d) == 0)
+//							System.out.println();
 						
 						if( temp < minDist )
 							minDist = temp;
@@ -121,9 +128,10 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		//Min Max Normalization of the distance 
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
-				if( i == 5  )
-					System.out.print("");
-				distances[i][j] =  (distances[i][j] - minDist) / (maxDist - minDist);
+//				if( i == 5  )
+//					System.out.print("");
+				if ( minDist != maxDist )
+					distances[i][j] =  (distances[i][j] - minDist) / (maxDist - minDist);
 //				System.out.print( distances[i][j] + "; ");
 				m_weights[i][j] = factor * m_weights[i][j] + 
 						( 1 - factor ) + distances[i][j];
@@ -132,8 +140,8 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 			
 			
 		}
-		
-		System.out.println();
+//		
+//		System.out.println();
 	}
 	
 	public void validate(Img<BitType> img, int tolarate){
@@ -147,13 +155,13 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 				int res = 0;
 				while( cursor.hasNext() ){
 					if ( !cursor.next().get() ){
-						res++;
-						if( res >= tolarate ){
-							m_weights[i][j] = Double.MAX_VALUE;
+						if( ++res > tolarate ){
+							m_weights[i][j] = -1.0d;
 							break;
 						}
 					}
 				}
+				
 			}
 		}
 	}
@@ -183,6 +191,10 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		return new Edge(m_nodes.get(source), m_nodes.get(destination), m_weights[source][destination]);
 	}
 	
+	public void deleteEdge(Edge edge){
+		m_weights[ edge.getSource().getIndex() ] [ edge.getDestination().getIndex() ] = -1.0d;
+	}
+	
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
@@ -195,7 +207,9 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		}
 		return sb.toString();
 	}
+
 		
+	//TODO Use a member variable in node....
 	public Map<Node, Integer> getDegrees(Collection<Edge> path){
 		Map<Node, Integer> map = new HashMap<Node, Integer>(path.size() * 2);
 		for( Edge e: path){
@@ -212,6 +226,21 @@ public class Graph<T extends RealType<T> & NativeType<T>> {
 		else
 			map.put( node, ++s);
 		return map;
+	}
+
+	public List<Edge> getValidEdges(){
+		List<Edge> list = new LinkedList<Edge>();
+		for(int i = 0; i < m_weights.length; i++){
+			for(int j = 0; j < m_weights[i].length; j++){
+				if( m_weights[i][j] >= 0.0d && i != j)
+					list.add( 
+							new Edge(
+									m_nodes.get(i),
+									m_nodes.get(j),
+									m_weights[i][j]));
+			}
+		}
+		return list;
 	}
 
 }

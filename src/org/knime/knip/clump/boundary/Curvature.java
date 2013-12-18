@@ -17,6 +17,7 @@ import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.util.ImgUtil;
 import net.imglib2.view.Views;
 
+import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.algorithm.convolvers.DirectConvolver;
 import org.knime.knip.core.algorithm.convolvers.filter.linear.DerivativeOfGaussian;
@@ -168,7 +169,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 			final double d2y = d2yRandomAccess.get().getRealDouble();
 			final double t = ((d1x * d2y) - (d2x * d1y));
 			final double r = Math.pow(( d1x * d1x ) +  (d1y * d1y), 1.5d);
-			c.next().setReal( t / r );
+			c.next().setReal( t / r  );
 		}
 		
 //		for(int i = 0; i < m_contour.length(); i++){
@@ -324,7 +325,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		Cursor<T> c = Views.iterable( out ).cursor();
 		for(int i = 0; i < points.size(); i++){
 			c.next().set( 
-					getCurvature( m_contour.indefOf(points.get(i))  ));
+					getCurvature( m_contour.indexOf(points.get(i))  ));
 //			System.out.println( m_curvature.get( m_contour.indefOf(points.get(i))  ) );
 		}
 		return out;

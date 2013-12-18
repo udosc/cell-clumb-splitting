@@ -22,9 +22,9 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
-import org.knime.knip.clump.boundary.BinaryFactory;
-import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
+import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.core.util.ImgUtils;
 

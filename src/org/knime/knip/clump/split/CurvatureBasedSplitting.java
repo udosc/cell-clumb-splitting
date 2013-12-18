@@ -12,8 +12,8 @@ import org.knime.core.node.KNIMEConstants;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.KNIPConstants;
 import org.knime.knip.base.ThreadPoolExecutorService;
-import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
+import org.knime.knip.clump.contour.Contour;
 
 /**
  * 

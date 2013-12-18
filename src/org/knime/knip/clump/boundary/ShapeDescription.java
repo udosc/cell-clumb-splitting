@@ -1,5 +1,7 @@
 package org.knime.knip.clump.boundary;
 
+import org.knime.knip.clump.contour.Contour;
+
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;

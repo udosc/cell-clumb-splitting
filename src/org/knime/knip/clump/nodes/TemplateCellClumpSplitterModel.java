@@ -46,10 +46,10 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.NodeUtils;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.nodes.filter.convolver.ConvolverNodeModel;
-import org.knime.knip.clump.boundary.BinaryFactory;
-import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.ShapeDescription;
+import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
 import org.knime.knip.clump.dist.DFTDistance;
 import org.knime.knip.clump.dist.DynamicTimeWarping;
@@ -57,7 +57,7 @@ import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Floyd;
 import org.knime.knip.clump.graph.Graph;
-import org.knime.knip.clump.graph.PrintGraph;
+import org.knime.knip.clump.graph.PrintMinPath;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureBasedSplitting;
@@ -254,10 +254,10 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 	//						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
 	//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 							m_templates, m_smFactor.getDoubleValue());
-//					graph.validate(binaryImg, 2);
+//					graph.validate(binaryImg, 1);
 	//				System.out.println( graph );
 					//Drawing the path
-					new PrintGraph<DoubleType, BitType>( new BitType( false )).
+					new PrintMinPath<DoubleType, BitType>( new BitType( false )).
 						compute(graph, raBinaryImg);
 				} catch ( Exception e){
 					e.printStackTrace() ;

@@ -43,10 +43,10 @@ import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.node.ValueToCellsNodeDialog;
 import org.knime.knip.base.node.ValueToCellsNodeFactory;
 import org.knime.knip.base.node.ValueToCellsNodeModel;
-import org.knime.knip.clump.boundary.BinaryFactory;
-import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.Curvature;
-import org.knime.knip.clump.boundary.WatershedFactory;
+import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.contour.WatershedFactory;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureBasedSplitting;
@@ -109,18 +109,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 			@Override
 			protected DataCell[] compute(LabelingValue<L> cellValue)
 					throws Exception {
-				
-//				if( !new BitType().getClass().equals( cellValue.getPixelType() ))
-//						throw new KNIPRuntimeException("Image must be a BitType");
-				
-				
-//				final ImgPlus<BitType> img = (ImgPlus<BitType>) cellValue.getImgPlus();
-				
-//				drawPolygon(img);
-				
-//				final Img<BitType> container = img.factory().create(img, img.firstElement());
-
-								
+					
 				Labeling<L> labeling = cellValue.getLabelingCopy();
 				long[] dim = new long[ labeling.numDimensions() ]; 
 				labeling.dimensions(dim);
@@ -158,15 +147,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 					
 					final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
 							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
-						
-					
-					//Finding the possible splitting points
-//					List<long[]> splittingPoints  = new CurvatureSplit<T>(5,
-////							m_threshold.getDoubleValue(),
-//							mean,
-//							m_sigma.getDoubleValue()).
-//						compute(c, new LinkedList<long[]>());
-					
+											
 					List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
 							mean +std, 
 							10, 

@@ -1,17 +1,20 @@
 package org.knime.knip.clump.dist;
 
+import net.imglib2.Cursor;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.ops.operation.BinaryOperation;
+import net.imglib2.ops.operation.iterable.unary.Mean;
+import net.imglib2.ops.operation.iterable.unary.Sum;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 import org.knime.knip.base.exceptions.KNIPRuntimeException;
-import org.knime.knip.clump.boundary.Contour;
 import org.knime.knip.clump.boundary.ShapeDescription;
+import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.data.algebra.Complex;
 
@@ -42,6 +45,15 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 		
 		double min = Double.MAX_VALUE;
 		
+		final  T mean = 
+				new Mean<T, T>().compute(inputB.iterator(), inputB.firstElement().createVariable());
+		
+		Cursor<T> cursor = inputB.cursor();
+		while( cursor.hasNext() ){
+			cursor.next().sub( mean );
+		}
+		
+		System.out.println( new Sum<T, T>().compute(inputB.iterator(), inputB.firstElement().createVariable().createVariable() ));
 		
 		if( cA.length() <= size ){
 			RealRandomAccess<T> rra = Views.interpolate( inputA.getImg(),

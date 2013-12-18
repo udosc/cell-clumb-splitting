@@ -95,7 +95,7 @@ public class MyUtils {
 		
 		
 		for(int i = 0; i < center.length; i++){		
-			scalar += ( center[i] - p1[i] ) * ( center[i] - p2[i]  );
+			scalar += ( p1[i] - center[i] ) * ( p2[i] - center[i]  );
 		}
 		
 		double d = scalar / (distance(center, p1) * distance(center, p2));
@@ -103,15 +103,21 @@ public class MyUtils {
 //		if( crossProduct(center, p1, p2) < 0.0d )
 //			System.out.println( d );
 		
-		return d;
+//		return Math.abs( d ) * Math.signum( 
+//				crossProduct(center, p1, p2));
 		
-//		return crossProduct(center, p1, p2) > 0.0d ? d : -d;
+		return ( 1 - Math.abs( d ) ) * 
+				Math.signum( crossProduct(center, p1, p2));
+		
+//		return crossProduct(center, p1, p2);
 
 	}
-	
-	public static double crossProduct(long[] center, long[] p1, long[] p2){
-		return (( center[1] - p1[1]) * ( p2[0] - center[0])) -
-				(( p2[1] - center[1]) * (p1[0] - center[0]));
+	//See cormen - algorithm page 1046/46
+	//result > 0: p0p1 is clockwise from p0p2
+	//result < 0: p0p1 is anticlockwise from p0p2
+	public static double crossProduct(long[] p0, long[] p1, long[] p2){
+		return (( p1[0] - p0[0]) * ( p2[1] - p0[1])) -
+				(( p2[0] - p0[0]) * (p1[1] - p0[1]));
 	}
 	
 	public static double calcAngle(long[] center, long[] p1, long[] p2){

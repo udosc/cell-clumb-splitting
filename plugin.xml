@@ -38,9 +38,5 @@
 			id="org.knime.knip.clump.nodes.ftcurvature.FTCurvatureNodeFactory">
 		</node>
 
-	
-		
 	</extension>
-   
-
 </plugin>

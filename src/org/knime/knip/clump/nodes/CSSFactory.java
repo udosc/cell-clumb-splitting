@@ -19,7 +19,7 @@ import org.knime.knip.base.node.ImgPlusToImgPlusNodeModel;
 import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
-import org.knime.knip.clump.ops.CSS;
+import org.knime.knip.clump.curvature.CurvatureScaleSpace;
 import org.knime.knip.core.util.ImgUtils;
 
 public class CSSFactory
@@ -53,7 +53,7 @@ public class CSSFactory
 			protected ImgPlusCell<BitType> compute(
 					ImgPlusValue<BitType> cellValue) throws Exception {
 				
-				Img<BitType> img = new CSS( 120 ).compute( 
+				Img<BitType> img = new CurvatureScaleSpace( 120 ).compute( 
 						cellValue.getImgPlus(), getExecutorService());
 				
 				return m_imgCellFactory.createCell(

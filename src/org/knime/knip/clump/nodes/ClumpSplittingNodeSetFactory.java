@@ -24,6 +24,8 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 	@Override
 	public Collection<String> getNodeFactoryIds() {
 
+		m_nodeFactories.put(DTSplittingFactory.class.getCanonicalName(),
+				"/master");
 		m_nodeFactories.put(SplittPointNodeFactory.class.getCanonicalName(),
 				"/master");
 		m_nodeFactories.put(MyContourExtracter.class.getCanonicalName(), 
@@ -36,6 +38,7 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 				"/master");
 		m_nodeFactories.put(CSSFactory.class.getCanonicalName(),
 				"/master");
+
 
 
 
