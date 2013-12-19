@@ -24,7 +24,7 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 	@Override
 	public Collection<String> getNodeFactoryIds() {
 
-		m_nodeFactories.put(DTSplittingFactory.class.getCanonicalName(),
+		m_nodeFactories.put(DTFactory.class.getCanonicalName(),
 				"/master");
 		m_nodeFactories.put(SplittPointNodeFactory.class.getCanonicalName(),
 				"/master");

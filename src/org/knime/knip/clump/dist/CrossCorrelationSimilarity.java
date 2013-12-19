@@ -86,12 +86,13 @@ public class CrossCorrelationSimilarity<T extends RealType<T> & NativeType<T>>
 				
 		//Rotate the sample to perform a cross correlation!
 		new DirectConvolver<T, T, T>().compute(
-				Views.extendZero(inputA.getImg()), 
-				Views.zeroMin(Views.rotate(Views.rotate(inputB, 0, 1), 0, 1)), 
+				Views.extendPeriodic(inputA.getImg()), 
+				Views.hyperSlice(
+						Views.zeroMin(Views.rotate(Views.rotate(inputB, 0, 1), 0, 1)), 1, 0), 
 				res);
 		
 		new Max<T, T>().compute(res.iterator(), output);
-//		output = similarity2Distance(output);
+		output = similarity2Distance(output);
 		return output;
 	}
 	

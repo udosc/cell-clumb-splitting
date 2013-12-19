@@ -27,8 +27,6 @@ import org.knime.knip.clump.util.MyUtils;
  */
 public class Graph<T extends RealType<T> & NativeType<T>>{
 	
-	private int m_contourLength;
-
 	private final Double[][] m_weights;
 		
 	private List<Node> m_nodes;
@@ -50,7 +48,6 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 	
 	public Graph(Collection<long[]> splittingPoints, int minContourLength){
 		this( splittingPoints);
-		m_contourLength = minContourLength ;
 	}
 	
 	public void calc(ShapeDescription<T> clump, 
@@ -76,8 +73,6 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 							clump.getValues(start, end);
 					T w = clump.getType().createVariable();
 					
-//					if( i == 5 && j == 2 )
-//						System.out.print("");
 					
 					if ( template.getSize() * 1.2d < boundary.dimension(0) ){
 						
@@ -102,18 +97,11 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 								MyUtils.toDoubleArray(start), 
 								MyUtils.toDoubleArray(end));
 						distances[i][j] =  temp;
-						
-//						if( temp <= 1.0d )
-//							w.setReal( 0.0d );
-						
-//						if( Double.compare( temp , 0.0d) == 0)
-//							System.out.println();
-						
+												
 						if( temp < minDist )
 							minDist = temp;
 						else if( temp > maxDist )
 							maxDist = temp;
-							
 
 					}
 					
@@ -126,22 +114,18 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 		}
 		
 		//Min Max Normalization of the distance 
-		for(int i = 0; i < m_weights.length; i++){
-			for(int j = 0; j < m_weights[i].length; j++){
-//				if( i == 5  )
-//					System.out.print("");
-				if ( minDist != maxDist )
-					distances[i][j] =  (distances[i][j] - minDist) / (maxDist - minDist);
-//				System.out.print( distances[i][j] + "; ");
-				m_weights[i][j] = factor * m_weights[i][j] + 
-						( 1 - factor ) + distances[i][j];
-			}
-//			System.out.println();
-			
-			
+		if( factor >= 1.0d){
+			for(int i = 0; i < m_weights.length; i++){
+				for(int j = 0; j < m_weights[i].length; j++){
+					if ( minDist != maxDist )
+						distances[i][j] =  (distances[i][j] - minDist) / (maxDist - minDist);
+					m_weights[i][j] = factor * m_weights[i][j] + 
+							( 1.0d - factor ) + distances[i][j];
+				}
+	//			System.out.println();
+				
+			}	
 		}
-//		
-//		System.out.println();
 	}
 	
 	public void validate(Img<BitType> img, int tolarate){
@@ -179,14 +163,6 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 	}
 	
 	
-	public int getContourLength() {
-		return m_contourLength;
-	}
-
-	public void setContourLength(int contourLength) {
-		this.m_contourLength = contourLength;
-	}
-
 	public Edge getEdge(int source, int destination){
 		return new Edge(m_nodes.get(source), m_nodes.get(destination), m_weights[source][destination]);
 	}
@@ -227,6 +203,7 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 			map.put( node, ++s);
 		return map;
 	}
+	
 
 	public List<Edge> getValidEdges(){
 		List<Edge> list = new LinkedList<Edge>();

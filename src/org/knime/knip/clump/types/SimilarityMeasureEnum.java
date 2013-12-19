@@ -27,7 +27,7 @@ public enum SimilarityMeasureEnum {
 			case DTW:
 				return new DynamicTimeWarping<T>(new EuclideanDistance() );
 			case EUDLIDEAN:
-				return new MinDistance<T>(new EuclideanDistance());
+				return new MinDistance<T>(2);
 	        default:
 	            throw new IllegalArgumentException(DistancesMeasuresEnum.class + ": Unknown Apache Distance enum");
 		}

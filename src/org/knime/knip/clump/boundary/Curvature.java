@@ -81,6 +81,14 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 //		}
 	}
 	
+	public Curvature(Img<T> curvature){
+		m_img = curvature;
+		m_randomAccess = Views.extendPeriodic( m_img ).randomAccess();
+		List<long[]> res = new LinkedList<long[]> ();
+		res.add( new long[]{0L, 0L});
+		m_contour = new Contour( res );
+	}
+	
 	
 	public Curvature<T> gaussian(double sigma, ExecutorService exectutor){
 		//Gaussion fitering to remove noise

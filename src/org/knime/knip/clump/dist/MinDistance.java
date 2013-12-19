@@ -6,7 +6,6 @@ import net.imglib2.img.Img;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.ops.operation.BinaryOperation;
 import net.imglib2.ops.operation.iterable.unary.Mean;
-import net.imglib2.ops.operation.iterable.unary.Sum;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
@@ -16,7 +15,6 @@ import org.knime.knip.base.exceptions.KNIPRuntimeException;
 import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.util.MyUtils;
-import org.knime.knip.core.data.algebra.Complex;
 
 /**
  * 
@@ -26,36 +24,36 @@ import org.knime.knip.core.data.algebra.Complex;
 public class MinDistance<T extends RealType<T> & NativeType<T>> 
 	implements ShapeDistance<T>{
 
-	private final DistanceMeasure m_dist;
+	private int m_step;
 	
-	public MinDistance(DistanceMeasure dist){
-		m_dist = dist;
+	public MinDistance(int step){
+		m_step = step;
 	}
 	
 	@Override
 	public BinaryOperation<ShapeDescription<T>, Img<T>, T> copy() {
-		return new MinDistance<T>(m_dist);
+		return new MinDistance<T>(m_step);
 	}
 
 	@Override
 	public T compute(ShapeDescription<T> inputA, Img<T> inputB, T output) {
-		Contour cA = inputA.getContour();
+		final long sA = inputA.getImg().dimension(0);
 		
 		final int size = MyUtils.numElements( inputB );
 		
 		double min = Double.MAX_VALUE;
 		
-		final  T mean = 
-				new Mean<T, T>().compute(inputB.iterator(), inputB.firstElement().createVariable());
+//		final  T mean = 
+//				new Mean<T, T>().compute(inputB.iterator(), inputB.firstElement().createVariable());
+//		
+//		Cursor<T> cursor = inputB.cursor();
+//		while( cursor.hasNext() ){
+//			cursor.next().sub( mean );
+//		}
 		
-		Cursor<T> cursor = inputB.cursor();
-		while( cursor.hasNext() ){
-			cursor.next().sub( mean );
-		}
+//		System.out.println( new Sum<T, T>().compute(inputB.iterator(), inputB.firstElement().createVariable().createVariable() ));
 		
-		System.out.println( new Sum<T, T>().compute(inputB.iterator(), inputB.firstElement().createVariable().createVariable() ));
-		
-		if( cA.length() <= size ){
+		if( sA <= size ){
 			RealRandomAccess<T> rra = Views.interpolate( inputA.getImg(),
 					new NLinearInterpolatorFactory<T>()).realRandomAccess();
 			
@@ -69,23 +67,30 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 				rra.setPosition((i*step), 0);
 				res[i] = rra.get().getRealDouble();
 			}
-			min = dist(res, MyUtils.toDoubleArray(inputB));
+			
+			for(int i = 0; i < sA ; i+=1){
+				double dist = dist(
+						MyUtils.toDoubleArray( Views.interval( Views.extendPeriodic( inputA.getImg() ), new long[]{ i }, new long[]{ i + size -1 }) ), 
+						MyUtils.toDoubleArray( inputB ));
+				
+				if ( dist < min )
+					min = dist;
+			}
+						
+//			min = dist(res, MyUtils.toDoubleArray(inputB));
 		} else {
-			for(int i = 0; i < cA.length() - size ; i+=2){
+			for(int i = 0; i < sA ; i+=1){
+				if ( sA ==  96)
+					System.out.println();
 				double res = dist(
-						inputA.getValues(i, i + size -1), 
+						MyUtils.toDoubleArray( Views.interval( Views.extendPeriodic( inputA.getImg() ), new long[]{ i }, new long[]{ i + size -1 }) ), 
 						MyUtils.toDoubleArray( inputB ));
 				
 				if ( res < min )
 					min = res;
 			}
 		}
-		
 
-
-		
-		
-		
 //		double[] arrayA = MyUtils.toDoubleArray( inputA );
 //		double[] arrayB = MyUtils.toDoubleArray( inputB );
 
@@ -126,14 +131,9 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 
 	@Override
 	public DistanceMeasure getDistanceMeasure() {
-		return m_dist;
+		return null;
 	}
 	
-	private double dist(Img<T> arg0, Img<T> arg1){
-		return dist( MyUtils.toDoubleArray(arg0),
-				MyUtils.toDoubleArray(arg1));
-		
-	}
 	
 	private double dist(double[] arg0, double[] arg1){
 		if ( arg0.length != arg1.length )

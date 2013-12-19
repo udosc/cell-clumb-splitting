@@ -4,6 +4,7 @@ import net.imglib2.Interval;
 import net.imglib2.Positionable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RealPositionable;
+import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
@@ -11,7 +12,7 @@ import net.imglib2.view.Views;
 import org.knime.knip.clump.boundary.ShapeFeature;
 import org.knime.knip.clump.contour.Contour;
 
-public class CurvatureImg<T extends RealType<T>> 
+public class CurvatureImg<T extends RealType<T>> extends PointSampleList<T> 
 	implements ShapeFeature<T>{
 	
 	private final Img<T> m_img;
@@ -19,6 +20,7 @@ public class CurvatureImg<T extends RealType<T>>
 	private final Contour m_contour;
 	
 	CurvatureImg(Img<T> img, Contour contour){
+		super( 2 );
 		m_img = img;
 		m_contour = contour;
 	}
