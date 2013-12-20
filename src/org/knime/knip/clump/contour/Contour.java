@@ -17,6 +17,7 @@ import net.imglib2.ops.pointset.PointSetIterator;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
+import org.apache.commons.math3.complex.ComplexUtils;
 import org.knime.knip.base.exceptions.KNIPRuntimeException;
 import org.knime.knip.clump.util.DiscretHelpers;
 import org.knime.knip.clump.util.MyUtils;
@@ -151,17 +152,19 @@ public class Contour
 	}
 	
 	public Complex getUnitVector(int index, int support){
-		double[] filter = MyUtils.toDoubleArray(
+		final double[] filter = MyUtils.toDoubleArray(
 				DiscretHelpers.createFirstDerivation1D(support, new DoubleType()));
 		
-		for(int i = 0; i < filter.length; i++){
-			filter[i] *= (2.0d * support + 1.0d) * (2.0d * support + 1.0d);
-			filter[i] /= (2.0d * support + 1.0d);
-		}
+//		double[] filter = new double[]{ 0.0d, -1.0d, -2.0d, 0.0d, 2.0d, 1.0d, 0.0d}; 
+		
+//		for(int i = 0; i < filter.length; i++){
+//			filter[i] *= (2.0d * support + 1.0d) * (2.0d * support + 1.0d);
+//			filter[i] /= (2.0d * support + 1.0d);
+//		}
 		
 		double[] x = new double[ 2 * support + 1 ];
 		double[] y = new double[ 2 * support + 1 ];
-	
+		
 		for(int i = 0; i < x.length; i++){
 			long[] res = get(index + i - support);
 			x[i] = res[0];
@@ -175,8 +178,15 @@ public class Contour
 			deltaY += y[i] * filter[i];
 		}
 		
-		double magnitute = new Complex( deltaX, deltaY).getMagnitude();
-		return new Complex( deltaX / magnitute, deltaY/magnitute );
+//		final double magnitute = new Complex( deltaX, deltaY).getMagnitude();
+//		return new Complex( deltaX / magnitute, deltaY/magnitute );
+		
+		//TODO why do this lead to opposite signs?
+//		org.apache.commons.math3.complex.Complex tmp  = ComplexUtils.polar2Complex( 1.0d, Math.atan( deltaY / deltaX ));
+//		Complex out = new Complex( tmp.getReal(), tmp.getImaginary());
+		double magnitute = Math.sqrt( deltaX * deltaX + deltaY * deltaY);
+//		System.out.println( tmp.getReal() + ", " +  tmp.getImaginary() + " - " + deltaX / res + ", " + deltaY / res);
+		return new Complex( deltaX / magnitute, deltaY/ magnitute);
 	}
 	
 	public Polygon createPolygon(){

@@ -11,6 +11,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
+import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.knime.knip.base.exceptions.KNIPRuntimeException;
 import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.contour.Contour;
@@ -80,8 +81,8 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 //			min = dist(res, MyUtils.toDoubleArray(inputB));
 		} else {
 			for(int i = 0; i < sA ; i+=1){
-				if ( sA ==  96)
-					System.out.println();
+//				if ( sA ==  96)
+//					System.out.println();
 				double res = dist(
 						MyUtils.toDoubleArray( Views.interval( Views.extendPeriodic( inputA.getImg() ), new long[]{ i }, new long[]{ i + size -1 }) ), 
 						MyUtils.toDoubleArray( inputB ));
@@ -131,7 +132,7 @@ public class MinDistance<T extends RealType<T> & NativeType<T>>
 
 	@Override
 	public DistanceMeasure getDistanceMeasure() {
-		return null;
+		return new EuclideanDistance();
 	}
 	
 	

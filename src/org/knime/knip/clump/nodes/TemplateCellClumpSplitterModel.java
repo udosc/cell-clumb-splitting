@@ -244,9 +244,8 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 //							new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
 //									Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
 //									32), 
-							new CrossCorrelationSimilarity<DoubleType>(),
-//							new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
-//									Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
+//							new CrossCorrelationSimilarity<DoubleType>(),
+							new MinDistance<DoubleType>( 2 ),
 	//						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
 	//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
 							m_templates, m_smFactor.getDoubleValue());

@@ -33,16 +33,26 @@ public class Edge {
 		return m_source;
 	}
 	
+	/**
+	 * 
+	 * @return The edge as a vector 
+	 */
 	public Complex getVector(){
 		final long[] destination 	= m_destination.getPosition();
 		final long[] source 		= m_source.getPosition();
-		return new Complex( destination[0] - source[0], destination[1] - source[1]);
+		return new Complex( destination[0] - source[0], 
+				destination[1] - source[1]);
 	}
 	
+	/**
+	 * 
+	 * @return vector in reverse direction
+	 */
 	public Complex getReverseVector(){
 		final long[] source 		= m_destination.getPosition();
 		final long[] destination 	= m_source.getPosition();
-		return new Complex( destination[0] - source[0], destination[1] - source[1]);
+		return new Complex( destination[0] - source[0], 
+				destination[1] - source[1]);
 	}
 	
 	public Node getDestination(){
@@ -61,11 +71,26 @@ public class Edge {
 		return m_numDimension;
 	}
 	
+	//TODO write hashcode
+	
+	
+	
+	@Override
+	public boolean equals(Object obj){
+		if ( obj instanceof Edge ){
+			Edge e = (Edge) obj;
+			return this.getSource().equals( e.getSource() )
+					&& this.getDestination().equals( e.getDestination() );
+		} return super.equals(obj);
+	}
+	
 	@Override
 	public String toString(){
 		return m_source + " -> " + m_destination + ": " + m_weight;
 		
 	}
+	
+	
 	
 	public static double calcPath(Collection<Edge> path){
 		double out = 0.0d;

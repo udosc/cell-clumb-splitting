@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -74,7 +75,7 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 					T w = clump.getType().createVariable();
 					
 					
-					if ( template.getSize() * 1.2d < boundary.dimension(0) ){
+					if ( template.getSize() * 1.4d < boundary.dimension(0) ){
 						
 						w.setReal(Double.MAX_VALUE);
 						
@@ -187,7 +188,7 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 		
 	//TODO Use a member variable in node....
 	public Map<Node, Integer> getDegrees(Collection<Edge> path){
-		Map<Node, Integer> map = new HashMap<Node, Integer>(path.size() * 2);
+		Map<Node, Integer> map = new TreeMap<Node, Integer>(); //TODO Change to a HashMap
 		for( Edge e: path){
 			increaseDegree(map, e.getSource());
 			increaseDegree(map, e.getDestination() );
@@ -202,6 +203,19 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 		else
 			map.put( node, ++s);
 		return map;
+	}
+	
+	public void disconnect(Node node){
+		for(int i = 0; i < m_weights[ node.getIndex() ].length; i++)
+			m_weights[ node.getIndex() ][i] = -1.0d;
+	}
+	
+	public List<Edge> getOutgoingEdges(Node node){
+		List<Edge> out = new LinkedList<Edge>();
+		for(int i = 0; i < m_weights[ node.getIndex() ].length; i++)
+			if ( m_weights[ node.getIndex() ][i] > 0.0d )
+				out.add( new Edge(node, m_nodes.get(i), m_weights[ node.getIndex() ][i]));
+		return out;
 	}
 	
 

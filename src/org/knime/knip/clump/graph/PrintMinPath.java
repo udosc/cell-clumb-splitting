@@ -41,7 +41,6 @@ public class PrintMinPath<T extends RealType<T> & NativeType<T>, R extends RealT
 	@Override
 	public RandomAccess<R> compute(Graph<T> input, RandomAccess<R> output) {
 		Collection<Edge> path = new Floyd<T>( input ).getMinPath();
-		Map<Node, Integer> degrees = input.getDegrees(path);
 		Stack<Edge> complex = new Stack<Edge>();
 		if( path.size() > 2 )
 			path = prune( path );

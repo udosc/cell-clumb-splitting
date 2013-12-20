@@ -1,11 +1,18 @@
 package org.knime.knip.clump.nodes;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import net.imglib2.Cursor;
+import net.imglib2.Point;
 import net.imglib2.RandomAccess;
+import net.imglib2.algorithm.region.BresenhamLine;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
@@ -33,6 +40,7 @@ import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Graph;
+import org.knime.knip.clump.graph.Node;
 import org.knime.knip.clump.graph.PrintValidPaths;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
@@ -47,6 +55,8 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
     
     private final SettingsModelDouble m_t = createTModel();
     
+    private final SettingsModelDouble m_k = createKModel();
+    
     private final SettingsModelDouble m_beta = createBetaModel();
     
     protected static SettingsModelDouble createSigmaModel(){
@@ -59,6 +69,10 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
     
     protected static SettingsModelDouble createTModel(){
     	return new SettingsModelDouble("T: ", -0.15d);
+    }
+    
+    protected static SettingsModelDouble createKModel(){
+    	return new SettingsModelDouble("Curvature: ", 0.1d);
     }
 
 	@Override
@@ -87,10 +101,14 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				settingsModels.add( m_sigma );
 				settingsModels.add( m_beta );
 				settingsModels.add( m_t );
+				settingsModels.add( m_k );
 			}
 
 			@Override
 			protected LabelingCell<L> compute(LabelingValue<L> cellValue) throws IOException{
+				
+				System.out.println("Processing row: " +  cellValue.getLabelingMetadata().getName());
+				
 				Labeling<L> labeling = cellValue.getLabelingCopy();
 				long[] dim = new long[ labeling.numDimensions() ]; 
 				labeling.dimensions(dim);
@@ -123,14 +141,9 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					
 					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
 					
-					final double mean = new Mean<DoubleType, DoubleType>().
-							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
-					
-					final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
-							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
 											
 					final List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
-							mean +std, 
+							m_k.getDoubleValue(), 
 							10, 
 							new DoubleType(),
 							m_sigma.getDoubleValue()).compute(c, new LinkedList<long[]>());
@@ -149,20 +162,74 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					
 					Graph<T> graph = new Graph<T>(splittingPoints);
 					graph.validate(img, 1);
+					
+					//Pruning
 					for( Edge e: graph.getValidEdges()){
-						Complex tangentS = c.getUnitVector(  e.getSource().getPosition() , 1);
-						Complex tangentD = c.getUnitVector(  e.getDestination().getPosition() , 1);
-						System.out.println( tangentS.re() * tangentD.re() + tangentS.im() + tangentD.im() );
-//						if( tangentS.re() * tangentD.re() + tangentS.im() + tangentD.im() > m_t.getDoubleValue() )
-//							graph.deleteEdge(e);
+						Complex tangentS = c.getUnitVector(  e.getSource().getPosition() , 5);
+						printTangent(tangentS, e.getSource().getPosition(), ra);
+						Complex tangentD = c.getUnitVector(  e.getDestination().getPosition() , 5);
+						printTangent(tangentD, e.getDestination().getPosition(), ra);
+						System.out.println( e.getSource().getIndex() + "," + e.getDestination().getIndex() + ": " +  (tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() ));
+						if( tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() > m_t.getDoubleValue() )
+							graph.deleteEdge(e);
 						Complex vector = e.getVector();
-						final double tmp0 = Math.abs((vector.re() * tangentS.re() + vector.im() + tangentS.im()) / vector.getMagnitude());
+						final double tmp0 = Math.abs((vector.re() * tangentS.re() + vector.im() * tangentS.im()) / vector.getMagnitude());
 						vector = e.getReverseVector();
-						final double tmp1 = Math.abs((vector.re() * tangentD.re() + vector.im() + tangentD.im()) / vector.getMagnitude());
-//						if(  Math.max(tmp0, tmp1) > m_beta.getDoubleValue() )
-//							graph.deleteEdge(e);
+						final double tmp1 = Math.abs((vector.re() * tangentD.re() + vector.im() * tangentD.im()) / vector.getMagnitude());
+						if(  Math.max(tmp0, tmp1) > m_beta.getDoubleValue() )
+							graph.deleteEdge(e);
 					}
-					new PrintValidPaths<T, L>( (L)number++ ).compute(graph, ra);
+					List<Edge> list =  removeDuplicates( graph.getValidEdges() );
+					Set<Node> inNodes = new HashSet<Node>( list.size() );
+					Map<Node, Integer> degrees = graph.getDegrees( list );
+					List<Edge> outList = new LinkedList<Edge>();
+					List<Edge> complex = new LinkedList<Edge>();
+//					Selection by Inference
+					if ( list.size() == 1 )
+						outList.addAll( list );
+					else if ( list.size() > 1 ){
+						for( Edge e: list){
+							inNodes.add( e.getSource() );
+							inNodes.add( e.getDestination() );
+						}
+						while( !list.isEmpty() ){
+							Edge e = list.remove(0); //Polling the top element
+							if( degrees.get( e.getSource() ) == 1){
+								outList.add( e );
+								inNodes.remove( e.getSource() );
+								inNodes.remove( e.getDestination() );
+							} else {
+								for( Edge outE: graph.getOutgoingEdges( e.getSource() )){
+									
+								}
+								
+							}
+							graph.disconnect( e.getSource() );
+							graph.disconnect( e.getDestination() );
+						}
+						
+						//Draw a split line for the remaining single nodes
+//						for( Node node : inNodes){
+//							long[] tmp = node.getPosition();
+//							Complex tangent = c.getUnitVector(  tmp , 3);
+//							double angle = tangent.phase() + Math.PI / 4.0d;
+//							long sign = (long) Math.signum( Math.sin( angle ));
+//							for(int j = 0; j < 100; j++){
+//								ra.setPosition(tmp[0]+ sign * j, 0);
+//								ra.setPosition(tmp[1]+ Math.round( j*Math.tan(angle)), 1);
+//								if( !ra.get().getLabeling().isEmpty() )
+//									ra.localize( tmp );
+//							}
+//							Cursor<LabelingType<L>> cursor = 
+//									new BresenhamLine<LabelingType<L>>(ra, new Point(node.getPosition()), new Point(tmp));
+//							while( cursor.hasNext() ){
+//								cursor.fwd();
+//								cursor.get().setLabel((L)number++);
+//							}
+//						}
+					}
+					
+					new PrintValidPaths< L>( (L)number++ ).compute(outList, ra);
 
 					
 				}
@@ -173,6 +240,33 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 		    @Override
 		    protected void prepareExecute(final ExecutionContext exec) {
 		        m_labCellFactory = new LabelingCellFactory(exec);
+		    }
+		    
+		    private List<Edge> removeDuplicates(List<Edge> list){
+		    	final List<Edge> out = new LinkedList<Edge>();
+		    	for(Edge e: list){
+		    		if( e.getSource().getIndex() < e.getDestination().getIndex() )
+		    			out.add( e );
+		    	}
+		    	return out;
+		    }
+
+		    
+		    private RandomAccess<LabelingType<L>> printTangent(Complex tangent, long[] pos, RandomAccess<LabelingType<L>> ra){
+		    	long r0 = (long) (pos[0] + tangent.re() * 15);
+		    	long r1 = (long) (pos[1] + tangent.im() * 15);
+		    	Cursor<LabelingType<L>> cursor = new BresenhamLine<LabelingType<L>>(ra, new Point(pos), new Point(r0, r1));
+		    	while( cursor.hasNext() ){
+		    		cursor.fwd();
+		    		try {
+		    			cursor.get().setLabel((L) new Integer( 1111 ));
+					} catch (ArrayIndexOutOfBoundsException e) {
+						// TODO: handle exception
+						break;
+					}
+		    		
+		    	}
+		    	return ra;
 		    }
 		};
 	}

@@ -1,5 +1,8 @@
 package org.knime.knip.clump.graph;
 
+import java.util.Collection;
+import java.util.List;
+
 import net.imglib2.Cursor;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
@@ -9,8 +12,8 @@ import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-public class PrintValidPaths<T extends RealType<T> & NativeType<T>, L extends Comparable<L>> 
-implements UnaryOperation<Graph<T>, RandomAccess<LabelingType<L>>> {
+public class PrintValidPaths<L extends Comparable<L>> 
+implements UnaryOperation<Collection<Edge>, RandomAccess<LabelingType<L>>> {
 	
 	
 	private final L m_value;
@@ -20,16 +23,16 @@ implements UnaryOperation<Graph<T>, RandomAccess<LabelingType<L>>> {
 	}
 	
 	@Override
-	public RandomAccess<LabelingType<L>> compute(Graph<T> input, RandomAccess<LabelingType<L>> output) {
-		for(Edge e: input.getValidEdges()){
+	public RandomAccess<LabelingType<L>> compute(Collection<Edge> list, RandomAccess<LabelingType<L>> output) {
+		for(Edge e: list){
 			draw(output, e, m_value);
 		}
 		return output;
 	}
 
 	@Override
-	public UnaryOperation<Graph<T>, RandomAccess<LabelingType<L>>> copy() {
-		return new PrintValidPaths<T, L>( m_value );
+	public UnaryOperation<Collection<Edge>, RandomAccess<LabelingType<L>>> copy() {
+		return new PrintValidPaths<L>( m_value );
 	}
 	
 	private void draw(RandomAccess<LabelingType<L>> ra, Point p1, Point p2, L value) {

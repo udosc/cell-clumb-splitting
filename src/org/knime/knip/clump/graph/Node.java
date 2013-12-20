@@ -9,7 +9,8 @@ import java.util.List;
  * @author Udo Schlegel
  *
  */
-public class Node{
+public class Node
+	implements Comparable<Node>{
 	
 	private final int m_index;
 	
@@ -35,9 +36,27 @@ public class Node{
 	public List<Node> getNodes(){
 		return m_connected;
 	}
+	
+	@Override
+	public int hashCode(){
+		return new Integer( this.getIndex() ).hashCode();
+		
+	}
+	
+	@Override
+	public boolean equals(Object obj){
+		if ( obj instanceof Node ){
+			return this.getIndex() ==  ((Node) obj).getIndex() ;
+		} return super.equals(obj);
+	}
 
 	@Override
 	public String toString(){
 		return m_index + " (" + m_position + ") ";
+	}
+
+	@Override
+	public int compareTo(Node o) {
+		return Integer.compare(m_index, o.getIndex());
 	}
 }
