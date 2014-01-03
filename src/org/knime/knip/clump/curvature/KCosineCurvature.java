@@ -1,6 +1,8 @@
 package org.knime.knip.clump.curvature;
 
 import net.imglib2.Cursor;
+import net.imglib2.Point;
+import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.NativeType;
@@ -22,24 +24,21 @@ implements ShapeFeatureFactory<T>{
 	}
 	
 	@Override
-	public ShapeFeature<T> createCurvaureImg(Contour contour) {
-		final Img<T> out = 
-				new ArrayImgFactory<T>().create(new long[]{ contour.length() }, m_type);
+	public PointSampleList<T> createCurvatureImg(Contour contour) {
+		final PointSampleList<T> out = new PointSampleList<T>(2);
 
 		
-		final Cursor<T> c = out.cursor();
-		
 		for(int i = 0; i < contour.length(); i++){
-			c.fwd();
 			final T t = m_type.createVariable();
+			final long[] pos = contour.get(i);
 			t.setReal( calculateCosine(
-					contour.get(i),
+					pos,
 					contour.get(i - m_order),
 					contour.get(i + m_order)) );
-			c.get().set(t);
+			out.add(new Point(pos) , t);
 		}
 		
-		return new CurvatureImg<T>(out, contour);
+		return out;
 	}
 	
 	private double calculateCosine(long[] center, long[] p1, long[] p2){

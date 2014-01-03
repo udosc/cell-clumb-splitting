@@ -4,7 +4,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
@@ -25,6 +27,9 @@ import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.curvature.CurvatureImg;
+import org.knime.knip.clump.curvature.GaussianCurvature;
+import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.core.util.ImgUtils;
 
@@ -88,13 +93,21 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 					i++;
 					if( contour.length() < 20 )
 						continue;
-							
-					Curvature<DoubleType> curv = new Curvature<DoubleType>(
-							contour, 
-							5, 
-							new DoubleType());
+						
+					PointSampleList<DoubleType> curvature = new KCosineCurvature<DoubleType>(new DoubleType(), 5).createCurvatureImg(contour);
+//					Curvature<DoubleType> curv = new Curvature<DoubleType>(
+//							contour, 
+//							5, 
+//							new DoubleType());
 					System.out.println("Printing label: " + i);
-					curv.print(ra);
+					long[] pos = new long[ curvature.numDimensions() ];
+					Cursor<DoubleType> cursor = curvature.localizingCursor();
+					while( cursor.hasNext() ){
+						cursor.fwd();
+						cursor.localize(pos);
+						ra.setPosition(pos);
+						ra.get().set( cursor.get() );
+					}
 				}
 				
 				return m_imgCellFactory.createCell(new ImgPlus<DoubleType>( out ));
