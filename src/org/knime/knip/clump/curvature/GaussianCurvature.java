@@ -68,14 +68,13 @@ implements ShapeFeatureFactory<T> {
 			ctmp.get().setReal( ctmp.get().getRealDouble() - mean );
 		}
 		
-		mean = new Mean<T, T>().compute(Views.iterable(d2Yrai).iterator(), m_type.createVariable()).getRealDouble();
-		ctmp = Views.iterable( d2Yrai ).cursor();
-		while( ctmp.hasNext() ){
-			ctmp.fwd();
-			ctmp.get().setReal( ctmp.get().getRealDouble() - mean );
-		}
+
 		
 		mean = new Mean<T, T>().compute(Views.iterable(d2Yrai).iterator(), m_type.createVariable()).getRealDouble();
+		System.out.println( mean );
+		
+		mean = new Mean<T, T>().compute(Views.iterable(d2Xrai).iterator(), m_type.createVariable()).getRealDouble();
+		System.out.println( mean );
 		
 		RandomAccess<T> d2xRandomAccess = d2Xrai.randomAccess();
 		RandomAccess<T> d2yRandomAccess = d2Yrai.randomAccess();

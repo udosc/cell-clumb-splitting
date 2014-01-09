@@ -94,7 +94,7 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 					if( contour.length() < 20 )
 						continue;
 						
-					PointSampleList<DoubleType> curvature = new KCosineCurvature<DoubleType>(new DoubleType(), 5).createCurvatureImg(contour);
+					PointSampleList<DoubleType> curvature = new GaussianCurvature<DoubleType>(new DoubleType(), 5).createCurvatureImg(contour);
 //					Curvature<DoubleType> curv = new Curvature<DoubleType>(
 //							contour, 
 //							5, 
