@@ -16,14 +16,12 @@ import org.knime.knip.clump.dist.ShapeDistance;
  */
 public enum SimilarityMeasureEnum {
 
-	FOURIER,
+
 	DTW,
 	EUDLIDEAN;
 		
 	public static <T extends RealType<T> & NativeType<T>> ShapeDistance<T> getDistanceMeasure(SimilarityMeasureEnum arg){
 		switch (arg) {
-			case FOURIER:
-				return new DFTDistance<T>(new EuclideanDistance(), 16);
 			case DTW:
 				return new DynamicTimeWarping<T>(new EuclideanDistance() );
 			case EUDLIDEAN:

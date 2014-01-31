@@ -44,7 +44,7 @@ import org.knime.knip.clump.graph.Node;
 import org.knime.knip.clump.graph.PrintValidPaths;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
-import org.knime.knip.clump.split.CurvatureBasedSplitting;
+import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.core.data.algebra.Complex;
 import org.knime.knip.core.util.ImgUtils;
 
@@ -142,8 +142,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
 					
 											
-					final List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
-							m_k.getDoubleValue(), 
+					final List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
 							new DoubleType(),
 							m_sigma.getDoubleValue()).compute(c, new LinkedList<long[]>());
@@ -160,7 +159,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 //						ra.get().setLabel( (L) number++);
 //					}
 					
-					Graph<T> graph = new Graph<T>(splittingPoints);
+					Graph<T> graph = new Graph<T>(splittingPoints, img);
 					graph.validate(img, 1);
 					
 					//Pruning

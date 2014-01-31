@@ -1,5 +1,6 @@
 package org.knime.knip.clump.nodes;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -8,6 +9,7 @@ import java.util.List;
 import net.imglib2.Cursor;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.region.BresenhamLine;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -49,6 +51,8 @@ import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.curvature.CurvatureDistance;
+import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
 import org.knime.knip.clump.dist.DFTDistance;
 import org.knime.knip.clump.dist.MinDistance;
@@ -56,9 +60,11 @@ import org.knime.knip.clump.dist.MinMaxDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Graph;
 import org.knime.knip.clump.graph.PrintMinPath;
+import org.knime.knip.clump.graph.CurvatureSplitting;
+import org.knime.knip.clump.graph.SplitLine;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
-import org.knime.knip.clump.split.CurvatureBasedSplitting;
+import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.clump.types.DistancesMeasuresEnum;
 
 /**
@@ -72,8 +78,8 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 	extends ValueToCellNodeModel<LabelingValue<L>, LabelingCell<Integer>>{
 
 	private int m_templateIndex;
-		
-	private List<ShapeDescription<DoubleType>> m_templates;
+			
+	private List<Contour> m_templates;
 	
 	private final SettingsModelString m_smTemplateColumn = createTemplateColumnModel();
 	
@@ -183,11 +189,11 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			if( contour.length() < 20)
 				continue;
 			
-			Curvature<DoubleType> curv = 
-					new Curvature<DoubleType>(
-							contour, 
-							5, 
-							new DoubleType());
+//			Curvature<DoubleType> curv = 
+//					new Curvature<DoubleType>(
+//							contour, 
+//							5, 
+//							new DoubleType());
 			
 
 			
@@ -198,66 +204,86 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 //				ra.get().setLabel((L) i);
 //			}
 			
-			final double mean = new Mean<DoubleType, DoubleType>().
-					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
-			
-			final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
-					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
 					
 			
 //			System.out.println( mean + std );
 			
-			curv.gaussian(m_sigma.getDoubleValue(), 
-					this.getExecutorService() );
+//			curv.gaussian(m_sigma.getDoubleValue(), 
+//					this.getExecutorService() );
 			
-			//Finding the possible splitting points
-			List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
-					mean + std, 
+	        
+			CurvatureSplitting<DoubleType> cs = new CurvatureSplitting<DoubleType>(
+	        		new CurvatureDistance<DoubleType>(new KCosineCurvature<DoubleType>(new DoubleType(), 5), 1, this.getExecutorService(), 5.0d),
+//					new DFTDistance<DoubleType>(new DoubleType(), 16),
+	        		binaryImg, 
+	        		m_templates);
+			
+			List<SplitLine> points = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
 					10, 
 					new DoubleType(),
-					m_sigma.getDoubleValue()).compute(contour, new LinkedList<long[]>());
+					m_sigma.getDoubleValue()), m_smFactor.getDoubleValue());
 			
-			if ( !splittingPoints.isEmpty() ){
-				
-//				Graph2<DoubleType> gg = new Graph2<DoubleType>(curv, splittingPoints, binaryImg);
-//				
-//				Pair<long[], long[]> pair = gg.calc(
-////						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
-////								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
-////								128, 
-////								64), 
-////						new CrossCorrelationSimilarity<DoubleType>(),
-//						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
-//							Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
-//								m_templates, m_smFactor.getDoubleValue());
-//				
-//				if ( pair != null)
-//					draw(raBinaryImg, pair.getFirst(), pair.getSecond(), new BitType(false));
-//				
-////				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
-//				for(long[] p: splittingPoints){
-//					System.out.println( p[0] + ", "  + p[1]);
+			System.out.println( cs );
+			
+			new PrintMinPath<DoubleType, BitType>( new BitType( false )).
+				compute(points, raBinaryImg);
+			
+//			for(SplitLine line: points){
+//				Cursor<BitType> cursor = 
+//						new BresenhamLine<BitType>(raBinaryImg, new Point( line.getP1() ), new Point( line.getP2() ));
+//				while( cursor.hasNext() ){
+//					cursor.next().set( false );
 //				}
-				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
-				try{
-					graph.calc(curv, 
-//							new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
-//									Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
-//									32), 
-//							new CrossCorrelationSimilarity<DoubleType>(),
-							new MinDistance<DoubleType>( 2 ),
-	//						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
-	//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
-							m_templates, m_smFactor.getDoubleValue());
-//					graph.validate(binaryImg, 1);
-					System.out.println( graph );
-					//Drawing the path
-					new PrintMinPath<DoubleType, BitType>( new BitType( false )).
-						compute(graph, raBinaryImg);
-				} catch ( Exception e){
-					e.printStackTrace() ;
-				}
-			}
+//			}
+			
+//			//Finding the possible splitting points
+//			List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
+//					mean + std, 
+//					10, 
+//					new DoubleType(),
+//					m_sigma.getDoubleValue()).compute(contour, new LinkedList<long[]>());
+//			
+//			if ( !splittingPoints.isEmpty() ){
+//				
+////				Graph2<DoubleType> gg = new Graph2<DoubleType>(curv, splittingPoints, binaryImg);
+////				
+////				Pair<long[], long[]> pair = gg.calc(
+//////						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
+//////								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
+//////								128, 
+//////								64), 
+//////						new CrossCorrelationSimilarity<DoubleType>(),
+////						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
+////							Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
+////								m_templates, m_smFactor.getDoubleValue());
+////				
+////				if ( pair != null)
+////					draw(raBinaryImg, pair.getFirst(), pair.getSecond(), new BitType(false));
+////				
+//////				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
+////				for(long[] p: splittingPoints){
+////					System.out.println( p[0] + ", "  + p[1]);
+////				}
+//				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
+//				try{
+//					graph.calc(curv, 
+////							new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
+////									Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
+////									32), 
+////							new CrossCorrelationSimilarity<DoubleType>(),
+//							new MinDistance<DoubleType>( 2 ),
+//	//						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
+//	//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
+//							m_templates, m_smFactor.getDoubleValue());
+////					graph.validate(binaryImg, 1);
+//					System.out.println( graph );
+//					//Drawing the path
+//					new PrintMinPath<DoubleType, BitType>( new BitType( false )).
+//						compute(graph, raBinaryImg);
+//				} catch ( Exception e){
+//					e.printStackTrace() ;
+//				}
+//			}
 			
 		}
 		
@@ -299,7 +325,9 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 		
         final Iterator<DataRow> it = ((BufferedDataTable)inObjects[1]).iterator();
         
-        m_templates = new LinkedList<ShapeDescription<DoubleType>>();
+        m_templates = new LinkedList<Contour>();
+        
+        List<RandomAccessibleInterval<DoubleType>> list = new LinkedList<RandomAccessibleInterval<DoubleType>>( );
         
         while (it.hasNext()) {
             final DataRow row = it.next();
@@ -319,17 +347,22 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 				cc.add( new BinaryFactory(binaryImg, p.getSecond()).createContour() );
 			}
 
+			
             for(Contour contour: cc){
-            	Curvature<DoubleType> curvature = new Curvature<DoubleType>(
-            			contour, 
-          				m_smOrder.getIntValue(),new DoubleType());
-            	curvature.gaussian( m_sigma.getDoubleValue(),
-            			this.getExecutorService());
-            	m_templates.add( curvature );
+            	
+//            	list.add( new KCosineCurvature<DoubleType>(new DoubleType(), 5).createCurvatureImg(contour) );
+//            	
+//            	
+//            	
+//            	Curvature<DoubleType> curvature = new Curvature<DoubleType>(
+//            			contour, 
+//          				m_smOrder.getIntValue(),new DoubleType());
+//            	curvature.gaussian( m_sigma.getDoubleValue(),
+//            			this.getExecutorService());
+            	m_templates.add( contour );
             }
         }
-        
-        
+                
         PortObject[] res = null;
 
         try {

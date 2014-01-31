@@ -3,17 +3,17 @@ package org.knime.knip.clump.curvature;
 import net.imglib2.Interval;
 import net.imglib2.Positionable;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPositionable;
 import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
-import org.knime.knip.clump.boundary.ShapeFeature;
 import org.knime.knip.clump.contour.Contour;
 
 public class CurvatureImg<T extends RealType<T>> extends PointSampleList<T> 
-	implements ShapeFeature<T>{
+	implements RandomAccessibleInterval<T>{
 	
 	private final Img<T> m_img;
 	
@@ -117,12 +117,10 @@ public class CurvatureImg<T extends RealType<T>> extends PointSampleList<T>
 		return m_img.dimension(d);
 	}
 
-	@Override
 	public Contour getContour() {
 		return m_contour;
 	}
 
-	@Override
 	public T getType() {
 		return m_img.firstElement();
 	}

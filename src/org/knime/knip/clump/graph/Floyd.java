@@ -2,6 +2,7 @@ package org.knime.knip.clump.graph;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -14,22 +15,24 @@ import net.imglib2.type.numeric.RealType;
 public class Floyd<T extends RealType<T> & NativeType<T>> {
 	
 	
-	private final Graph<T> m_graph;
+	private final Double[][] m_graph;
+	
+	private final List<Node> m_nodes;
 	
 	private int[][] m_next;
 	
 	private Double[][] m_dist;
 	
-	public Floyd(Graph<T> graph){
+	public Floyd(Double[][] graph, List<Node> nodes){
 		m_graph = graph;
+		m_nodes = nodes;
 		calc();
 	}
 	
 	private void calc(){
 		
-		final int n = m_graph.numberOfNodes();
+		final int n = m_graph.length;
 		
-		Double[][] graph = m_graph.getMatrix();
 		m_dist = new Double[n][];
 		
 		m_next = new int[n][];
@@ -38,8 +41,8 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 			m_dist[i] = new Double[n];
 			m_next[i] = new int[n];
 			for(int j = 0; j < n; j++){
-				m_dist[i][j] = graph[i][j];
-				m_next[i][j] = graph[i][j] != null ? i : -1; 
+				m_dist[i][j] = m_graph[i][j];
+				m_next[i][j] = m_graph[i][j] != null ? i : -1; 
 			}
 		}
 		
@@ -80,7 +83,7 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 	public Collection<Edge> getMinPath(){
 		Collection<Edge> out = new LinkedList<Edge>();
 		double weight = Double.MAX_VALUE;
-		for(int i = 0; i < m_graph.numberOfNodes(); i++){
+		for(int i = 0; i < m_graph.length; i++){
 			Collection<Edge> path = getShortestPath(i, i);
 			printPath(path);
 			if( Edge.calcPath(path) < weight){
@@ -130,7 +133,8 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
     	if( k == -1 )
     		return null;
         
-        nodes.add( m_graph.getEdge(k, destination) );
+    	nodes.add(new Edge(m_nodes.get(k), m_nodes.get(destination), m_graph[k][destination]));
+//        nodes.add( m_graph.getEdge(k, destination) );
         if (k != source) {
         	
         	shortestPath(nodes, source, k);

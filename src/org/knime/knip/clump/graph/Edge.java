@@ -100,7 +100,7 @@ public class Edge {
 //			System.out.println( e );
 		}
 //		System.out.println();
-		return out / path.size();
+		return out ;
 	}
 
 }

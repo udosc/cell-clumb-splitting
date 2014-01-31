@@ -2,21 +2,23 @@ package org.knime.knip.clump.curvature;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-import org.knime.knip.clump.boundary.ShapeFeature;
 import org.knime.knip.clump.contour.Contour;
 
 public class KCosineCurvature<T extends RealType<T> & NativeType<T>> 
-implements ShapeFeatureFactory<T>{
+implements CurvatureFactory<T>{
 	
 	private T m_type;
 	
 	private int m_order;
+	
+	private PointSampleList<T> m_curvature;
 	
 	public KCosineCurvature(T type, int order){
 		m_type = type.createVariable();
@@ -24,10 +26,10 @@ implements ShapeFeatureFactory<T>{
 	}
 	
 	@Override
-	public PointSampleList<T> createCurvatureImg(Contour contour) {
-		final PointSampleList<T> out = new PointSampleList<T>(2);
-
-		
+	public Img<T> createCurvatureImg(Contour contour) {
+		m_curvature = new PointSampleList<T>(2);
+		final Img<T> out = new ArrayImgFactory<T>().create(new long[]{ contour.size() }, m_type);
+		Cursor<T> c = out.cursor();
 		for(int i = 0; i < contour.length(); i++){
 			final T t = m_type.createVariable();
 			final long[] pos = contour.get(i);
@@ -35,10 +37,26 @@ implements ShapeFeatureFactory<T>{
 					pos,
 					contour.get(i - m_order),
 					contour.get(i + m_order)) );
-			out.add(new Point(pos) , t);
+			m_curvature.add(new Point(pos) , t);
+			c.next().set(t);
 		}
 		
 		return out;
+	}
+	
+	public PointSampleList<T> getPointSampleList(Contour contour){
+		m_curvature = new PointSampleList<T>(2);
+		for(int i = 0; i < contour.length(); i++){
+			final T t = m_type.createVariable();
+			final long[] pos = contour.get(i);
+			t.setReal( calculateCosine(
+					pos,
+					contour.get(i - m_order),
+					contour.get(i + m_order)) );
+			m_curvature.add(new Point(pos) , t);
+		}
+		
+		return m_curvature;
 	}
 	
 	private double calculateCosine(long[] center, long[] p1, long[] p2){
@@ -74,6 +92,11 @@ implements ShapeFeatureFactory<T>{
 			sum += delta * delta;
 		}
 		return Math.sqrt(sum);
+	}
+
+	@Override
+	public T getType() {
+		return m_type;
 	}
 
 }

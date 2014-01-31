@@ -1,18 +1,12 @@
 package org.knime.knip.clump.graph;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
-import java.util.TreeMap;
-
-import org.knime.core.util.Pair;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -30,7 +24,7 @@ import net.imglib2.type.numeric.RealType;
  * @param <R>
  */
 public class PrintMinPath<T extends RealType<T> & NativeType<T>, R extends RealType<R>> 
-	implements UnaryOperation<Graph<T>, RandomAccess<R>>{
+	implements UnaryOperation<List<SplitLine>, RandomAccess<R>>{
 
 	private final R m_value;
 	
@@ -39,14 +33,14 @@ public class PrintMinPath<T extends RealType<T> & NativeType<T>, R extends RealT
 	}
 	
 	@Override
-	public RandomAccess<R> compute(Graph<T> input, RandomAccess<R> output) {
-		Collection<Edge> path = new Floyd<T>( input ).getMinPath();
+	public RandomAccess<R> compute(List<SplitLine> path, RandomAccess<R> output) {
+//		Collection<Edge> path = new Floyd<T>( input ).getMinPath();
 		Stack<Edge> complex = new Stack<Edge>();
 		if( path.size() > 2 )
 			path = prune( path );
-		for(Edge edge: path){
+		for(SplitLine line: path){
 	//			draw(output, edge, m_value);
-			draw(output, edge, m_value);
+			draw(output, line, m_value);
 	//			else
 	//				complex.add( edge );
 		}
@@ -68,31 +62,31 @@ public class PrintMinPath<T extends RealType<T> & NativeType<T>, R extends RealT
 	}
 
 	@Override
-	public UnaryOperation<Graph<T>, RandomAccess<R>> copy() {
+	public UnaryOperation<List<SplitLine>, RandomAccess<R>> copy() {
 		return new PrintMinPath<T, R>(m_value);
 	}
 	
-	private List<Edge> prune(Collection<Edge> list){
-		List<Edge> out = new LinkedList<Edge>();
-		final PriorityQueue<Edge> queue = new PriorityQueue<Edge>(
+	private List<SplitLine> prune(List<SplitLine> list){
+		List<SplitLine> out = new LinkedList<SplitLine>();
+		final PriorityQueue<SplitLine> queue = new PriorityQueue<SplitLine>(
 				10, 
-				new Comparator<Edge>() {
+				new Comparator<SplitLine>() {
 
 					@Override
-					public int compare(Edge o1,
-							Edge o2) {
-						return Double.compare(o1.getWeight(), o2.getWeight());
+					public int compare(SplitLine o1,
+							SplitLine o2) {
+						return Double.compare(o2.getWeight(), o1.getWeight());
 					}
 		});
 		queue.addAll( list );
-		Set<Integer> set = new HashSet<Integer>();
+		Set<long[]> set = new HashSet<long[]>();
 		while ( !queue.isEmpty() ){
-			Edge e = queue.poll();
-			if( !set.contains( e.getSource().getIndex()) && 
-					!set.contains( e.getDestination().getIndex())){
+			SplitLine e = queue.poll();
+			if( !set.contains( e.getP1() ) && 
+					!set.contains(e.getP2() )){
 				out.add( e );
-				set.add( e.getSource().getIndex() );
-				set.add( e.getDestination().getIndex() );
+				set.add( e.getP1() );
+				set.add( e.getP2() );
 			}
 		
 		}
@@ -139,10 +133,10 @@ public class PrintMinPath<T extends RealType<T> & NativeType<T>, R extends RealT
 		}
 	}
 	
-	private void draw(RandomAccess<R> ra, Edge edge, R value) {
+	private void draw(RandomAccess<R> ra, SplitLine line, R value) {
 		draw(ra, 
-				new Point(edge.getSource().getPosition()),
-				new Point(edge.getDestination().getPosition()), 
+				new Point( line.getP1() ),
+				new Point( line.getP2() ), 
 				value);
 	}
 

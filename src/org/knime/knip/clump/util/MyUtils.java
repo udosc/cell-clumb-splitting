@@ -47,7 +47,7 @@ public class MyUtils {
 		
 		int size = 1;
 		for(int i = 0; i < list.numDimensions(); i++)
-			size *= list.dimension(i);
+			size *= Math.abs( list.dimension(i));
 		
 		double[] res = new double[ size ];
 		Cursor<T> c = Views.iterable(list).cursor();

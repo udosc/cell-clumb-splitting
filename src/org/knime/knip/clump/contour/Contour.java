@@ -31,10 +31,22 @@ import org.knime.knip.core.data.algebra.Complex;
 public class Contour 
 	extends AbstractPointSet{
 	
-	private final List<long[]> m_points;
+	private List<long[]> m_points;
 	
 	public Contour(List<long[]> points) {
 		super();
+		init(points);
+	}
+	
+	public Contour(Contour... contour){
+		super();
+		final List<long[]> res = new LinkedList<long[]>();
+		for( Contour c: contour)
+			res.addAll( c.getPoints() );
+		init( res );
+	}
+	
+	private void init(List<long[]> points){
 		
 		minBounds = new long[ points.get(0).length ];
 		maxBounds = new long[ points.get(0).length ];
@@ -113,6 +125,29 @@ public class Contour
 		return new HashSet<long[]>( m_points ).size() == m_points.size();
 	}
 	
+	public List<long[]> getPointsInbetween(int start, int end){
+		List<long[]> out = new LinkedList<long[]>();
+		if( start == end ){
+			//Return the whole contour
+			out.addAll( m_points );
+		} else if( start <= end ){
+			while( start <= end ){
+				out.add( m_points.get(start++));
+			}
+//			out = m_points.subList(i, j+1);
+		} else {
+			while( start < m_points.size() ){
+				out.add( m_points.get(start++));
+			}
+			for(int k = 0; k < end; k++){
+				out.add( m_points.get(k));
+			}
+
+		}
+		return out;
+		
+	}
+	
 	public List<long[]> getPointsInbetween(long[] start, long[] end){
 		
 		//TODO
@@ -145,6 +180,10 @@ public class Contour
 
 		}
 		return out;
+	}
+	
+	public List<long[]> getPoints(){
+		return m_points;
 	}
 	
 	public Complex getUnitVector(long[] pos, int support){

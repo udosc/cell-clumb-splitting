@@ -13,18 +13,18 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
-import org.knime.knip.clump.boundary.ShapeFeature;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.util.DiscretHelpers;
 import org.knime.knip.core.algorithm.convolvers.DirectConvolver;
-import org.knime.knip.core.util.ImgUtils;
 
 public class GaussianCurvature< T extends RealType<T> & NativeType<T>> 
-implements ShapeFeatureFactory<T> {
+implements CurvatureFactory<T> {
 	
 	private final T m_type;
 	
 	private final int m_supportRadius;
+	
+	private PointSampleList<T> m_curvature;
 	
 	public GaussianCurvature(T type, int supportRadius){
 		m_type = type.createVariable();
@@ -32,8 +32,10 @@ implements ShapeFeatureFactory<T> {
 	}
 
 	@Override
-	public PointSampleList<T> createCurvatureImg(Contour contour) {
-		final PointSampleList<T> out = new PointSampleList<T>(2);
+	public Img<T> createCurvatureImg(Contour contour) {
+		m_curvature = new PointSampleList<T>(2);
+		final Img<T> out = new ArrayImgFactory<T>().create(new long[]{ contour.size() }, m_type);
+		Cursor<T> c = out.cursor();
 		final long size = contour.size();
 		
 		final RandomAccess<T> d1xRandomAccess = new DirectConvolver<DoubleType, T, T>().compute(
@@ -93,13 +95,23 @@ implements ShapeFeatureFactory<T> {
 			
 			final T sample = m_type.createVariable();
 			sample.setReal( t / r);
-			out.add(new Point( contour.get(i)), sample);
+			m_curvature.add(new Point( contour.get(i)), sample);
+			c.get().set(sample);
 		}
 		
 		return out;
 	}
 	
+	public PointSampleList<T> getPointSampleList(){
+		return m_curvature;
+	}
+	
 	private Img<T> create1DImg(long size){
 		return new ArrayImgFactory<T>().create(new long[]{ size }, m_type);
+	}
+
+	@Override
+	public T getType() {
+		return m_type;
 	}
 }

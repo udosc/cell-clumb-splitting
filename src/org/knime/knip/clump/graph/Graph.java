@@ -18,6 +18,7 @@ import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 
 import org.knime.knip.clump.boundary.ShapeDescription;
+import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.dist.ShapeDistance;
 import org.knime.knip.clump.util.MyUtils;
 
@@ -29,11 +30,14 @@ import org.knime.knip.clump.util.MyUtils;
 public class Graph<T extends RealType<T> & NativeType<T>>{
 	
 	private final Double[][] m_weights;
+	
+	private Contour[][] m_contour;
 		
 	private List<Node> m_nodes;
 	
-	public Graph(Collection<long[]> splittingPoints){
+	public Graph(Collection<long[]> splittingPoints, Img<BitType> source){
 		super();
+
 		m_weights = new Double[splittingPoints.size()][];
 //		m_distances = new Double[splittingPoints.size()][];
 		m_nodes = new ArrayList<Node>( splittingPoints.size() );
@@ -45,11 +49,11 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 			for(int j = 0; j < m_weights[i].length; j++)
 				m_weights[i][j] = 0.0d;
 		}
+		
+//		if( source != null )
+//			init( source );
 	}
 	
-	public Graph(Collection<long[]> splittingPoints, int minContourLength){
-		this( splittingPoints);
-	}
 	
 	public void calc(ShapeDescription<T> clump, 
 			ShapeDistance<T> dist, Collection<ShapeDescription<T>> templates, double factor){
@@ -129,6 +133,40 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 		}
 	}
 	
+	private void init(Img<BitType> img){
+		RandomAccess<BitType> ra = img.randomAccess();
+		for(int i=0; i < m_weights.length;i++){
+			for(int j=0; j < m_weights[i].length; j++){
+				List<long[]> points = new LinkedList<long[]>();
+				Cursor<BitType> cursor = 
+						new BresenhamLine<BitType>(ra, 
+								new Point(m_nodes.get(i).getPosition()), 
+								new Point(m_nodes.get(j).getPosition()));
+				int res = 0;
+		
+				//Check if the split line is not crossing the background
+				boolean isValid = true;
+				while( cursor.hasNext() ){
+					cursor.fwd();
+					if( cursor.get().get() ){
+						long[] pos = new long[ img.numDimensions() ];
+						cursor.localize( pos );
+						points.add( pos );
+					} else {
+						if( ++res > 2 ){
+							isValid = false;
+							break;
+						}
+					}
+				}
+				
+				if ( isValid )
+					m_contour[i][j] = new Contour( points );
+				
+			}
+		}
+	}
+	
 	public void validate(Img<BitType> img, int tolarate){
 		RandomAccess<BitType> ra = img.randomAccess();
 		for(int i=0; i < m_weights.length;i++){
@@ -172,6 +210,7 @@ public class Graph<T extends RealType<T> & NativeType<T>>{
 		m_weights[ edge.getSource().getIndex() ] [ edge.getDestination().getIndex() ] = -1.0d;
 	}
 	
+
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();

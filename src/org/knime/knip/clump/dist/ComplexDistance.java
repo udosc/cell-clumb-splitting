@@ -1,35 +1,42 @@
 package org.knime.knip.clump.dist;
 
-import org.apache.commons.math3.ml.distance.DistanceMeasure;
-import org.knime.knip.core.data.algebra.Complex;
-
 import net.imglib2.ops.operation.BinaryOperation;
+import net.imglib2.type.numeric.RealType;
+
+import org.knime.knip.core.data.algebra.Complex;
 
 /**
  * 
  * @author Udo
  *
  */
-public class ComplexDistance 
-	implements BinaryOperation<Complex, Complex, Double>{
+public class ComplexDistance<T extends RealType<T>> 
+	implements BinaryOperation<Complex[], Complex[], T>{
+
+	private final T m_type;
 	
-	private DistanceMeasure m_dist;
-	
-	public ComplexDistance(DistanceMeasure dist){
-		m_dist = dist;
+	public ComplexDistance(T type){
+		m_type = type.createVariable();
 	}
 
 	@Override
-	public Double compute(Complex arg0, Complex arg1, Double out) {
-		out = dist(
-				new double[]{arg0.re(), arg0.im()}, 
-				new double[]{arg1.re(), arg1.im()});
+	public T compute(Complex[] arg0, Complex[] arg1, T out) {
+		assert arg0.length == arg1.length;
+		
+		double res = 0.0d;
+		
+		for( int i = 0; i < arg0.length; i++){
+			res += dist(
+					new double[]{arg0[i].re(), arg0[i].im()}, 
+					new double[]{arg1[i].re(), arg1[i].im()});
+		}
+		out.setReal(res / arg0.length);
 		return out;
 	}
 
 	@Override
-	public BinaryOperation<Complex, Complex, Double> copy() {
-		return new ComplexDistance(m_dist);
+	public BinaryOperation<Complex[], Complex[], T> copy() {
+		return new ComplexDistance<T>(m_type);
 	}
 	
 	private double dist(double[] arg0, double[] arg1){

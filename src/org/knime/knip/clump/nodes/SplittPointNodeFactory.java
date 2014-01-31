@@ -49,7 +49,7 @@ import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.WatershedFactory;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
-import org.knime.knip.clump.split.CurvatureBasedSplitting;
+import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.clump.split.CurvatureSplit;
 import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
 import org.knime.knip.core.data.img.DefaultLabelingMetadata;
@@ -148,8 +148,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 					final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
 							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
 											
-					List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
-							mean +std, 
+					List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
 							new DoubleType(),
 							m_sigma.getDoubleValue()).compute(c, new LinkedList<long[]>());
