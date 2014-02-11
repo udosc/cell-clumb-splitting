@@ -2,6 +2,9 @@ package org.knime.knip.clump.graph;
 
 import java.util.Collection;
 
+import net.imglib2.Point;
+
+import org.knime.core.util.Pair;
 import org.knime.knip.core.data.algebra.Complex;
 
 
@@ -19,6 +22,8 @@ public class Edge {
 	private double m_weight;
 	
 	private int m_numDimension;
+	
+	private Pair<Point, Point> m_splitLine;
 	
 	
 	public Edge(Node source, Node destination, double weight){
@@ -69,6 +74,14 @@ public class Edge {
 	
 	public int getNumberDimension(){
 		return m_numDimension;
+	}
+	
+	public Pair<Point, Point> getSplitLine(){
+		return m_splitLine;
+	}
+	
+	public void setSplitLine(Pair<Point, Point> splitLine){
+		m_splitLine = splitLine;
 	}
 	
 	//TODO write hashcode

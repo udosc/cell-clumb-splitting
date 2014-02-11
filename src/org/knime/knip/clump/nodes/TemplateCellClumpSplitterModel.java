@@ -60,7 +60,7 @@ import org.knime.knip.clump.dist.MinMaxDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Graph;
 import org.knime.knip.clump.graph.PrintMinPath;
-import org.knime.knip.clump.graph.CurvatureSplitting;
+import org.knime.knip.clump.graph.GraphSplitting;
 import org.knime.knip.clump.graph.SplitLine;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
@@ -212,21 +212,25 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 //					this.getExecutorService() );
 			
 	        
-			CurvatureSplitting<DoubleType> cs = new CurvatureSplitting<DoubleType>(
-	        		new CurvatureDistance<DoubleType>(new KCosineCurvature<DoubleType>(new DoubleType(), 5), 1, this.getExecutorService(), 5.0d),
-//					new DFTDistance<DoubleType>(new DoubleType(), 16),
+			GraphSplitting<DoubleType, Integer> cs = new GraphSplitting<DoubleType, Integer>(
+	        		new CurvatureDistance<DoubleType>(new KCosineCurvature<DoubleType>(new DoubleType(), 5), 2, this.getExecutorService(), 5.0d),
+//					new DFTDistance<DoubleType>(new DoubleType(), 32),
 	        		binaryImg, 
 	        		m_templates);
 			
 			List<SplitLine> points = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
-					10, 
+					15, 
 					new DoubleType(),
 					m_sigma.getDoubleValue()), m_smFactor.getDoubleValue());
 			
-			System.out.println( cs );
+//			cs.draw(lab.randomAccess());
 			
-			new PrintMinPath<DoubleType, BitType>( new BitType( false )).
-				compute(points, raBinaryImg);
+			System.out.println( cs );
+			if ( points != null ){
+				new PrintMinPath<DoubleType, BitType>( new BitType( false )).
+					compute(points, raBinaryImg);
+			}
+
 			
 //			for(SplitLine line: points){
 //				Cursor<BitType> cursor = 

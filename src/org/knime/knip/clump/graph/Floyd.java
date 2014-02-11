@@ -15,7 +15,7 @@ import net.imglib2.type.numeric.RealType;
 public class Floyd<T extends RealType<T> & NativeType<T>> {
 	
 	
-	private final Double[][] m_graph;
+	private final Edge[][] m_graph;
 	
 	private final List<Node> m_nodes;
 	
@@ -23,7 +23,7 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 	
 	private Double[][] m_dist;
 	
-	public Floyd(Double[][] graph, List<Node> nodes){
+	public Floyd(Edge[][] graph, List<Node> nodes){
 		m_graph = graph;
 		m_nodes = nodes;
 		calc();
@@ -41,7 +41,7 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 			m_dist[i] = new Double[n];
 			m_next[i] = new int[n];
 			for(int j = 0; j < n; j++){
-				m_dist[i][j] = m_graph[i][j];
+				m_dist[i][j] = m_graph[i][j].getWeight();
 				m_next[i][j] = m_graph[i][j] != null ? i : -1; 
 			}
 		}
@@ -133,7 +133,7 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
     	if( k == -1 )
     		return null;
         
-    	nodes.add(new Edge(m_nodes.get(k), m_nodes.get(destination), m_graph[k][destination]));
+    	nodes.add(new Edge(m_nodes.get(k), m_nodes.get(destination), m_graph[k][destination].getWeight()));
 //        nodes.add( m_graph.getEdge(k, destination) );
         if (k != source) {
         	
