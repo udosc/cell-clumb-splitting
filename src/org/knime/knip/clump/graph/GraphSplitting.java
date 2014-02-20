@@ -3,6 +3,7 @@ package org.knime.knip.clump.graph;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -199,12 +200,16 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		Collection<Pair<Point, Point>> path = floyd.getMinPath();
 //		printPath(path);
 		double cost = Double.MAX_VALUE;
-		Collection<Node> path = null;
-		for(Node n: m_nodes){
-			Djiksta dj = new Djiksta(m_weights, m_nodes, n);
-			Collection<Node> list = dj.compute();
-			if (dj.getCost() < cost ){
-				cost = dj.getCost();
+//		Collection<Node> path = null;
+		Collection<Pair<Point, Point>> path = null;
+//		for(Node n: m_nodes){
+		for(Iterator<Node> it = m_nodes.iterator(); it.hasNext(); ){
+		//			Djiksta dj = new Djiksta(m_weights, m_nodes, n);
+			Greedy minpath = new Greedy(m_weights, m_nodes, it.next());
+			Collection<Pair<Point, Point>> list = minpath.compute();
+//			Collection<Node> list = dj.compute();
+			if (minpath.getCost() < cost && minpath.getCost() > 0.0d){
+				cost = minpath.getCost();
 				path = list;
 			}
 			
@@ -213,10 +218,12 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		double s2 = calculateSimilarity( m_cell );
 		
 		if ( cost < s2 ){
-			for( Pair<Point, Point> e: getSplitLines(path)){
-//				out.add(new SplitLine( e.getSource().getPosition(), e.getDestination().getPosition(), e.getWeight() ));
-				out.add( e );
-			}
+//			for( Pair<Point, Point> e: getSplitLines(path)){
+////				out.add(new SplitLine( e.getSource().getPosition(), e.getDestination().getPosition(), e.getWeight() ));
+//				out.add( e );
+//			}
+//			return out;
+			out.addAll( path );
 			return out;
 		} else {
 			return out;
@@ -450,9 +457,100 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 
 }
 
+class Greedy{
+	
+	private final Node m_start;
+	
+	private Node m_end;
+	
+	private final List<Node> m_nodes;
+	
+	private final Edge[][] m_dist;
+	
+	private double m_cost;
+	
+	public Greedy(Edge[][] weight, List<Node> nodes, Node start){
+		m_dist = weight;
+		m_nodes = new ArrayList<Node>( nodes );
+		m_start = start;
+		m_end = start;
+//		for(int i = 0; i < nodes.size(); i++){
+//			m_prev[i] = nodes.get(i).copy();
+//			m_prev[i].setPrev(null);
+//			m_prev[i].setDistance(Double.MAX_VALUE);
+////			m_dist[i] = new double[ nodes.size() ];
+////			for(int j = 0; j < m_dist[i].length; j++){
+////				m_dist[i][j] = weight[i][j].isValid() ? weight[i][j].getWeight() : Double.MAX_VALUE;
+////			}
+//		}
+//		m_prev[ m_start.getIndex() ].setDistance(0.0d);
+	}
+	
+	public Collection<Pair<Point, Point>> compute(){
+		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+		Node start = m_start;
+		m_cost = 0.0d;
+		while( !m_nodes.isEmpty()){
+			Edge res = getMinEdge( start );
+			if ( res == null)
+				break;
+			m_nodes.remove( start );
+			Edge connceted = res.getConnectedEdge(); 
+			m_cost += res.getWeight();
+			if(  connceted != null ){
+				out.add( connceted.getSplitLine() );
+				m_end = res.getSource();
+				m_nodes.remove( res.getDestination() );
+				m_cost += connceted.getWeight();
+			}
+			start = res.getDestination();
+			out.add( res.getSplitLine() );
+		}
+
+		
+		return out;
+	}
+	
+	
+	private Edge getMinEdge( Node n){
+		Integer i = getMinNode(n.getIndex());
+		return i == null ? null : m_dist[ n.getIndex() ][ i ];
+	}
+	
+	private Integer getMinNode(int n){
+		Integer out = null;
+		double min = Double.MAX_VALUE;
+		for(int i = 0; i < m_dist[n].length; i++){
+			if( m_nodes.contains( m_dist[n][i].getDestination() ) && m_dist[n][i].getWeight() < min){
+				out = i;
+				min = m_dist[n][i].getWeight();
+			}
+		}
+		return out;
+	}
+	
+	private boolean relax(Node u, Node v){
+		if( m_dist[ u.getIndex() ][ v.getIndex() ].isValid() ){
+			final double res = u.getDistance() + m_dist[u.getIndex()][v.getIndex()].getWeight();
+			if ( res < v.getDistance()){
+				v.setDistance( res );
+				v.setPrev( u.getIndex() );
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public double getCost(){
+		return m_cost;
+	}
+}
+
 class Djiksta{
 	
 	private final Node m_start;
+	
+	private Node m_end;
 	
 	private final Node[] m_prev;
 	
