@@ -52,6 +52,7 @@ public class BinaryFactory
 		prevPos[1] = pos[1];
 
 		long[] tmp = new long[ in.numDimensions() ];
+		int count = 0;
 		do{
 			tmp = nextBoundary(raI, pos,  prevPos);
 			
@@ -59,7 +60,11 @@ public class BinaryFactory
 			pos = tmp;
 
 			points.add(pos);
-		} while( !Arrays.equals(m_start, pos));
+			
+			if( count++ > 10000)
+				throw new RuntimeException("Contour is not closed");
+			
+		} while( !(m_start[0] == pos[0] && m_start[1] == pos[1]));
 		
 
 		return points;

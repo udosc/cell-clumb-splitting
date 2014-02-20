@@ -25,12 +25,18 @@ public class Edge {
 	
 	private Pair<Point, Point> m_splitLine;
 	
+	private boolean m_valid;
+	
+	private Edge m_connected;
+	
 	
 	public Edge(Node source, Node destination, double weight){
 		m_source = source;
 		m_destination = destination;
 		m_weight = weight;
 		m_numDimension = source.getPosition().length;
+		m_valid = true;
+		m_connected = null;
 	}
 	
 
@@ -76,12 +82,28 @@ public class Edge {
 		return m_numDimension;
 	}
 	
+	public boolean isValid(){
+		return m_valid;
+	}
+	
+	public void setValid(boolean valid){
+		m_valid = valid;
+	}
+	
 	public Pair<Point, Point> getSplitLine(){
 		return m_splitLine;
 	}
 	
 	public void setSplitLine(Pair<Point, Point> splitLine){
 		m_splitLine = splitLine;
+	}
+	
+	public void connectTo(Edge edge){
+		m_connected = edge;
+	}
+	
+	public Edge getConnectedEdge(){
+		return m_connected;
 	}
 	
 	//TODO write hashcode

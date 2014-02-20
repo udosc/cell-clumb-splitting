@@ -67,11 +67,17 @@ implements CurvatureFactory<T>{
 		}
 		
 		double d = scalar / 
-				(distance(center, p1) * distance(center, p2));
+				(distance(center, p1) * distance(center, p2) + 0.000001d);
 
-		
-		return ( 1 - Math.abs( d ) ) * 
+		final double out = ( 1 - Math.abs( d ) ) * 
 				Math.signum( crossProduct(center, p1, p2));
+		
+//		if( Double.isNaN(out)){
+//			System.out.println(distance(center, p1));
+//			System.out.println(distance(center, p2));
+//			System.out.println("");
+//		}
+		return out;
 	}
 
 	
@@ -91,6 +97,8 @@ implements CurvatureFactory<T>{
 			final double delta = p1[i] - p2[i];
 			sum += delta * delta;
 		}
+//		if( Double.isNaN(sum))
+//			System.out.println("");
 		return Math.sqrt(sum);
 	}
 

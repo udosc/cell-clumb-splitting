@@ -39,9 +39,9 @@ public class MinRAIDistance<T extends RealType<T> & NativeType<T>>
 
 	@Override
 	public T compute(RandomAccessibleInterval<T> inputA, RandomAccessibleInterval<T> inputB, T output) {
-		final long sA = inputA.dimension(0);
+		final long sizeA = inputA.dimension(0);
 		
-		final int size = MyUtils.numElements( inputB );
+		final int sizeB = MyUtils.numElements( inputB );
 		
 		double min = Double.MAX_VALUE;
 		
@@ -55,25 +55,26 @@ public class MinRAIDistance<T extends RealType<T> & NativeType<T>>
 		
 //		System.out.println( new Sum<T, T>().compute(inputB.iterator(), inputB.firstElement().createVariable().createVariable() ));
 		
-		if( sA <= size ){
-			RealRandomAccess<T> rra = Views.interpolate( inputA,
+		if( sizeA <= sizeB ){
+			RealRandomAccess<T> rra = Views.interpolate( inputB,
 					new NLinearInterpolatorFactory<T>()).realRandomAccess();
 			
 			final double step = (inputA.dimension(0) - 1.0d)/ 
-					(double) size ;
+					(double) sizeB ;
 			
-			final double[] res = new double[ size ];
+			final double[] res = new double[ sizeB ];
 			//Working with 1-dimensional data so fixing dim 1 to 0
 //			rra.setPosition(0, 1);
-			for(int i = 0; i < size; i++){
+			for(int i = 0; i < sizeB; i++){
 				rra.setPosition((i*step), 0);
 				res[i] = rra.get().getRealDouble();
 			}
 			
-			for(int i = 0; i < sA ; i+=1){
+			for(int i = 0; i < sizeA ; i+=1){
 				double dist = dist(
-						MyUtils.toDoubleArray( Views.interval( Views.extendPeriodic( inputA ), new long[]{ i }, new long[]{ i + size -1 }) ), 
-						MyUtils.toDoubleArray( inputB ));
+						MyUtils.toDoubleArray( Views.interval( Views.extendPeriodic( inputA ), new long[]{ i }, new long[]{ i + sizeB -1 }) ), 
+//						MyUtils.toDoubleArray( inputB ));
+						res);
 				
 				if ( dist < min )
 					min = dist;
@@ -81,11 +82,11 @@ public class MinRAIDistance<T extends RealType<T> & NativeType<T>>
 						
 //			min = dist(res, MyUtils.toDoubleArray(inputB));
 		} else {
-			for(int i = 0; i < sA ; i+=1){
+			for(int i = 0; i < sizeA ; i+=1){
 //				if ( sA ==  96)
 //					System.out.println();
 				double res = dist(
-						MyUtils.toDoubleArray( Views.interval( Views.extendPeriodic( inputA ), new long[]{ i }, new long[]{ i + size -1 }) ), 
+						MyUtils.toDoubleArray( Views.interval( Views.extendPeriodic( inputA ), new long[]{ i }, new long[]{ i + sizeB -1 }) ), 
 						MyUtils.toDoubleArray( inputB ));
 				
 				if ( res < min )

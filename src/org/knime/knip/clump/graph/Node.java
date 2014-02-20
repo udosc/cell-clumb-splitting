@@ -18,11 +18,15 @@ public class Node
 	
 	private final List<Node> m_connected;
 	
+	private double m_dist;
+	
+	private Integer m_prev;
 	
 	public Node(int index, long[] position){
 		m_index = index;
 		m_position = position;
 		m_connected = new LinkedList<Node>();
+		m_dist = Double.MAX_VALUE;
 	}
 		
 	public int getIndex(){
@@ -35,6 +39,28 @@ public class Node
 	
 	public List<Node> getNodes(){
 		return m_connected;
+	}
+	
+	public double getDistance(){
+		return m_dist;
+	}
+	
+	public void setDistance(double dist){
+		m_dist = dist;
+	}
+	
+	public Integer getPrev(){
+		return m_prev;
+	}
+	
+	public void setPrev(Integer prev){
+		m_prev = prev;
+	}
+	
+	public Node copy(){
+		Node out = new Node(m_index, m_position);
+		out.getNodes().addAll( m_connected );
+		return out;
 	}
 	
 	@Override
@@ -57,6 +83,6 @@ public class Node
 
 	@Override
 	public int compareTo(Node o) {
-		return Integer.compare(m_index, o.getIndex());
+		return Double.compare(m_dist, o.getDistance());
 	}
 }

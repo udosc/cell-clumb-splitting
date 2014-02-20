@@ -1,10 +1,12 @@
 package org.knime.knip.clump.nodes;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -216,29 +218,30 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 	        		new CurvatureDistance<DoubleType>(new KCosineCurvature<DoubleType>(new DoubleType(), 5), 2, this.getExecutorService(), 5.0d),
 //					new DFTDistance<DoubleType>(new DoubleType(), 32),
 	        		binaryImg, 
+	        		m_smFactor.getDoubleValue(),
 	        		m_templates);
 			
-			List<SplitLine> points = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
+			List<Pair<Point, Point>> points = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
 					15, 
 					new DoubleType(),
-					m_sigma.getDoubleValue()), m_smFactor.getDoubleValue());
+					m_sigma.getDoubleValue()));
 			
 //			cs.draw(lab.randomAccess());
 			
 			System.out.println( cs );
-			if ( points != null ){
-				new PrintMinPath<DoubleType, BitType>( new BitType( false )).
-					compute(points, raBinaryImg);
-			}
+//			if ( points != null ){
+//				new PrintMinPath<DoubleType, BitType>( new BitType( false )).
+//					compute(points, raBinaryImg);
+//			}
 
 			
-//			for(SplitLine line: points){
-//				Cursor<BitType> cursor = 
-//						new BresenhamLine<BitType>(raBinaryImg, new Point( line.getP1() ), new Point( line.getP2() ));
-//				while( cursor.hasNext() ){
-//					cursor.next().set( false );
-//				}
-//			}
+			for(Pair<Point, Point> line: points){
+				Cursor<BitType> cursor = 
+						new BresenhamLine<BitType>(raBinaryImg, line.getFirst(), line.getSecond());
+				while( cursor.hasNext() ){
+					cursor.next().set( false );
+				}
+			}
 			
 //			//Finding the possible splitting points
 //			List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 

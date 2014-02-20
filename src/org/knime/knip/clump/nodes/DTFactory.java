@@ -17,11 +17,15 @@ import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
+import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
+import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.AbstractRegionGrowing;
+import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.CCA;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.DoubleType;
 
 import org.knime.core.node.ExecutionContext;
@@ -91,8 +95,8 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 	}
 
 	@Override
-	public ValueToCellNodeModel<LabelingValue<L>, LabelingCell<L>> createNodeModel() {
-		return new ValueToCellNodeModel<LabelingValue<L>, LabelingCell<L>>(){
+	public ValueToCellNodeModel<LabelingValue<L>, LabelingCell<Integer>> createNodeModel() {
+		return new ValueToCellNodeModel<LabelingValue<L>, LabelingCell<Integer>>(){
 			
 			private LabelingCellFactory m_labCellFactory;
 
@@ -105,7 +109,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 			}
 
 			@Override
-			protected LabelingCell<L> compute(LabelingValue<L> cellValue) throws IOException{
+			protected LabelingCell<Integer> compute(LabelingValue<L> cellValue) throws IOException{
 				
 				System.out.println("Processing row: " +  cellValue.getLabelingMetadata().getName());
 				
@@ -118,8 +122,14 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 						labeling, 
 						img);
 				
-				Labeling<L> out = ImgUtils.createEmptyCopy(labeling);
-				RandomAccess<LabelingType<L>> ra = out.randomAccess();
+//				Labeling<Integer> out = ImgUtils.createEmptyCopy(labeling);
+//				RandomAccess<LabelingType<L>> ra = out.randomAccess();
+				
+				final Labeling<Integer> lab =
+		                new NativeImgLabeling<Integer, IntType>(
+		                		new ArrayImgFactory<IntType>().create(labeling, new IntType()));
+				
+				RandomAccess<LabelingType<Integer>> ra = lab.randomAccess();
 
 				Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
 						labeling, 
@@ -136,7 +146,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					for(long[] point: c){
 						ra.setPosition(point);
 //						ra.get().getMapping().intern( Arrays.asList( e.getKey() ));
-						ra.get().setLabel((L) new Integer(1000));
+						ra.get().setLabel(new Integer(1000));
 					}
 					
 					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
@@ -228,12 +238,19 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 //						}
 					}
 					
-					new PrintValidPaths< L>( (L)number++ ).compute(outList, ra);
+					for( Edge e: outList){
+						draw(img.randomAccess(), e, new BitType(false));
+					}
+					
+//					new PrintValidPaths< L>( (L)number++ ).compute(outList, ra);
 
 					
 				}
 				
-				return m_labCellFactory.createCell(out, cellValue.getLabelingMetadata());
+				new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
+                        new BitType(false) ).compute(img, lab);
+				
+				return m_labCellFactory.createCell(lab, cellValue.getLabelingMetadata());
 			}
 			
 		    @Override
@@ -250,15 +267,33 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 		    	return out;
 		    }
 
+			private void draw(RandomAccess<BitType> ra, Point p1, Point p2, BitType value) {
+				final Cursor<BitType> cursor = 
+						new BresenhamLine<BitType>(ra, p1, p2);
+				long[] res = new long[ ra.numDimensions() ];
+				while( cursor.hasNext() ){
+					cursor.fwd();
+					cursor.localize( res );
+					ra.setPosition(res);
+					ra.get().set( value );
+				}
+			}
+			
+			private void draw(RandomAccess<BitType> ra, Edge edge, BitType value) {
+				draw(ra, 
+						new Point(edge.getSource().getPosition()),
+						new Point(edge.getDestination().getPosition()), 
+						value);
+			}
 		    
-		    private RandomAccess<LabelingType<L>> printTangent(Complex tangent, long[] pos, RandomAccess<LabelingType<L>> ra){
+		    private RandomAccess<LabelingType<Integer>> printTangent(Complex tangent, long[] pos, RandomAccess<LabelingType<Integer>> ra){
 		    	long r0 = (long) (pos[0] + tangent.re() * 15);
 		    	long r1 = (long) (pos[1] + tangent.im() * 15);
-		    	Cursor<LabelingType<L>> cursor = new BresenhamLine<LabelingType<L>>(ra, new Point(pos), new Point(r0, r1));
+		    	Cursor<LabelingType<Integer>> cursor = new BresenhamLine<LabelingType<Integer>>(ra, new Point(pos), new Point(r0, r1));
 		    	while( cursor.hasNext() ){
 		    		cursor.fwd();
 		    		try {
-		    			cursor.get().setLabel((L) new Integer( 1111 ));
+		    			cursor.get().setLabel(new Integer( 1111 ));
 					} catch (ArrayIndexOutOfBoundsException e) {
 						// TODO: handle exception
 						break;

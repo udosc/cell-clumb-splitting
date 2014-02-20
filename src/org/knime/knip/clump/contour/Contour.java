@@ -1,6 +1,7 @@
 package org.knime.knip.clump.contour;
 
 import java.awt.Polygon;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -51,7 +52,7 @@ public class Contour
 		minBounds = new long[ points.get(0).length ];
 		maxBounds = new long[ points.get(0).length ];
 		
-		m_points = points;
+		m_points = new ArrayList<long[]>(points);
 		
 		for(long[] pos: m_points){
 			for(int i = 0; i < pos.length; i++){

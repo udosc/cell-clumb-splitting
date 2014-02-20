@@ -4,6 +4,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.knime.core.util.Pair;
+import org.knime.knip.clump.split.SplittingPoints;
+
+import net.imglib2.Point;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
@@ -16,16 +20,17 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 	
 	
 	private final Edge[][] m_graph;
-	
-	private final List<Node> m_nodes;
-	
+		
 	private int[][] m_next;
 	
 	private Double[][] m_dist;
 	
-	public Floyd(Edge[][] graph, List<Node> nodes){
+	private double m_cost;
+	
+	private double m_pathCost;
+	
+	public Floyd(Edge[][] graph){
 		m_graph = graph;
-		m_nodes = nodes;
 		calc();
 	}
 	
@@ -41,8 +46,8 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 			m_dist[i] = new Double[n];
 			m_next[i] = new int[n];
 			for(int j = 0; j < n; j++){
-				m_dist[i][j] = m_graph[i][j].getWeight();
-				m_next[i][j] = m_graph[i][j] != null ? i : -1; 
+				m_dist[i][j] = m_graph[i][j].isValid() ? m_graph[i][j].getWeight() : Double.MAX_VALUE;
+				m_next[i][j] = m_graph[i][j].isValid() ? i : -1; 
 			}
 		}
 		
@@ -80,28 +85,30 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 		return m_dist[i][j] != null;
 	}
 	
-	public Collection<Edge> getMinPath(){
-		Collection<Edge> out = new LinkedList<Edge>();
+	public Collection<Pair<Point, Point>> getMinPath(){
+		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
 		double weight = Double.MAX_VALUE;
 		for(int i = 0; i < m_graph.length; i++){
-			Collection<Edge> path = getShortestPath(i, i);
-			printPath(path);
-			if( Edge.calcPath(path) < weight){
+			m_cost = 0.0d;
+			
+			Collection<Pair<Point, Point>> path = getShortestPath(i, i);
+
+			
+			if( m_cost < weight){
 				out = path;
-				weight = Edge.calcPath(path);
+				weight = m_cost;
 			}
+			
+//			printPath(path);
 		}
+		m_pathCost = weight;
 		return out;
 	}
 	
-	private void printPath(Collection<Edge> path){
-		for(Edge edge: path){
-			System.out.print(edge.getSource().getIndex() + " -> " + edge.getDestination().getIndex() + ", ");
-			System.out.print(edge.getWeight() + " - ");
-		}
-		System.out.println(" - Total: " + Edge.calcPath(path));
+	public double getPathCost(){
+		return m_pathCost;
 	}
-
+	
 //	public List<SplitEdge> getMinPath(){
 //		List<SplitEdge> out = new LinkedList<SplitEdge>();
 //		double weight = Double.MAX_VALUE;
@@ -121,19 +128,20 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 //		return out;
 //	}
 	
-	public Collection<Edge> getShortestPath(int source, int destination){
-		return shortestPath(new LinkedList<Edge>(), source, destination);
+	public Collection<Pair<Point, Point>> getShortestPath(int source, int destination){
+		return shortestPath(new LinkedList<Pair<Point, Point>>(), source, destination);
 	}
 	
-    private Collection<Edge> shortestPath(Collection<Edge> nodes, int source, int destination){
+    private Collection<Pair<Point, Point>> shortestPath(Collection<Pair<Point, Point>> nodes, int source, int destination){
 
         int k = m_next[source][destination];
         
         //If there isn't a path
     	if( k == -1 )
     		return null;
-        
-    	nodes.add(new Edge(m_nodes.get(k), m_nodes.get(destination), m_graph[k][destination].getWeight()));
+        nodes.add( m_graph[k][destination].getSplitLine() );
+        m_cost += m_graph[k][destination].getWeight();
+//    	nodes.add(new Edge(m_nodes.get(k), m_nodes.get(destination), m_graph[k][destination].getWeight()));
 //        nodes.add( m_graph.getEdge(k, destination) );
         if (k != source) {
         	
