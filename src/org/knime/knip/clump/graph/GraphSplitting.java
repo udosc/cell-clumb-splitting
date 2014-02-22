@@ -1,7 +1,6 @@
 package org.knime.knip.clump.graph;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -14,7 +13,6 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.region.BresenhamLine;
 import net.imglib2.img.Img;
-import net.imglib2.labeling.LabelingType;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
@@ -22,16 +20,14 @@ import net.imglib2.type.numeric.RealType;
 import org.knime.core.util.Pair;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.KCosineCurvature;
-import org.knime.knip.clump.dist.ContourDistance;
+import org.knime.knip.clump.dist.contour.ContourDistance;
 import org.knime.knip.clump.split.SplittingPoints;
 import org.knime.knip.clump.util.MyUtils;
 
 public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Comparable<L>> {
 	
 //	static final double NOT_CONNECTED = Double.MAX_VALUE;
-	
-	private final List<Contour> m_templates;
-	
+		
 	private Edge[][] m_weights;
 	
 	private Contour[][] m_contour;
@@ -46,19 +42,22 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private final ContourDistance<T> m_distance;
 	
-	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor, Contour... templates){
-		m_templates = Arrays.asList( templates );
+	private final T m_type;
+	
+	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor){
+//		m_templates = Arrays.asList( templates );
 		m_img = img;
 		m_distance = distance;
 		m_factor = factor;
+		m_type = distance.getType();
 	}
 	
-	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor, List<Contour> templates){
-		m_templates =  templates;
-		m_img = img;
-		m_distance = distance;
-		m_factor = factor;
-	}
+//	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor, List<Contour> templates){
+//		m_templates =  templates;
+//		m_img = img;
+//		m_distance = distance;
+//		m_factor = factor;
+//	}
 	
 	public List<Pair<Point, Point>> compute(Contour contour, SplittingPoints<T> split){
 		List<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
@@ -73,7 +72,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		System.out.println( this );
 		
 		
-		RandomAccessibleInterval<T> curvature = new KCosineCurvature<T>(m_distance.getType(), 5).createCurvatureImg(contour);
+//		RandomAccessibleInterval<T> curvature = new KCosineCurvature<T>(m_distance.getType(), 5).createCurvatureImg(contour);
 				
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
@@ -84,9 +83,9 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				}
 				
 				
-				if( i == 2 && j == 5){
-					System.out.print("Q");
-				}
+//				if( i == 2 && j == 5){
+//					System.out.print("Q");
+//				}
 
 //				
 //				final int is = contour.indexOf(start);
@@ -100,7 +99,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //				}
 				
 //				double res = calculateSimilarity( m_contour[i][j] );
-				double sim =   calculateSimilarity( m_contour[i][j])  ;
+				double sim =   m_distance.compute( m_contour[i][j], m_type).getRealDouble()  ;
 				double dist = m_factor * calculateDistance(i, j);
 				double res =   ( sim + dist ) *
 						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
@@ -163,10 +162,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 					for(int l: getPointsBetween(i, j)){
 						if( k == l || !m_weights[k][l].isValid() )
 							continue;
-						if ( i == 1 && j == 0)
-							System.out.print("");
 						Contour c = createContour(i, k, l, j);
-						double tmp = calculateSimilarity( c ) + m_factor * calculateDistance(i, j);
+						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * calculateDistance(i, j);
 //						double dist = tmp 
 						double dist = tmp *
 								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
@@ -215,7 +212,10 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			
 		}
 //		double s1 = floyd.getPathCost();
-		double s2 = calculateSimilarity( m_cell );
+//		double s2 = calculateSimilarity( m_cell );
+		final double s2 = m_distance.compute( m_cell, m_type).getRealDouble();
+		
+		System.out.println("Shape Distance: " +  s2);
 		
 		if ( cost < s2 ){
 //			for( Pair<Point, Point> e: getSplitLines(path)){
@@ -296,15 +296,14 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	}
 	
 		
-	private double calculateSimilarity(Contour part){
-		double min = Double.MAX_VALUE;
-		for(Contour template: m_templates){
-			double res = m_distance.compute(template, part, m_distance.getType().createVariable()).getRealDouble();
-			if( res < min )
-				min = res;
-		}
-		return min;
-	}
+//	private double calculateSimilarity(Contour part){
+//		double min = Double.MAX_VALUE;
+//			double res = m_distance.compute(template, part, m_distance.getType().createVariable()).getRealDouble();
+//			if( res < min )
+//				min = res;
+//		}
+//		return min;
+//	}
 	
 	private void init(List<long[]> points){
 		m_weights = new Edge[ points.size() ][];

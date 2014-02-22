@@ -53,12 +53,12 @@ import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.CurvatureDistance;
 import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
-import org.knime.knip.clump.dist.DFTDistance;
 import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.dist.MinMaxDistance;
+import org.knime.knip.clump.dist.contour.CurvatureDistance;
+import org.knime.knip.clump.dist.contour.DFTDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Graph;
 import org.knime.knip.clump.graph.PrintMinPath;
@@ -111,7 +111,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
     }
     
     protected static SettingsModelDoubleBounded createFactorModel(){
-    	return new SettingsModelDoubleBounded("Factor ", 0.1, 0.0, 1.0);
+    	return new SettingsModelDoubleBounded("Factor ", 0.1, 0.0, 100.0);
     }
     
     protected static SettingsModelString createDistancesModel(){
@@ -215,11 +215,10 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			
 	        
 			GraphSplitting<DoubleType, Integer> cs = new GraphSplitting<DoubleType, Integer>(
-	        		new CurvatureDistance<DoubleType>(new KCosineCurvature<DoubleType>(new DoubleType(), 5), 2, this.getExecutorService(), 5.0d),
-//					new DFTDistance<DoubleType>(new DoubleType(), 32),
+//	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
+					new DFTDistance<DoubleType>(m_templates, new DoubleType(), 16, false),
 	        		binaryImg, 
-	        		m_smFactor.getDoubleValue(),
-	        		m_templates);
+	        		m_smFactor.getDoubleValue());
 			
 			List<Pair<Point, Point>> points = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
 					15, 
@@ -228,7 +227,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			
 //			cs.draw(lab.randomAccess());
 			
-			System.out.println( cs );
+//			System.out.println( cs );
 //			if ( points != null ){
 //				new PrintMinPath<DoubleType, BitType>( new BitType( false )).
 //					compute(points, raBinaryImg);
@@ -242,55 +241,6 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 					cursor.next().set( false );
 				}
 			}
-			
-//			//Finding the possible splitting points
-//			List<long[]> splittingPoints = new CurvatureBasedSplitting<DoubleType>(5, 
-//					mean + std, 
-//					10, 
-//					new DoubleType(),
-//					m_sigma.getDoubleValue()).compute(contour, new LinkedList<long[]>());
-//			
-//			if ( !splittingPoints.isEmpty() ){
-//				
-////				Graph2<DoubleType> gg = new Graph2<DoubleType>(curv, splittingPoints, binaryImg);
-////				
-////				Pair<long[], long[]> pair = gg.calc(
-//////						new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
-//////								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
-//////								128, 
-//////								64), 
-//////						new CrossCorrelationSimilarity<DoubleType>(),
-////						new MinDistance<DoubleType>( DistancesMeasuresEnum.getDistanceMeasure( 
-////							Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
-////								m_templates, m_smFactor.getDoubleValue());
-////				
-////				if ( pair != null)
-////					draw(raBinaryImg, pair.getFirst(), pair.getSecond(), new BitType(false));
-////				
-//////				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
-////				for(long[] p: splittingPoints){
-////					System.out.println( p[0] + ", "  + p[1]);
-////				}
-//				Graph<DoubleType> graph = new Graph<DoubleType>(splittingPoints);
-//				try{
-//					graph.calc(curv, 
-////							new DFTDistance<DoubleType>(DistancesMeasuresEnum.getDistanceMeasure( 
-////									Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) ),
-////									32), 
-////							new CrossCorrelationSimilarity<DoubleType>(),
-//							new MinDistance<DoubleType>( 2 ),
-//	//						new DynamicTimeWarping<DoubleType>(	DistancesMeasuresEnum.getDistanceMeasure( 
-//	//								Enum.valueOf(DistancesMeasuresEnum.class, m_smDistance.getStringValue()) )),
-//							m_templates, m_smFactor.getDoubleValue());
-////					graph.validate(binaryImg, 1);
-//					System.out.println( graph );
-//					//Drawing the path
-//					new PrintMinPath<DoubleType, BitType>( new BitType( false )).
-//						compute(graph, raBinaryImg);
-//				} catch ( Exception e){
-//					e.printStackTrace() ;
-//				}
-//			}
 			
 		}
 		

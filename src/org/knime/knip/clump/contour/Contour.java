@@ -9,12 +9,20 @@ import java.util.List;
 
 import net.imglib2.AbstractCursor;
 import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.ops.pointset.AbstractPointSet;
 import net.imglib2.ops.pointset.PointSet;
 import net.imglib2.ops.pointset.PointSetIterator;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ComplexType;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.ByteType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
@@ -32,10 +40,11 @@ import org.knime.knip.core.data.algebra.Complex;
 public class Contour 
 	extends AbstractPointSet{
 	
-	private List<long[]> m_points;
+	private final List<long[]> m_points;
 	
 	public Contour(List<long[]> points) {
 		super();
+		m_points = new ArrayList<long[]>(points);
 		init(points);
 	}
 	
@@ -44,6 +53,7 @@ public class Contour
 		final List<long[]> res = new LinkedList<long[]>();
 		for( Contour c: contour)
 			res.addAll( c.getPoints() );
+		m_points = new ArrayList<long[]>(res);
 		init( res );
 	}
 	
@@ -51,8 +61,6 @@ public class Contour
 		
 		minBounds = new long[ points.get(0).length ];
 		maxBounds = new long[ points.get(0).length ];
-		
-		m_points = new ArrayList<long[]>(points);
 		
 		for(long[] pos: m_points){
 			for(int i = 0; i < pos.length; i++){
@@ -62,6 +70,19 @@ public class Contour
 					minBounds[i] = pos[i];
 			}
 		}
+	}
+	
+	public static <T extends ComplexType<T> & NativeType<T>> RandomAccessibleInterval<T> asRandomAccessibleInterval(Contour contour, T type){
+		final Img<T> out = new ArrayImgFactory<T>().create(
+				new long[]{ contour.length(), 1 }, type.createVariable());	
+		
+		Cursor<T> c = out.cursor();
+		
+		for(long[] point: contour){
+			c.next().setComplexNumber(point[0], point[1]);
+		}
+		
+		return out;
 	}
 	
 	public Complex[] getContour2D(){

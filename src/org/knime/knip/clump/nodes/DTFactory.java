@@ -143,13 +143,13 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 						continue;
 					
 					System.out.println("Tracking label: " + i++);
-					for(long[] point: c){
-						ra.setPosition(point);
-//						ra.get().getMapping().intern( Arrays.asList( e.getKey() ));
-						ra.get().setLabel(new Integer(1000));
-					}
+//					for(long[] point: c){
+//						ra.setPosition(point);
+////						ra.get().getMapping().intern( Arrays.asList( e.getKey() ));
+//						ra.get().setLabel(new Integer(1000));
+//					}
 					
-					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
+//					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
 					
 											
 					final List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
@@ -175,9 +175,9 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					//Pruning
 					for( Edge e: graph.getValidEdges()){
 						Complex tangentS = c.getUnitVector(  e.getSource().getPosition() , 5);
-						printTangent(tangentS, e.getSource().getPosition(), ra);
+//						printTangent(tangentS, e.getSource().getPosition(), ra);
 						Complex tangentD = c.getUnitVector(  e.getDestination().getPosition() , 5);
-						printTangent(tangentD, e.getDestination().getPosition(), ra);
+//						printTangent(tangentD, e.getDestination().getPosition(), ra);
 						System.out.println( e.getSource().getIndex() + "," + e.getDestination().getIndex() + ": " +  (tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() ));
 						if( tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() > m_t.getDoubleValue() )
 							graph.deleteEdge(e);
