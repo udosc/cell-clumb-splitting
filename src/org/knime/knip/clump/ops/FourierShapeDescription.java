@@ -1,5 +1,6 @@
 package org.knime.knip.clump.ops;
 
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
@@ -18,14 +19,14 @@ import org.knime.knip.core.data.algebra.Complex;
  *
  * @param <T>
  */
-public class FourierShapeDescription<T extends RealType<T> & NativeType<T>> 
-	implements UnaryOperation<Img<T>, Complex[]>{
+public class FourierShapeDescription<T extends RealType<T> > 
+	implements UnaryOperation<RandomAccessibleInterval<T>, Complex[]>{
 		
 		
 		
 
 	@Override
-	public Complex[] compute(Img<T> curvature, Complex[] out) {
+	public Complex[] compute(RandomAccessibleInterval<T> curvature, Complex[] out) {
 		
 		//Computes the number of descriptors for the FFT
 		int nDesc = (int)Math.pow(2, 
@@ -92,7 +93,7 @@ public class FourierShapeDescription<T extends RealType<T> & NativeType<T>>
 	}
 
 	@Override
-	public UnaryOperation<Img<T>, Complex[]> copy() {
+	public UnaryOperation<RandomAccessibleInterval<T>, Complex[]> copy() {
 		return new FourierShapeDescription<T>();
 	}
 

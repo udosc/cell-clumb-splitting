@@ -9,7 +9,6 @@ import java.util.List;
 
 import net.imglib2.AbstractCursor;
 import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
@@ -19,14 +18,9 @@ import net.imglib2.ops.pointset.PointSet;
 import net.imglib2.ops.pointset.PointSetIterator;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ComplexType;
-import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.ByteType;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
-import org.apache.commons.math3.complex.ComplexUtils;
 import org.knime.knip.base.exceptions.KNIPRuntimeException;
 import org.knime.knip.clump.util.DiscretHelpers;
 import org.knime.knip.clump.util.MyUtils;

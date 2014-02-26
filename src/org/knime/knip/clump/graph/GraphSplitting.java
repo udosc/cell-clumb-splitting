@@ -205,7 +205,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			Greedy minpath = new Greedy(m_weights, m_nodes, it.next());
 			Collection<Pair<Point, Point>> list = minpath.compute();
 //			Collection<Node> list = dj.compute();
-			if (minpath.getCost() < cost && minpath.getCost() > 0.0d){
+			if (list != null && minpath.getCost() < cost && minpath.getCost() > 0.0d){
 				cost = minpath.getCost();
 				path = list;
 			}
@@ -489,11 +489,16 @@ class Greedy{
 		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
 		Node start = m_start;
 		m_cost = 0.0d;
+		boolean first = true;
 		while( !m_nodes.isEmpty()){
 			Edge res = getMinEdge( start );
 			if ( res == null)
-				break;
-			m_nodes.remove( start );
+				return null;
+			if( !first)
+				m_nodes.remove( start );
+			else 
+				first = false;
+				
 			Edge connceted = res.getConnectedEdge(); 
 			m_cost += res.getWeight();
 			if(  connceted != null ){
@@ -504,6 +509,8 @@ class Greedy{
 			}
 			start = res.getDestination();
 			out.add( res.getSplitLine() );
+			if( start.equals( m_start ))
+				break;
 		}
 
 		

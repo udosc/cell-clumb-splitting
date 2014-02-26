@@ -8,6 +8,7 @@ import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.CurvatureFactory;
 import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.dist.ComplexDistance;
+import org.knime.knip.clump.ops.FourierShapeDescription;
 import org.knime.knip.core.data.algebra.Complex;
 import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
 import org.knime.knip.core.util.ImgUtils;
@@ -56,7 +57,8 @@ implements ContourDistance<T>{
 		for( Complex[] c : m_descriptor){
 			final double actual = new ComplexDistance<T>( m_type ).compute(
 					c, 
-					createCoefficent( rai, m_type), 
+//					createCoefficent( rai, m_type),
+					new FourierShapeDescription<T>().compute( rai, new Complex[ m_numberOfDesc ]),
 					m_type.createVariable()).getRealDouble(); 
 			if ( actual < min )
 				min = actual;
@@ -74,6 +76,10 @@ implements ContourDistance<T>{
 	public T getType() {
 		return m_type.createVariable();
 	}
+//	
+//	private T calculate(Complex[] arg0, Complex[] arg1){
+//		
+//	}
 
 	private Complex[] createCoefficent(RandomAccessibleInterval<T> curvature, T type){
 		RealRandomAccess<T> rra = Views.interpolate( curvature,

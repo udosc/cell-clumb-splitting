@@ -58,6 +58,7 @@ import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
 import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.dist.MinMaxDistance;
 import org.knime.knip.clump.dist.contour.CurvatureDistance;
+import org.knime.knip.clump.dist.contour.CurvatureFourier;
 import org.knime.knip.clump.dist.contour.DFTDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.Graph;
@@ -215,8 +216,9 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			
 	        
 			GraphSplitting<DoubleType, Integer> cs = new GraphSplitting<DoubleType, Integer>(
-//	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
-					new DFTDistance<DoubleType>(m_templates, new DoubleType(), 16, false),
+//					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 32),
+	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
+//					new DFTDistance<DoubleType>(m_templates, new DoubleType(), 16, false),
 	        		binaryImg, 
 	        		m_smFactor.getDoubleValue());
 			
