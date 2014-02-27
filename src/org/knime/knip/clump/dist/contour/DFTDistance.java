@@ -13,7 +13,7 @@ import net.imglib2.view.Views;
 
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.KCosineCurvature;
-import org.knime.knip.clump.dist.ComplexDistance;
+import org.knime.knip.clump.dist.InverseDFTDistance;
 import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
 
@@ -53,7 +53,7 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 	public T compute(Contour arg0, T arg2) {
 		double min = Double.MAX_VALUE;
 		for( Complex[] c : m_descriptor){
-			final double actual = new ComplexDistance<T>( m_type ).compute(
+			final double actual = new InverseDFTDistance<T>( m_numberOfDesc, m_type ).compute(
 					c, 
 					m_normalize ? createScaleNormalizedCoefficents(arg0, m_type.createVariable()) : createCoefficent(arg0, m_type.createVariable()), 
 					m_type.createVariable()).getRealDouble(); 

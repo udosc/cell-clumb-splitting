@@ -78,7 +78,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 5  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 32  ){
 					continue;
 				}
 				
@@ -142,7 +142,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 
 			}
 		}
-		System.out.println( this.toString() + "\n" );
+		System.out.println( this.toString()  );
 		
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
@@ -215,7 +215,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		double s2 = calculateSimilarity( m_cell );
 		final double s2 = m_distance.compute( m_cell, m_type).getRealDouble();
 		
-		System.out.println("Shape Distance: " +  s2);
+		System.out.println("Shape Distance: " +  s2 + " - Splitted :" + cost);
 		
 		if ( cost < s2 ){
 //			for( Pair<Point, Point> e: getSplitLines(path)){

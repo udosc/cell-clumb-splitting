@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.CurvatureFactory;
 import org.knime.knip.clump.curvature.KCosineCurvature;
-import org.knime.knip.clump.dist.ComplexDistance;
+import org.knime.knip.clump.dist.InverseDFTDistance;
 import org.knime.knip.clump.ops.FourierShapeDescription;
 import org.knime.knip.core.data.algebra.Complex;
 import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
@@ -45,7 +45,8 @@ implements ContourDistance<T>{
 		m_type = factory.getType();
 //		m_numberOfPoints = numberOfPoints;
 		for(Contour c: templates){
-			m_descriptor.add( createCoefficent( m_factory.createCurvatureImg(c), factory.getType()));
+//			m_descriptor.add( createCoefficent( m_factory.createCurvatureImg(c), factory.getType()));
+			m_descriptor.add( new FourierShapeDescription<T>().compute( m_factory.createCurvatureImg(c), new Complex[ m_numberOfDesc / 2 ]) );
 			
 		}
 	}
@@ -55,10 +56,10 @@ implements ContourDistance<T>{
 		double min = Double.MAX_VALUE;
 		RandomAccessibleInterval<T> rai = m_factory.createCurvatureImg(arg0);
 		for( Complex[] c : m_descriptor){
-			final double actual = new ComplexDistance<T>( m_type ).compute(
+			final double actual = new InverseDFTDistance<T>( m_numberOfDesc, m_type ).compute(
 					c, 
 //					createCoefficent( rai, m_type),
-					new FourierShapeDescription<T>().compute( rai, new Complex[ m_numberOfDesc ]),
+					new FourierShapeDescription<T>().compute( rai, new Complex[ m_numberOfDesc / 2 ]),
 					m_type.createVariable()).getRealDouble(); 
 			if ( actual < min )
 				min = actual;

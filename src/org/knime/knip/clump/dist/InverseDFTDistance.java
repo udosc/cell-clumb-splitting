@@ -3,6 +3,7 @@ package org.knime.knip.clump.dist;
 import net.imglib2.ops.operation.BinaryOperation;
 import net.imglib2.type.numeric.RealType;
 
+import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
 
 /**
@@ -10,25 +11,31 @@ import org.knime.knip.core.data.algebra.Complex;
  * @author Udo
  *
  */
-public class ComplexDistance<T extends RealType<T>> 
+public class InverseDFTDistance<T extends RealType<T>> 
 	implements BinaryOperation<Complex[], Complex[], T>{
 
 	private final T m_type;
 	
-	public ComplexDistance(T type){
+	private final int m_numberOfDesc;
+	
+	public InverseDFTDistance(int n, T type){
 		m_type = type.createVariable();
+		m_numberOfDesc = n;
 	}
 
 	@Override
 	public T compute(Complex[] arg0, Complex[] arg1, T out) {
 		assert arg0.length == arg1.length;
 		
+		final Complex[] transformed0 = InplaceFFT.fft( arg0 );
+		final Complex[] transformed1 = InplaceFFT.fft( arg1 );
+		
 		double res = 0.0d;
 		
 		for( int i = 0; i < arg0.length; i++){
 			res += dist(
-					new double[]{arg0[i].re(), arg0[i].im()}, 
-					new double[]{arg1[i].re(), arg1[i].im()});
+					new double[]{transformed0[i].re(), transformed0[i].im()}, 
+					new double[]{transformed1[i].re(), transformed1[i].im()});
 		}
 		out.setReal(res / arg0.length);
 		return out;
@@ -36,7 +43,7 @@ public class ComplexDistance<T extends RealType<T>>
 
 	@Override
 	public BinaryOperation<Complex[], Complex[], T> copy() {
-		return new ComplexDistance<T>(m_type);
+		return new InverseDFTDistance<T>(m_numberOfDesc, m_type);
 	}
 	
 	private double dist(double[] arg0, double[] arg1){
