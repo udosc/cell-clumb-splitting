@@ -1,12 +1,9 @@
 package org.knime.knip.clump.nodes;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -18,7 +15,6 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.labeling.NativeImgLabeling;
-import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.AbstractRegionGrowing;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.CCA;
@@ -49,24 +45,14 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.NodeUtils;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.nodes.filter.convolver.ConvolverNodeModel;
-import org.knime.knip.clump.boundary.Curvature;
-import org.knime.knip.clump.boundary.ShapeDescription;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.KCosineCurvature;
-import org.knime.knip.clump.dist.CrossCorrelationSimilarity;
-import org.knime.knip.clump.dist.MinDistance;
-import org.knime.knip.clump.dist.MinMaxDistance;
 import org.knime.knip.clump.dist.contour.CurvatureDistance;
 import org.knime.knip.clump.dist.contour.CurvatureFourier;
-import org.knime.knip.clump.dist.contour.DFTDistance;
 import org.knime.knip.clump.graph.Edge;
-import org.knime.knip.clump.graph.Graph;
-import org.knime.knip.clump.graph.PrintMinPath;
 import org.knime.knip.clump.graph.GraphSplitting;
-import org.knime.knip.clump.graph.SplitLine;
 import org.knime.knip.clump.ops.FindStartingPoint;
-import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.clump.types.DistancesMeasuresEnum;
 
@@ -216,8 +202,8 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			
 	        
 			GraphSplitting<DoubleType, Integer> cs = new GraphSplitting<DoubleType, Integer>(
-					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 32),
-//	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
+//					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 32),
+	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
 //					new DFTDistance<DoubleType>(m_templates, new DoubleType(), 16, false),
 	        		binaryImg, 
 	        		m_smFactor.getDoubleValue());

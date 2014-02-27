@@ -27,15 +27,17 @@ public class InverseDFTDistance<T extends RealType<T>>
 	public T compute(Complex[] arg0, Complex[] arg1, T out) {
 		assert arg0.length == arg1.length;
 		
-		final Complex[] transformed0 = InplaceFFT.fft( arg0 );
-		final Complex[] transformed1 = InplaceFFT.fft( arg1 );
+//		final Complex[] transformed0 = InplaceFFT.fft( arg0 );
+//		final Complex[] transformed1 = InplaceFFT.fft( arg1 );
 		
 		double res = 0.0d;
 		
 		for( int i = 0; i < arg0.length; i++){
 			res += dist(
-					new double[]{transformed0[i].re(), transformed0[i].im()}, 
-					new double[]{transformed1[i].re(), transformed1[i].im()});
+//					new double[]{transformed0[i].re(), transformed0[i].im()}, 
+//					new double[]{transformed1[i].re(), transformed1[i].im()});
+					new double[]{arg0[i].re(), arg1[i].im()}, 
+					new double[]{arg0[i].re(), arg1[i].im()});
 		}
 		out.setReal(res / arg0.length);
 		return out;
