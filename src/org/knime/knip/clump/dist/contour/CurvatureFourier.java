@@ -2,25 +2,19 @@ package org.knime.knip.clump.dist.contour;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-
-import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.CurvatureFactory;
-import org.knime.knip.clump.curvature.KCosineCurvature;
-import org.knime.knip.clump.dist.InverseDFTDistance;
-import org.knime.knip.clump.ops.FourierShapeDescription;
-import org.knime.knip.core.data.algebra.Complex;
-import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
-import org.knime.knip.core.util.ImgUtils;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
-import net.imglib2.img.Img;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.ops.operation.UnaryOperation;
-import net.imglib2.outofbounds.OutOfBoundsPeriodicFactory;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
+
+import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.curvature.CurvatureFactory;
+import org.knime.knip.clump.dist.InverseDFTDistance;
+import org.knime.knip.clump.ops.FourierShapeDescription;
+import org.knime.knip.core.data.algebra.Complex;
 
 public class CurvatureFourier<T extends RealType<T>> 
 implements ContourDistance<T>{
@@ -46,7 +40,7 @@ implements ContourDistance<T>{
 //		m_numberOfPoints = numberOfPoints;
 		for(Contour c: templates){
 //			m_descriptor.add( createCoefficent( m_factory.createCurvatureImg(c), factory.getType()));
-			m_descriptor.add( new FourierShapeDescription<T>().compute( m_factory.createCurvatureImg(c), new Complex[ m_numberOfDesc / 2 ]) );
+			m_descriptor.add( new FourierShapeDescription<T>().compute( m_factory.createCurvatureImg(c), new Complex[ m_numberOfDesc ]) );
 			
 		}
 	}
@@ -59,7 +53,7 @@ implements ContourDistance<T>{
 			final double actual = new InverseDFTDistance<T>( m_numberOfDesc, m_type ).compute(
 					c, 
 //					createCoefficent( rai, m_type),
-					new FourierShapeDescription<T>().compute( rai, new Complex[ m_numberOfDesc / 2 ]),
+					new FourierShapeDescription<T>().compute( rai, new Complex[ m_numberOfDesc ]),
 					m_type.createVariable()).getRealDouble(); 
 			if ( actual < min )
 				min = actual;
@@ -97,6 +91,11 @@ implements ContourDistance<T>{
 		}
 		
 		return out;
+	}
+
+	@Override
+	public List<Contour> getTemplates() {
+		return m_contour;
 	}
 	
 }

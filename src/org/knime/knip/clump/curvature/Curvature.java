@@ -1,4 +1,4 @@
-package org.knime.knip.clump.boundary;
+package org.knime.knip.clump.curvature;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -31,17 +31,17 @@ import org.knime.knip.core.util.ImgUtils;
  *
  */
 public class Curvature<T extends RealType<T> & NativeType<T>>
-	implements ShapeDescription<T>, Iterable<T>{
-	
+	implements Iterable<T>{
+
 //	private final List<T> m_curvature;
-		
+
 	private final Contour m_contour;
-	
+
 	private Img<T> m_img;
-	
+
 	private final RandomAccess<T> m_randomAccess;
-		
-	
+
+
 	public Curvature(Contour contour, int order, T type){
 		m_contour = contour;
 //		m_curvature = new ArrayList<T>( contour.length());
@@ -49,12 +49,12 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		m_img = new ArrayImgFactory<T>().create(new long[]{ contour.length() }, type);
 
 //		m_img = calc(2);
-		
+
 		m_randomAccess = Views.extendPeriodic( m_img ).randomAccess();
-		
-		
+
+
 		Cursor<T> c = m_img.cursor();
-		
+
 		for(int i = 0; i < contour.length(); i++){
 			T t = type.createVariable();
 			t.setReal(  curvature(i, order) );
@@ -63,16 +63,16 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 			c.next().set(t);
 		}
 	}
-	
+
 	public Curvature(Contour contour, Img<T> curvature){
-		
+
 		assert contour.length() == curvature.dimension(0);
-		
+
 		m_contour = contour;
 		m_img = curvature;
-		
+
 		m_randomAccess = Views.extendPeriodic( m_img ).randomAccess();
-		
+
 //		m_curvature = new ArrayList<T>( contour.length() );
 //		Cursor<T> c = m_img.cursor();
 //		for(int i = 0; i < curvature.size(); i++){
@@ -80,7 +80,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 //			m_curvature.add(i, c.get().copy() );
 //		}
 	}
-	
+
 	public Curvature(Img<T> curvature){
 		m_img = curvature;
 		m_randomAccess = Views.extendPeriodic( m_img ).randomAccess();
@@ -88,8 +88,8 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		res.add( new long[]{0L, 0L});
 		m_contour = new Contour( res );
 	}
-	
-	
+
+
 	public Curvature<T> gaussian(double sigma, ExecutorService exectutor){
 		//Gaussion fitering to remove noise
 		Img<T> res = ImgUtils.createEmptyCopy(m_img);
@@ -99,9 +99,9 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 				.compute(m_img, res);
 		return new Curvature<T>(m_contour, res);
 	}
-	
+
 	private double curvature(int position, int order){
-		
+
 //		long[] current = m_contour.get( position );
 //		
 //		long[] next = m_contour.get( position + order < m_contour.length() ?
@@ -113,7 +113,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 				m_contour.get(position), 
 				m_contour.get(position - order), 
 				m_contour.get( position + order )) ;
-		
+
 //		double dprev = MyUtils.distance(prev, current);
 //		double dnext = MyUtils.distance(next, current);
 //		
@@ -129,43 +129,43 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 //		double diffNext = Math.abs( tnext - tmean);
 //		
 //		return ( diffPrev/(2*dprev)) + (diffNext/(2*dnext));
-		
 
-		
-		
+
+
+
 	}
-	
+
 	public Img<T> calc(int order){
 		Img<T> out = ImgUtils.createEmptyCopy(m_img);
 		Cursor<T> c = out.cursor();
-		
-		
+
+
 		RandomAccess<T> d1xRandomAccess = new DirectConvolver<DoubleType, T, T>().compute(
 				m_contour.getCoordinates(0), 
 				createFirstDerivation1D( 5 ), 
 				ImgUtils.createEmptyCopy(m_img)).randomAccess();
-		
+
 		RandomAccess<T> d1yRandomAccess = new DirectConvolver<DoubleType, T, T>().compute(
 				m_contour.getCoordinates(1), 
 				createFirstDerivation1D(5), 
 				ImgUtils.createEmptyCopy(m_img)).randomAccess();
-		
+
 		RandomAccess<T> d2xRandomAccess = new DirectConvolver<DoubleType, T, T>().compute(
 				m_contour.getCoordinates(0), 
 				createSecondDerivation1D(5), 
 				ImgUtils.createEmptyCopy(m_img)).randomAccess();
-		
+
 		RandomAccess<T> d2yRandomAccess = new DirectConvolver<DoubleType, T, T>().compute(
 				m_contour.getCoordinates(1), 
 				createSecondDerivation1D(5), 
 				ImgUtils.createEmptyCopy(m_img)).randomAccess();
-		
+
 //		RandomAccess<T> cdx1 = createFirstDerivation(order, 0).randomAccess();
 //		RandomAccess<T> cdx2 = createSecondDerivation(order, 0).randomAccess();
 //		
 //		RandomAccess<T> cdy1 = createFirstDerivation(order, 1).randomAccess();
 //		RandomAccess<T> cdy2 = createSecondDerivation(order, 1).randomAccess();
-		
+
 		for(int i = 0; i < out.dimension(0); i++){
 			d1xRandomAccess.setPosition(i, 0);
 			d2xRandomAccess.setPosition(i, 0);
@@ -179,7 +179,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 			final double r = Math.pow(( d1x * d1x ) +  (d1y * d1y), 1.5d);
 			c.next().setReal( t / r  );
 		}
-		
+
 //		for(int i = 0; i < m_contour.length(); i++){
 //			long[] current = m_contour.get( i );
 //			
@@ -201,10 +201,10 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 //			
 //
 //		}
-		
+
 		return out;
 	}
-	
+
 	private Img<T> createFirstDerivation(int h, int dimension){
 		Img<T> out = ImgUtils.createEmptyCopy( m_img );
 		RandomAccess<DoubleType> ra = m_contour.getCoordinates(dimension).randomAccess();
@@ -237,7 +237,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		}
 		return out;
 	}
-	
+
 	private Img<T> createSecondDerivation(int h, int dimension){
 		Img<T> out = ImgUtils.createEmptyCopy( m_img );
 		RandomAccess<DoubleType> ra = m_contour.getCoordinates(dimension).randomAccess();
@@ -272,17 +272,17 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		}
 		return out;
 	}
-	
+
 	private Img<T> createFirstDerivation1D(int support){
 		Img<T> out = new ArrayImgFactory<T>().create(
 				new long[]{support * 2 + 1, 1}, m_img.firstElement().createVariable());
-		
+
 		Cursor<DoubleType> cursor = 
 				Views.hyperSlice(
 						new DerivativeOfGaussian(support, 0.75d * 2 * Math.PI, 1.0d , 1),
 						1,
 						support).cursor();
-		
+
 		Cursor<T> outC = out.cursor();
 		while( outC.hasNext() ){
 			cursor.fwd();
@@ -290,17 +290,17 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		}
 		return out;
 	}
-	
+
 	private Img<T> createSecondDerivation1D(int support ){
 		Img<T> out = new ArrayImgFactory<T>().create(
 				new long[]{support * 2 + 1, 1}, m_img.firstElement().createVariable());
-		
+
 		Cursor<DoubleType> cursor = 
 				Views.hyperSlice(
 						new LaplacianOfGaussian(support, 1.0d),
 						1,
 						support).cursor();
-		
+
 		Cursor<T> outC = out.cursor();
 		while( outC.hasNext() ){
 			cursor.fwd();
@@ -308,28 +308,26 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		}
 		return out;
 	}
-	
-	@Override
+
 	public Img<T> getImg(){
 		return m_img;
 	}
-	
 
-	@Override
+
 	public T getValueOf(long[] point) {
 		RandomAccess<T> ra = m_img.randomAccess();
 		ra.setPosition(point);
 		return ra.get();
 	}
 
-	@Override
+	
 	public Img<T> getValues(long[] start, long[] end) {
 		//TODO using the shape boundary directly
-				
+
 		List<long[]> points = m_contour.getPointsInbetween(start, end);
 		Img<T>  out = new ArrayImgFactory<T>().create(
 				new long[]{ points.size(), 1}, m_img.firstElement());
-		
+
 		Cursor<T> c = Views.iterable( out ).cursor();
 		for(int i = 0; i < points.size(); i++){
 			c.next().set( 
@@ -338,16 +336,15 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		}
 		return out;
 	}
-	
-	@Override
+
 	public T getType(){
 		return m_img.firstElement().createVariable();
 	}
-	
+
 	public long[] getPosition(long index){
 		return m_contour.get((int)index);
 	}
-	
+
 	public RandomAccess<DoubleType> print(RandomAccess<DoubleType> ra){
 		for(int i= 0; i < m_img.dimension(0); i++){
 			ra.setPosition( m_contour.get(i) );
@@ -357,7 +354,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		return ra;
 	}
 
-	@Override
+
 	public int getSize() {
 		return m_contour.length();
 	}
@@ -371,8 +368,8 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		m_randomAccess.setPosition(pos, 0);
 		return m_randomAccess.get();
 	}
-	
-	@Override
+
+
 	public Contour getContour(){
 		return m_contour;
 	}
@@ -382,7 +379,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 	public Iterator<T> iterator() {
 		return m_img.iterator();
 	}
-	
+
 //	public void setCurvature(Img<T> img){
 //		assert img.iterationOrder().equals( m_img.iterationOrder() );
 //		m_img = img;
@@ -392,7 +389,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 //			m_curvature.set(i, ra.get());
 //		}
 //	}
-	
+
 //	public List<Integer> getZeroCrossings(){
 //		List<Integer> out = new LinkedList<Integer>();
 //		for(int i = 0; i < m_curvature.size(); i++){
@@ -405,7 +402,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 //		}
 //		return out;
 //	}
-	
+
 	public List<Integer> getZeroCrossings(){
 		List<Integer> out = new LinkedList<Integer>();
 		for(int i = 0; i < m_img.dimension(0); i++){
@@ -417,10 +414,8 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 		}
 		return out;
 	}
-	
 
 	//TODO
-	@Override
 	public double[] getValues(int start, int end) {
 //		double[] res = new double[ Math.abs( end - start )];
 //		for( int i = 0; i < res.length; i++){

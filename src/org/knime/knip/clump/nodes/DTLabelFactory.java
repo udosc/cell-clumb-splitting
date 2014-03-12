@@ -2,6 +2,7 @@ package org.knime.knip.clump.nodes;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +51,7 @@ import org.knime.knip.core.data.algebra.Complex;
 
 import com.sun.corba.se.impl.orbutil.graph.Graph;
 
-public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
+public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
 	extends ValueToCellNodeFactory<LabelingValue<L>> {
 	
     private final SettingsModelDouble m_sigma = createSigmaModel();
@@ -137,6 +138,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				for(Pair<L, long[]> start: map){
 					Contour c = new BinaryFactory(img, start.getSecond()).createContour();
 					
+					
 					if( c.length() < 20 )
 						continue;
 					
@@ -161,7 +163,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 //						System.out.println( tangent.getMagnitude() );
 //					}
 					
-					Integer number = 0;
+
 //					for(long[] point: splittingPoints){
 //						ra.setPosition(point);
 //						ra.get().setLabel( (L) number++);
@@ -170,30 +172,60 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 //					new ImglibDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
 					Collection<Pair<Point, Point>> points = new MyDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
 					
-					for(Pair<Point, Point> line: points){
-						Cursor<BitType> cursor = 
-								new BresenhamLine<BitType>(img, line.getFirst(), line.getSecond());
-						while( cursor.hasNext() ){
-							cursor.next().set( false );
-						}
+					int label = 0;
+//					for(Pair<Point, Point> line: validate(img.randomAccess(), points)){
+////					for(Pair<Point, Point> line: points){
+//						Cursor<LabelingType<Integer>> cursor = 
+//								new BresenhamLine<LabelingType<Integer>>(lab, line.getFirst(), line.getSecond());
+//						while( cursor.hasNext() ){
+//							cursor.next().setLabel( label );
+//						}
+//						label++;
+//					}
+					final List<Pair<Point, Point>> preocessed = new LinkedList<Pair<Point, Point>>();
+					//Pruning
+					for( Pair<Point, Point> e: validate(img.randomAccess(), points)){
+//						Source = i
+//						Destination = j
+						Complex tangentS = c.getUnitVector(  e.getFirst() , 5);
+//						printTangent(tangentS, e.getSource().getPosition(), ra);
+						Complex tangentD = c.getUnitVector(  e.getSecond() , 5);
+//						printTangent(tangentD, e.getDestination().getPosition(), ra);
+						System.out.println( (tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() ));
+						if( tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() <= m_t.getDoubleValue() )
+							preocessed.add( e );
+						Complex vectorIJ = new Complex(e.getSecond().getLongPosition(0) - e.getFirst().getLongPosition(0),
+								e.getSecond().getLongPosition(1) - e.getFirst().getLongPosition(1));
+						final double tmp0 = Math.abs((vectorIJ.re() * tangentS.re() + vectorIJ.im() * tangentS.im()) / vectorIJ.getMagnitude());
+						Complex vectorJI = new Complex(e.getFirst().getLongPosition(0) - e.getSecond().getLongPosition(0),
+								e.getFirst().getLongPosition(1) - e.getSecond().getLongPosition(1));
+						final double tmp1 = Math.abs((vectorJI.re() * tangentD.re() + vectorJI.im() * tangentD.im()) / vectorJI.getMagnitude());
+						if(  Math.max(tmp0, tmp1) <= m_beta.getDoubleValue() )
+							preocessed.add( e );
 					}
 					
-					//Pruning
-//					for( Pair<Point, Point> e: list){
-//						Complex tangentS = c.getUnitVector(  e.getFirst() , 5);
-////						printTangent(tangentS, e.getSource().getPosition(), ra);
-//						Complex tangentD = c.getUnitVector(  e.getSecond() , 5);
-////						printTangent(tangentD, e.getDestination().getPosition(), ra);
-////						System.out.println( e.getSource().getIndex() + "," + e.getDestination().getIndex() + ": " +  (tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() ));
-//						if( tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() > m_t.getDoubleValue() )
-//							graph.deleteEdge(e);
-//						Complex vector = e.getVector();
-//						final double tmp0 = Math.abs((vector.re() * tangentS.re() + vector.im() * tangentS.im()) / vector.getMagnitude());
-//						vector = e.getReverseVector();
-//						final double tmp1 = Math.abs((vector.re() * tangentD.re() + vector.im() * tangentD.im()) / vector.getMagnitude());
-//						if(  Math.max(tmp0, tmp1) > m_beta.getDoubleValue() )
-//							graph.deleteEdge(e);
-//					}
+					for(Pair<Point, Point> line: preocessed){
+//				for(Pair<Point, Point> line: points){
+					Cursor<LabelingType<Integer>> cursor = 
+							new BresenhamLine<LabelingType<Integer>>(lab, line.getFirst(), line.getSecond());
+					while( cursor.hasNext() ){
+						cursor.next().setLabel( label );
+					}
+					label++;
+					
+					List<Pair<Point, Point>> outList = new LinkedList<Pair<Point, Point>>();
+					Map<Point, Integer> degrees = new HashMap<Point, Integer>( (int)(preocessed.size() * 1.2d));
+//					Selection by Inference
+					if ( preocessed.size() == 1 )
+						outList.addAll( preocessed );
+					else if ( preocessed.size() > 1 ){
+						for(Pair<Point, Point> p: preocessed){
+							degrees.put( p.getFirst(), degrees.get(p.getFirst()) == null ? new Integer(1) : degrees.get(p)+1);
+							degrees.put( p.getSecond(), degrees.get(p.getSecond()) == null ? new Integer(1) : degrees.get(p)+1);
+						}
+					}
+				}
+					
 //					List<Edge> list =  removeDuplicates( graph.getValidEdges() );
 //					Set<Node> inNodes = new HashSet<Node>( list.size() );
 //					Map<Node, Integer> degrees = graph.getDegrees( list );
@@ -253,8 +285,8 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					
 				}
 				
-				new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
-                        new BitType(false) ).compute(img, lab);
+//				new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
+//                        new BitType(false) ).compute(img, lab);
 				
 				return m_labCellFactory.createCell(lab, cellValue.getLabelingMetadata());
 			}
@@ -290,6 +322,26 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 						new Point(edge.getSource().getPosition()),
 						new Point(edge.getDestination().getPosition()), 
 						value);
+			}
+			
+			private Collection<Pair<Point, Point>> validate(RandomAccess<BitType> source, Collection<Pair<Point, Point>> lines){
+				Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+				for(Pair<Point, Point> pair: lines){
+					Cursor<BitType> cursor = 
+							new BresenhamLine<BitType>(source, 
+									pair.getFirst(), 
+									pair.getSecond());
+					int res = 0;
+					boolean isValid = true;
+					while( cursor.hasNext() ){
+						if ( !cursor.next().get() ){
+							isValid = false;
+						}
+					}
+					if ( isValid )
+						out.add(pair);
+				}
+				return out;
 			}
 		    
 		    private RandomAccess<LabelingType<Integer>> printTangent(Complex tangent, long[] pos, RandomAccess<LabelingType<Integer>> ra){

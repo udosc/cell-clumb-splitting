@@ -13,10 +13,8 @@ import org.knime.knip.clump.contour.Contour;
  *
  * @param <L>
  */
-public interface SplittingPoints<T extends RealType<T>> 
-	extends UnaryOperation<Contour, List<long[]>> {
+public interface SplittingPoints<T extends RealType<T>> {
 	
-	@Override
-	List<long[]> compute(Contour input, List<long[]> output);
+	List<long[]> compute(Contour input);
 
 }

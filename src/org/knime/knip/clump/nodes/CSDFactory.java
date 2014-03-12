@@ -1,13 +1,9 @@
 package org.knime.knip.clump.nodes;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -18,7 +14,6 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.labeling.NativeImgLabeling;
-import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.AbstractRegionGrowing;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.CCA;
@@ -39,20 +34,13 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
-import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.curvature.Curvature;
 import org.knime.knip.clump.curvature.CurvatureScaleSpace;
-import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.graph.Edge;
-import org.knime.knip.clump.graph.Graph;
-import org.knime.knip.clump.graph.Node;
-import org.knime.knip.clump.graph.PrintValidPaths;
 import org.knime.knip.clump.ops.FindStartingPoint;
-import org.knime.knip.clump.ops.StandardDeviation;
-import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.core.data.algebra.Complex;
-import org.knime.knip.core.util.ImgUtils;
 
 public class CSDFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
 	extends ValueToCellNodeFactory<LabelingValue<L>> {

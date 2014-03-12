@@ -8,11 +8,9 @@ import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.dist.InverseDFTDistance;
 import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
@@ -105,6 +103,12 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 	@Override
 	public T getType() {
 		return m_type.createVariable();
+	}
+
+
+	@Override
+	public List<Contour> getTemplates() {
+		return m_templates;
 	}
 
 }

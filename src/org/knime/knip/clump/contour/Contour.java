@@ -9,6 +9,7 @@ import java.util.List;
 
 import net.imglib2.AbstractCursor;
 import net.imglib2.Cursor;
+import net.imglib2.Point;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
@@ -200,6 +201,12 @@ public class Contour
 	
 	public List<long[]> getPoints(){
 		return m_points;
+	}
+	
+	public Complex getUnitVector(Point pos, int support){
+		long[] tmp = new long[ pos.numDimensions() ];
+		pos.localize(tmp);
+		return getUnitVector(indexOf( tmp ), support);
 	}
 	
 	public Complex getUnitVector(long[] pos, int support){

@@ -1,5 +1,7 @@
 package org.knime.knip.clump.dist.contour;
 
+import java.util.List;
+
 import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.type.numeric.RealType;
 
@@ -9,5 +11,7 @@ public interface ContourDistance<T extends RealType<T>>
 	extends UnaryOperation<Contour, T> {
 	
 	T getType();
+	
+	List<Contour> getTemplates();
 
 }

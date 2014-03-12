@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -15,8 +14,8 @@ import org.knime.core.node.KNIMEConstants;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.KNIPConstants;
 import org.knime.knip.base.ThreadPoolExecutorService;
-import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.curvature.Curvature;
 import org.knime.knip.clump.ops.StandardDeviation;
 
 /**
@@ -48,7 +47,9 @@ public class CurvatureSplittingPoints<T extends RealType<T> & NativeType<T>>
 	}
 	
 	@Override
-	public List<long[]> compute(Contour input, List<long[]> output) {
+	public List<long[]> compute(Contour input) {
+		 List<long[]> output = new LinkedList<long[]>();
+		
 		final Curvature<T> curv = 
 				new Curvature<T>(input, m_order, m_type);
 		
@@ -111,12 +112,5 @@ public class CurvatureSplittingPoints<T extends RealType<T> & NativeType<T>>
 		
 		return output;
 	}
-
-	@Override
-	public UnaryOperation<Contour, List<long[]>> copy() {
-		return new CurvatureSplittingPoints<T>(m_order, m_radius, m_type, m_sigma);
-	}
-	
-	
 
 }

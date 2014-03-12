@@ -70,7 +70,7 @@ public class CurvatureDistance<T extends RealType<T> & NativeType<T>>
 		double min  = Double.MAX_VALUE;
 		
 		for(RandomAccessibleInterval<T> rai: m_templates){
-			double actual = new MinRAIDistance<T>(1).compute(inputA, rai, output.createVariable()).getRealDouble();
+			double actual = new MinRAIDistance<T>(1).compute(rai, inputA, output.createVariable()).getRealDouble();
 			if( actual < min)
 				min = actual;
 		}
@@ -83,6 +83,11 @@ public class CurvatureDistance<T extends RealType<T> & NativeType<T>>
 	@Override
 	public T getType() {
 		return m_factory.getType();
+	}
+
+	@Override
+	public List<Contour> getTemplates() {
+		return m_contour;
 	}
 
 }

@@ -12,63 +12,45 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
-import net.imglib2.labeling.LabelingFactory;
 import net.imglib2.labeling.LabelingType;
-import net.imglib2.labeling.LabelingView;
-import net.imglib2.meta.ImgPlus;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
-import net.imglib2.outofbounds.OutOfBoundsFactory;
-import net.imglib2.outofbounds.OutOfBoundsMirrorFactory;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.DoubleType;
-import net.imglib2.util.ImgUtil;
 import net.imglib2.view.Views;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
-import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Pair;
-import org.knime.knip.base.KNIPConstants;
-import org.knime.knip.base.ThreadPoolExecutorService;
-import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.labeling.LabelingCell;
-import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.contour.WatershedFactory;
+import org.knime.knip.clump.curvature.Curvature;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.FourierShapeDescription;
-import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
-import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
-import org.knime.knip.core.util.ImgUtils;
 
 
 /**
@@ -286,9 +268,9 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
     				ftCells[j] = new MissingCell( "unknown value" );
     			}
     		}
-    		DataRow row = new DefaultRow( new RowKey("Row_" + i), cells);
+    		DataRow row = new DefaultRow( new RowKey("" + i), cells);
             container1.addRowToTable(row);
-            container2.addRowToTable( new DefaultRow("Row_" + i, ftCells));
+            container2.addRowToTable( new DefaultRow("" + i, ftCells));
     	}
     	
     	container1.close();

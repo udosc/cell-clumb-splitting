@@ -26,6 +26,8 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 
 		m_nodeFactories.put(DTFactory.class.getCanonicalName(),
 				"/master");
+		m_nodeFactories.put(DTLabelFactory.class.getCanonicalName(),
+				"/master");
 		m_nodeFactories.put(SplittPointNodeFactory.class.getCanonicalName(),
 				"/master");
 		m_nodeFactories.put(MyContourExtracter.class.getCanonicalName(), 

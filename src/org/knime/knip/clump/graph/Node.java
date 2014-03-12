@@ -22,6 +22,8 @@ public class Node
 	
 	private Integer m_prev;
 	
+	private double m_curvature;
+	
 	public Node(int index, long[] position){
 		m_index = index;
 		m_position = position;

@@ -16,7 +16,6 @@ import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
-import net.imglib2.meta.ImgPlus;
 import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.type.NativeType;
@@ -31,28 +30,19 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.util.Pair;
-import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusCellFactory;
-import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
 import org.knime.knip.base.data.labeling.LabelingValue;
-import org.knime.knip.base.node.ValueToCellNodeDialog;
-import org.knime.knip.base.node.ValueToCellNodeFactory;
-import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.node.ValueToCellsNodeDialog;
 import org.knime.knip.base.node.ValueToCellsNodeFactory;
 import org.knime.knip.base.node.ValueToCellsNodeModel;
-import org.knime.knip.clump.boundary.Curvature;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.contour.WatershedFactory;
+import org.knime.knip.clump.curvature.Curvature;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
-import org.knime.knip.clump.split.CurvatureSplit;
-import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
-import org.knime.knip.core.data.img.DefaultLabelingMetadata;
 import org.knime.knip.core.util.ImgUtils;
 import org.knime.knip.core.util.PolygonTools;
 /**
@@ -151,7 +141,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 					List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
 							new DoubleType(),
-							m_sigma.getDoubleValue()).compute(c, new LinkedList<long[]>());
+							m_sigma.getDoubleValue()).compute(c);
 					
 					Integer number = 0;
 					for(long[] point: splittingPoints){

@@ -10,7 +10,6 @@ import java.util.PriorityQueue;
 import net.imglib2.Cursor;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.region.BresenhamLine;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
@@ -19,7 +18,6 @@ import net.imglib2.type.numeric.RealType;
 
 import org.knime.core.util.Pair;
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.dist.contour.ContourDistance;
 import org.knime.knip.clump.split.SplittingPoints;
 import org.knime.knip.clump.util.MyUtils;
@@ -44,12 +42,18 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private final T m_type;
 	
+	private long m_maxSize;
+	
 	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor){
 //		m_templates = Arrays.asList( templates );
 		m_img = img;
 		m_distance = distance;
 		m_factor = factor;
 		m_type = distance.getType();
+		for(Contour c: distance.getTemplates() ){
+			if( c.size() > m_maxSize )
+				m_maxSize = c.size();
+		}
 	}
 	
 //	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor, List<Contour> templates){
@@ -63,7 +67,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		List<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
 		m_cell = contour;
 		
-		List<long[]> points = split.compute(contour, new LinkedList<long[]>());
+		List<long[]> points = split.compute(contour);
 		init( points );
 		validate(m_img, 2);
 		initNodes();
@@ -71,6 +75,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		
 //		System.out.println( this );
 		
+		final double shapeDistance = m_distance.compute( m_cell, m_type).getRealDouble();
 		
 //		RandomAccessibleInterval<T> curvature = new KCosineCurvature<T>(m_distance.getType(), 5).createCurvatureImg(contour);
 				
@@ -78,7 +83,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 32  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 5  ){
 					continue;
 				}
 				
@@ -100,12 +105,19 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				
 //				double res = calculateSimilarity( m_contour[i][j] );
 				double sim =   m_distance.compute( m_contour[i][j], m_type).getRealDouble()  ;
+
 				double dist = m_factor * calculateDistance(i, j);
 				double res =   ( sim + dist ) *
 						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
 //				if ( res < m_weights[i][j].getWeight()){
+				
+				if ( res > shapeDistance ){
+					m_weights[i][j].setValid( false );
+				} else {
 					m_weights[i][j].setWeight( res  );
-//				}
+				}
+				
+//				m_weights[i][j].setWeight( res  );
 				
 //				//Check if a contour lying inside the cell fits better
 //				for(int k = i+1; k < j; k++){
@@ -163,6 +175,10 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 						if( k == l || !m_weights[k][l].isValid() )
 							continue;
 						Contour c = createContour(i, k, l, j);
+						
+						if ( c.size() > m_maxSize * 1.25d )
+							continue;
+						
 						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * calculateDistance(i, j);
 //						double dist = tmp 
 						double dist = tmp *
@@ -213,11 +229,11 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		}
 //		double s1 = floyd.getPathCost();
 //		double s2 = calculateSimilarity( m_cell );
-		final double s2 = m_distance.compute( m_cell, m_type).getRealDouble();
 		
-		System.out.println("Shape Distance: " +  s2 + " - Splitted :" + cost);
 		
-		if ( cost < s2 ){
+		System.out.println("Shape Distance: " +  shapeDistance + " - Splitted :" + cost);
+		
+		if ( cost < shapeDistance ){
 //			for( Pair<Point, Point> e: getSplitLines(path)){
 ////				out.add(new SplitLine( e.getSource().getPosition(), e.getDestination().getPosition(), e.getWeight() ));
 //				out.add( e );
@@ -467,6 +483,7 @@ class Greedy{
 	private final Edge[][] m_dist;
 	
 	private double m_cost;
+	
 	
 	public Greedy(Edge[][] weight, List<Node> nodes, Node start){
 		m_dist = weight;

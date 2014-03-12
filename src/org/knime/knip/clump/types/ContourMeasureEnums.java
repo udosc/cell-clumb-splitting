@@ -1,15 +1,5 @@
 package org.knime.knip.clump.types;
 
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
-
-import org.apache.commons.math3.ml.distance.EuclideanDistance;
-import org.knime.knip.clump.dist.DynamicTimeWarping;
-import org.knime.knip.clump.dist.MinDistance;
-import org.knime.knip.clump.dist.ShapeDistance;
-import org.knime.knip.clump.dist.contour.ContourDistance;
-import org.knime.knip.clump.dist.contour.CurvatureDistance;
-import org.knime.knip.clump.dist.contour.DFTDistance;
 
 /**
  * 
