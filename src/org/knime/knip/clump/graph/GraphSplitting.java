@@ -218,7 +218,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		for(Node n: m_nodes){
 		for(Iterator<Node> it = m_nodes.iterator(); it.hasNext(); ){
 		//			Djiksta dj = new Djiksta(m_weights, m_nodes, n);
-			Greedy minpath = new Greedy(m_weights, m_nodes, it.next());
+			GreedySplitting minpath = new GreedySplitting(m_weights, m_nodes, it.next());
 			Collection<Pair<Point, Point>> list = minpath.compute();
 //			Collection<Node> list = dj.compute();
 			if (list != null && minpath.getCost() < cost && minpath.getCost() > 0.0d){
@@ -569,90 +569,3 @@ class Greedy{
 	}
 }
 
-class Djiksta{
-	
-	private final Node m_start;
-	
-	private Node m_end;
-	
-	private final Node[] m_prev;
-	
-	private final Edge[][] m_dist;
-	
-	private double m_cost;
-	
-	public Djiksta(Edge[][] weight, List<Node> nodes, Node start){
-		m_dist = weight;
-		m_prev = new Node[ nodes.size() ];
-		m_start = start;
-		for(int i = 0; i < nodes.size(); i++){
-			m_prev[i] = nodes.get(i).copy();
-			m_prev[i].setPrev(null);
-			m_prev[i].setDistance(Double.MAX_VALUE);
-//			m_dist[i] = new double[ nodes.size() ];
-//			for(int j = 0; j < m_dist[i].length; j++){
-//				m_dist[i][j] = weight[i][j].isValid() ? weight[i][j].getWeight() : Double.MAX_VALUE;
-//			}
-		}
-		m_prev[ m_start.getIndex() ].setDistance(0.0d);
-	}
-	
-	public Collection<Node> compute(){
-		PriorityQueue<Node> queue = new PriorityQueue<Node>( m_prev.length );
-		Collection<Node> out = new LinkedList<Node>();
-		
-		for(Node node: m_prev)
-			queue.add(node);
-		while( !queue.isEmpty() ){
-			Node res = queue.poll();
-			for(Node connected: res.getNodes()){
-				relax( m_prev[res.getIndex()], m_prev[ connected.getIndex() ]);
-				Edge e = m_dist[res.getIndex()][connected.getIndex() ].getConnectedEdge();
-				if (  e != null )
-						System.out.print(" Q ");
-			}
-			out.add(res);
-		}
-		double min = Double.MAX_VALUE;
-		Node prev = m_start;
-		for(Node n: out){
-			if( m_dist[ n.getIndex() ][ m_start.getIndex() ].isValid() ){
-				double res = n.getDistance() + m_dist[ n.getIndex() ][ m_start.getIndex() ].getWeight();
-				if( res < min ){
-					min = res;
-					prev = n;
-				}
-			}
-		}
-		m_cost = min;
-		return getPath( prev);
-	}
-	
-	
-	public double getCost(){
-		return m_cost;
-	}
-	
-	private Collection<Node> getPath(Node n){
-		Collection<Node> path = new LinkedList<Node>();
-		Node node = n;
-		path.add( node );
-		while( node.getPrev() != null){
-			node = m_prev[ node.getPrev() ] ;
-			path.add( node );
-		}
-		return path;
-	}
-	
-	private boolean relax(Node u, Node v){
-		if( m_dist[ u.getIndex() ][ v.getIndex() ].isValid() ){
-			final double res = u.getDistance() + m_dist[u.getIndex()][v.getIndex()].getWeight();
-			if ( res < v.getDistance()){
-				v.setDistance( res );
-				v.setPrev( u.getIndex() );
-				return true;
-			}
-		}
-		return false;
-	}
-}

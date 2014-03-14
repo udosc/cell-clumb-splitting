@@ -1,4 +1,4 @@
-package org.knime.knip.clump.dt;
+package org.knime.knip.clump.jdt;
 
 import java.util.Iterator;
 

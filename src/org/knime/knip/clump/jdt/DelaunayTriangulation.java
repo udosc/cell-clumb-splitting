@@ -1,4 +1,4 @@
-package org.knime.knip.clump.dt;
+package org.knime.knip.clump.jdt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -619,11 +619,11 @@ public class DelaunayTriangulation {
 		JDTPoint p2 = triangle.getB();
 		JDTPoint p3 = triangle.getC();
 
-		if ((p1.pointLineTest(JDTPoint, p3) == JDTPoint.LEFT) && (p2.pointLineTest(JDTPoint, p3) == JDTPoint.RIGHT))
+		if ((p1.pointLineTest(JDTPoint, p3) == Geometry.LEFT) && (p2.pointLineTest(JDTPoint, p3) == Geometry.RIGHT))
 			return p3;
-		if ((p3.pointLineTest(JDTPoint, p2) == JDTPoint.LEFT) && (p1.pointLineTest(JDTPoint, p2) == JDTPoint.RIGHT))
+		if ((p3.pointLineTest(JDTPoint, p2) == Geometry.LEFT) && (p1.pointLineTest(JDTPoint, p2) == Geometry.RIGHT))
 			return p2;
-		if ((p2.pointLineTest(JDTPoint, p1) == JDTPoint.LEFT) && (p3.pointLineTest(JDTPoint, p1) == JDTPoint.RIGHT))
+		if ((p2.pointLineTest(JDTPoint, p1) == Geometry.LEFT) && (p3.pointLineTest(JDTPoint, p1) == Geometry.RIGHT))
 			return p1;
 		return null;
 	}
@@ -777,32 +777,32 @@ public class DelaunayTriangulation {
 		}
 
 		switch (p.pointLineTest(firstP, lastP)) {
-		case JDTPoint.LEFT:
+		case LEFT:
 			startTriangle = extendOutside(firstT.getAbTriangle(), p);
 			allCollinear = false;
 			break;
-		case JDTPoint.RIGHT:
+		case RIGHT:
 			startTriangle = extendOutside(firstT, p);
 			allCollinear = false;
 			break;
-		case JDTPoint.ONSEGMENT:
-			insertCollinear(p, JDTPoint.ONSEGMENT);
+		case ONSEGMENT:
+			insertCollinear(p, Geometry.ONSEGMENT);
 			break;
-		case JDTPoint.INFRONTOFA:
-			insertCollinear(p, JDTPoint.INFRONTOFA);
+		case INFRONTOFA:
+			insertCollinear(p, Geometry.INFRONTOFA);
 			break;
-		case JDTPoint.BEHINDB:
-			insertCollinear(p, JDTPoint.BEHINDB);
+		case BEHINDB:
+			insertCollinear(p, Geometry.BEHINDB);
 			break;
 		}
 		return null;
 	}
 
-	private void insertCollinear(JDTPoint p, int res) {
+	private void insertCollinear(JDTPoint p, Geometry res) {
 		Triangle t, tp, u;
 
 		switch (res) {
-		case JDTPoint.INFRONTOFA:
+		case INFRONTOFA:
 			t = new Triangle(firstP, p);
 			tp = new Triangle(p, firstP);
 			t.setAbTriangle(tp);
@@ -816,7 +816,7 @@ public class DelaunayTriangulation {
 			firstT = t;
 			firstP = p;
 			break;
-		case JDTPoint.BEHINDB:
+		case BEHINDB:
 			t = new Triangle(p, lastP);
 			tp = new Triangle(lastP, p);
 			t.setAbTriangle(tp);
@@ -830,7 +830,7 @@ public class DelaunayTriangulation {
 			lastT = t;
 			lastP = p;
 			break;
-		case JDTPoint.ONSEGMENT:
+		case ONSEGMENT:
 			u = firstT;
 			while (p.isGreater(u.getA()))
 				u = u.getCaTriangle();
@@ -904,18 +904,18 @@ public class DelaunayTriangulation {
 
 	private Triangle treatDegeneracyInside(Triangle t, JDTPoint p) {
 
-		if (t.getAbTriangle().isHalfplane() && p.pointLineTest(t.getB(), t.getA()) == JDTPoint.ONSEGMENT)
+		if (t.getAbTriangle().isHalfplane() && p.pointLineTest(t.getB(), t.getA()) == Geometry.ONSEGMENT)
 			return extendOutside(t.getAbTriangle(), p);
-		if (t.getBcTriangle().isHalfplane() && p.pointLineTest(t.getC(), t.getB()) == JDTPoint.ONSEGMENT)
+		if (t.getBcTriangle().isHalfplane() && p.pointLineTest(t.getC(), t.getB()) == Geometry.ONSEGMENT)
 			return extendOutside(t.getBcTriangle(), p);
-		if (t.getCaTriangle().isHalfplane() && p.pointLineTest(t.getA(), t.getC()) == JDTPoint.ONSEGMENT)
+		if (t.getCaTriangle().isHalfplane() && p.pointLineTest(t.getA(), t.getC()) == Geometry.ONSEGMENT)
 			return extendOutside(t.getCaTriangle(), p);
 		return null;
 	}
 
 	private Triangle extendOutside(Triangle t, JDTPoint p) {
 
-		if (p.pointLineTest(t.getA(), t.getB()) == JDTPoint.ONSEGMENT) {
+		if (p.pointLineTest(t.getA(), t.getB()) == Geometry.ONSEGMENT) {
 			Triangle dg = new Triangle(t.getA(), t.getB(), p);
 			Triangle hp = new Triangle(p, t.getB());
 			t.setB(p);
@@ -946,8 +946,9 @@ public class DelaunayTriangulation {
 		t.circumcircle();
 
 		Triangle tca = t.getCaTriangle();
-
-		if (p.pointLineTest(tca.getA(), tca.getB()) >= JDTPoint.RIGHT) {
+		Geometry res = p.pointLineTest(tca.getA(), tca.getB());
+		//if (p.pointLineTest(tca.getA(), tca.getB()) >= Geometry.RIGHT) {
+		if ( res != Geometry.LEFT || res != Geometry.LEFT) {
 			Triangle nT = new Triangle(t.getA(), p);
 			nT.setAbTriangle(t);
 			t.setCanext(nT);
@@ -965,8 +966,8 @@ public class DelaunayTriangulation {
 		t.circumcircle();
 
 		Triangle tbc = t.getBcTriangle();
-
-		if (p.pointLineTest(tbc.getA(), tbc.getB()) >= JDTPoint.RIGHT) {
+		Geometry res = p.pointLineTest(tbc.getA(), tbc.getB());
+		if ( res != Geometry.LEFT || res != Geometry.LEFT)  {
 			Triangle nT = new Triangle(p, t.getB());
 			nT.setAbTriangle(t);
 			t.setBcTriangle(nT);
@@ -1100,17 +1101,17 @@ public class DelaunayTriangulation {
 	 * assumes v is NOT an halfplane! returns the next triangle for find.
 	 */
 	private static Triangle findnext1(JDTPoint p, Triangle v) {
-		if (p.pointLineTest(v.getA(), v.getB()) == JDTPoint.RIGHT && !v.getAbTriangle().isHalfplane())
+		if (p.pointLineTest(v.getA(), v.getB()) == Geometry.RIGHT && !v.getAbTriangle().isHalfplane())
 			return v.getAbTriangle();
-		if (p.pointLineTest(v.getB(), v.getC()) == JDTPoint.RIGHT && !v.getBcTriangle().isHalfplane())
+		if (p.pointLineTest(v.getB(), v.getC()) == Geometry.RIGHT && !v.getBcTriangle().isHalfplane())
 			return v.getBcTriangle();
-		if (p.pointLineTest(v.getC(), v.getA()) == JDTPoint.RIGHT && !v.getCaTriangle().isHalfplane())
+		if (p.pointLineTest(v.getC(), v.getA()) == Geometry.RIGHT && !v.getCaTriangle().isHalfplane())
 			return v.getCaTriangle();
-		if (p.pointLineTest(v.getA(), v.getB()) == JDTPoint.RIGHT)
+		if (p.pointLineTest(v.getA(), v.getB()) == Geometry.RIGHT)
 			return v.getAbTriangle();
-		if (p.pointLineTest(v.getB(), v.getC()) == JDTPoint.RIGHT)
+		if (p.pointLineTest(v.getB(), v.getC()) == Geometry.RIGHT)
 			return v.getBcTriangle();
-		if (p.pointLineTest(v.getC(), v.getA()) == JDTPoint.RIGHT)
+		if (p.pointLineTest(v.getC(), v.getA()) == Geometry.RIGHT)
 			return v.getCaTriangle();
 		return null;
 	}

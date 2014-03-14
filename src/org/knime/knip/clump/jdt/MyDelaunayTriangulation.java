@@ -1,4 +1,4 @@
-package org.knime.knip.clump.dt;
+package org.knime.knip.clump.jdt;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,7 +16,7 @@ implements UnaryOperation<Collection<long[]>, Collection<Pair<Point, Point>>>{
 	public Collection<Pair<Point, Point>> compute(Collection<long[]> arg0,
 			Collection<Pair<Point, Point>> arg1) {
 		
-		org.knime.knip.clump.dt.DelaunayTriangulation dt = new org.knime.knip.clump.dt.DelaunayTriangulation( toPoint(arg0 ));
+		org.knime.knip.clump.jdt.DelaunayTriangulation dt = new org.knime.knip.clump.jdt.DelaunayTriangulation( toPoint(arg0 ));
 		for(Triangle t: dt.getTriangulation()){
 			arg1.add( new Pair<Point, Point>( new Point( (long)(t.getA().getX()), (long)(t.getA().getY())  ),
 					new Point( (long)(t.getB().getX()), (long)(t.getB().getY()) ) ) );
@@ -36,10 +36,10 @@ implements UnaryOperation<Collection<long[]>, Collection<Pair<Point, Point>>>{
 		return new MyDelaunayTriangulation();
 	}
 	
-	private List<org.knime.knip.clump.dt.Point> toPoint(Collection<long[]> points){
-		List<org.knime.knip.clump.dt.Point> out = new ArrayList<org.knime.knip.clump.dt.Point>( points.size() );
+	private List<JDTPoint> toPoint(Collection<long[]> points){
+		List<JDTPoint> out = new ArrayList<JDTPoint>( points.size() );
 		for(long[] p: points)
-			out.add( new org.knime.knip.clump.dt.Point(p[0], p[1]) );
+			out.add( new JDTPoint(p[0], p[1]) );
 		return out;
 	}
 }

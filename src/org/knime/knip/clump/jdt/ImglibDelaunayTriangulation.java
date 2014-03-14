@@ -1,18 +1,17 @@
-package org.knime.knip.clump.dt;
+package org.knime.knip.clump.jdt;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import net.imglib2.Point;
+import net.imglib2.ops.operation.UnaryOperation;
 
 import org.knime.core.util.Pair;
 
 import delaunay.DelaunayTriangulation;
 import delaunay.Pnt;
 import delaunay.Simplex;
-
-import net.imglib2.Point;
-import net.imglib2.ops.operation.BinaryOperation;
-import net.imglib2.ops.operation.UnaryOperation;
 
 /**
  * 

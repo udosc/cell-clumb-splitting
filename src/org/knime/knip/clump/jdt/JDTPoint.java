@@ -1,4 +1,4 @@
-package org.knime.knip.clump.dt;
+package org.knime.knip.clump.jdt;
 
 import java.io.Serializable;
 
@@ -122,12 +122,12 @@ public class JDTPoint implements Comparable<JDTPoint>, Serializable {
 	// pointLineTest
 	// ===============
 	// simple geometry to make things easy!
-	public final static int ONSEGMENT = 0;
-	public final static int LEFT = 1;
-	public final static int RIGHT = 2;
-	public final static int INFRONTOFA = 3;
-	public final static int BEHINDB = 4;
-	public final static int ERROR = 5;
+//	public final static int ONSEGMENT = 0;
+//	public final static int LEFT = 1;
+//	public final static int RIGHT = 2;
+//	public final static int INFRONTOFA = 3;
+//	public final static int BEHINDB = 4;
+//	public final static int ERROR = 5;
 
 	/**
 	 * tests the relation between this point (as a 2D [x,y] point) and a 2D
@@ -141,47 +141,47 @@ public class JDTPoint implements Comparable<JDTPoint>, Serializable {
 	 * @return the value (flag) of the relation between this point and the a,b
 	 *         line-segment.
 	 */
-	public int pointLineTest(JDTPoint a, JDTPoint b) {
+	public Geometry pointLineTest(JDTPoint a, JDTPoint b) {
 
 		double dx = b.x - a.x;
 		double dy = b.y - a.y;
 		double res = dy * (x - a.x) - dx * (y - a.y);
 
 		if (res < 0)
-			return LEFT;
+			return Geometry.LEFT;
 		if (res > 0)
-			return RIGHT;
+			return Geometry.RIGHT;
 
 		if (dx > 0) {
 			if (x < a.x)
-				return INFRONTOFA;
+				return Geometry.INFRONTOFA;
 			if (b.x < x)
-				return BEHINDB;
-			return ONSEGMENT;
+				return Geometry.BEHINDB;
+			return Geometry.ONSEGMENT;
 		}
 		if (dx < 0) {
 			if (x > a.x)
-				return INFRONTOFA;
+				return Geometry.INFRONTOFA;
 			if (b.x > x)
-				return BEHINDB;
-			return ONSEGMENT;
+				return Geometry.BEHINDB;
+			return Geometry.ONSEGMENT;
 		}
 		if (dy > 0) {
 			if (y < a.y)
-				return INFRONTOFA;
+				return Geometry.INFRONTOFA;
 			if (b.y < y)
-				return BEHINDB;
-			return ONSEGMENT;
+				return Geometry.BEHINDB;
+			return Geometry.ONSEGMENT;
 		}
 		if (dy < 0) {
 			if (y > a.y)
-				return INFRONTOFA;
+				return Geometry.INFRONTOFA;
 			if (b.y > y)
-				return BEHINDB;
-			return ONSEGMENT;
+				return Geometry.BEHINDB;
+			return Geometry.ONSEGMENT;
 		}
 		System.out.println("Error, pointLineTest with a=b");
-		return ERROR;
+		return Geometry.ERROR;
 	}
 
 	boolean areCollinear(JDTPoint a, JDTPoint b) {
@@ -231,7 +231,7 @@ public class JDTPoint implements Comparable<JDTPoint>, Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Point other = (JDTPoint) obj;
+		JDTPoint other = (JDTPoint) obj;
 		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
 			return false;
 		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))

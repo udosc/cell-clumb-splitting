@@ -1,23 +1,13 @@
 package org.knime.knip.ops;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import junit.framework.Assert;
-
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.numeric.real.DoubleType;
 
-import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.junit.Test;
-import org.knime.knip.clump.boundary.Curvature;
-import org.knime.knip.clump.dist.MinDistance;
 import org.knime.knip.clump.dist.MinRAIDistance;
-import org.knime.knip.clump.util.MyUtils;
 
 public class MinRAITest {
 	

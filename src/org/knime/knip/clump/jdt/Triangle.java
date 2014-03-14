@@ -1,4 +1,4 @@
-package org.knime.knip.clump.dt;
+package org.knime.knip.clump.jdt;
 
 import java.io.Serializable;
 
@@ -28,8 +28,8 @@ public class Triangle implements Serializable {
 	 */
 	public Triangle(JDTPoint A, JDTPoint B, JDTPoint C) {
 		a = A;
-		int res = C.pointLineTest(A, B);
-		if ((res <= JDTPoint.LEFT) || (res == JDTPoint.INFRONTOFA) || (res == JDTPoint.BEHINDB)) {
+		Geometry res = C.pointLineTest(A, B);
+		if ((res == Geometry.ONSEGMENT ) || (res == Geometry.LEFT) || (res == Geometry.INFRONTOFA) || (res == Geometry.BEHINDB)) {
 			b = B;
 			c = C;
 		} else { // RIGHT
@@ -177,13 +177,13 @@ public class Triangle implements Serializable {
 			return true;
 		}
 
-		int a12 = p.pointLineTest(a, b);
-		int a23 = p.pointLineTest(b, c);
-		int a31 = p.pointLineTest(c, a);
+		Geometry a12 = p.pointLineTest(a, b);
+		Geometry a23 = p.pointLineTest(b, c);
+		Geometry a31 = p.pointLineTest(c, a);
 
-		if ((a12 == JDTPoint.LEFT && a23 == JDTPoint.LEFT && a31 == JDTPoint.LEFT)
-				|| (a12 == JDTPoint.RIGHT && a23 == JDTPoint.RIGHT && a31 == JDTPoint.RIGHT)
-				|| (a12 == JDTPoint.ONSEGMENT || a23 == JDTPoint.ONSEGMENT || a31 == JDTPoint.ONSEGMENT))
+		if ((a12 == Geometry.LEFT && a23 == Geometry.LEFT && a31 == Geometry.LEFT)
+				|| (a12 == Geometry.RIGHT && a23 == Geometry.RIGHT && a31 == Geometry.RIGHT)
+				|| (a12 == Geometry.ONSEGMENT || a23 == Geometry.ONSEGMENT || a31 == Geometry.ONSEGMENT))
 			ans = true;
 
 		return ans;
@@ -206,12 +206,12 @@ public class Triangle implements Serializable {
 			return true;
 		}
 
-		int a12 = p.pointLineTest(a, b);
-		int a23 = p.pointLineTest(b, c);
-		int a31 = p.pointLineTest(c, a);
+		Geometry a12 = p.pointLineTest(a, b);
+		Geometry a23 = p.pointLineTest(b, c);
+		Geometry a31 = p.pointLineTest(c, a);
 
-		if ((a12 == JDTPoint.LEFT && a23 == JDTPoint.LEFT && a31 == JDTPoint.LEFT)
-				|| (a12 == JDTPoint.RIGHT && a23 == JDTPoint.RIGHT && a31 == JDTPoint.RIGHT))
+		if ((a12 == Geometry.LEFT && a23 == Geometry.LEFT && a31 == Geometry.LEFT)
+				|| (a12 == Geometry.RIGHT && a23 == Geometry.RIGHT && a31 == Geometry.RIGHT))
 			ans = true;
 
 		return ans;

@@ -2,14 +2,12 @@ package org.knime.knip.clump.graph;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
-
-import org.knime.core.util.Pair;
-import org.knime.knip.clump.split.SplittingPoints;
 
 import net.imglib2.Point;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+
+import org.knime.core.util.Pair;
 
 /**
  * 
