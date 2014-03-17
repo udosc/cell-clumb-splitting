@@ -324,7 +324,7 @@ public class Curvature<T extends RealType<T> & NativeType<T>>
 	public Img<T> getValues(long[] start, long[] end) {
 		//TODO using the shape boundary directly
 
-		List<long[]> points = m_contour.getPointsInbetween(start, end);
+		List<long[]> points = m_contour.getPointsInbetween(start, end).getPoints();
 		Img<T>  out = new ArrayImgFactory<T>().create(
 				new long[]{ points.size(), 1}, m_img.firstElement());
 

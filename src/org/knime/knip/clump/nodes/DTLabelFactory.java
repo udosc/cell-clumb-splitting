@@ -24,8 +24,10 @@ import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.DoubleType;
 
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.data.labeling.LabelingCell;
@@ -36,8 +38,10 @@ import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.dt.EdgeInference;
+import org.knime.knip.clump.dt.EdgePruning;
+import org.knime.knip.clump.dt.MyDelaunayTriangulation;
 import org.knime.knip.clump.graph.Edge;
-import org.knime.knip.clump.jdt.MyDelaunayTriangulation;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.ValidateSplitLines;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
@@ -54,6 +58,10 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
     
     private final SettingsModelDouble m_beta = createBetaModel();
     
+    private final SettingsModelBoolean m_prune = createPruneModel();
+    
+    private final SettingsModelBoolean m_inference = createInferenceModel();
+    
     protected static SettingsModelDouble createSigmaModel(){
     	return new SettingsModelDouble("Sigma: ", 2.0d);
     }
@@ -69,6 +77,14 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
     protected static SettingsModelDouble createKModel(){
     	return new SettingsModelDouble("Curvature: ", 0.1d);
     }
+    
+    protected static SettingsModelBoolean createPruneModel(){
+    	return new SettingsModelBoolean("Prune edges: ", true);
+    }
+    
+    protected static SettingsModelBoolean createInferenceModel(){
+    	return new SettingsModelBoolean("Inference edges: ", true);
+    }
 
 	@Override
 	protected ValueToCellNodeDialog<LabelingValue<L>> createNodeDialog() {
@@ -78,8 +94,27 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 			public void addDialogComponents() {
 				addDialogComponent(new DialogComponentNumber(
 						createSigmaModel(), 
-						"Sigma", 
+						"Sigma: ", 
 						0.1d));
+				
+				addDialogComponent(new DialogComponentNumber(
+						createBetaModel(),
+						"Beta: ", 
+						0.9d));
+				
+				addDialogComponent(new DialogComponentNumber(
+						createTModel(),
+						"T: ", 
+						-0.15d));
+				
+				addDialogComponent(new DialogComponentBoolean(
+						createPruneModel(), 
+						"Prune Edges"));
+				
+				
+				addDialogComponent(new DialogComponentBoolean(
+						createInferenceModel(), 
+						"Inference Edges"));
 				
 			}
 		};
@@ -97,6 +132,8 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 				settingsModels.add( m_beta );
 				settingsModels.add( m_t );
 				settingsModels.add( m_k );
+				settingsModels.add( m_beta );
+				settingsModels.add( m_t );
 			}
 
 			@Override
@@ -162,123 +199,36 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 //					}
 					
 //					new ImglibDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
-					Collection<Pair<Point, Point>> points = new MyDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
+					Collection<Pair<Point, Point>> points = new ValidateSplitLines(img).compute(
+							new MyDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>()), 
+							new LinkedList<Pair<Point, Point>>());
 					
 					int label = 0;
-//					for(Pair<Point, Point> line: validate(img.randomAccess(), points)){
-////					for(Pair<Point, Point> line: points){
-//						Cursor<LabelingType<Integer>> cursor = 
-//								new BresenhamLine<LabelingType<Integer>>(lab, line.getFirst(), line.getSecond());
-//						while( cursor.hasNext() ){
-//							cursor.next().setLabel( label );
-//						}
-//						label++;
-//					}
-					final List<Pair<Point, Point>> preocessed = new LinkedList<Pair<Point, Point>>();
-					//Pruning
-					for( Pair<Point, Point> e: new ValidateSplitLines(img).compute(points, new LinkedList<Pair<Point, Point>>())){
-//						Source = i
-//						Destination = j
-						Complex tangentS = c.getUnitVector(  e.getFirst() , 5);
-//						printTangent(tangentS, e.getSource().getPosition(), ra);
-						Complex tangentD = c.getUnitVector(  e.getSecond() , 5);
-//						printTangent(tangentD, e.getDestination().getPosition(), ra);
-						System.out.println( (tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() ));
-						if( tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() <= m_t.getDoubleValue() )
-							preocessed.add( e );
-						Complex vectorIJ = new Complex(e.getSecond().getLongPosition(0) - e.getFirst().getLongPosition(0),
-								e.getSecond().getLongPosition(1) - e.getFirst().getLongPosition(1));
-						final double tmp0 = Math.abs((vectorIJ.re() * tangentS.re() + vectorIJ.im() * tangentS.im()) / vectorIJ.getMagnitude());
-						Complex vectorJI = new Complex(e.getFirst().getLongPosition(0) - e.getSecond().getLongPosition(0),
-								e.getFirst().getLongPosition(1) - e.getSecond().getLongPosition(1));
-						final double tmp1 = Math.abs((vectorJI.re() * tangentD.re() + vectorJI.im() * tangentD.im()) / vectorJI.getMagnitude());
-						if(  Math.max(tmp0, tmp1) <= m_beta.getDoubleValue() )
-							preocessed.add( e );
+					
+					if( m_prune.getBooleanValue() ){
+						points = 
+							new EdgePruning(c, m_beta.getDoubleValue(), m_t.getDoubleValue()).compute(
+									points,
+									new LinkedList<Pair<Point, Point>>());
 					}
 					
-					for(Pair<Point, Point> line: preocessed){
-//				for(Pair<Point, Point> line: points){
-					Cursor<LabelingType<Integer>> cursor = 
-							new BresenhamLine<LabelingType<Integer>>(lab, line.getFirst(), line.getSecond());
-					while( cursor.hasNext() ){
-						cursor.next().setLabel( label );
-					}
-					label++;
-					
-					List<Pair<Point, Point>> outList = new LinkedList<Pair<Point, Point>>();
-					Map<Point, Integer> degrees = new HashMap<Point, Integer>( (int)(preocessed.size() * 1.2d));
-//					Selection by Inference
-					if ( preocessed.size() == 1 )
-						outList.addAll( preocessed );
-					else if ( preocessed.size() > 1 ){
-						for(Pair<Point, Point> p: preocessed){
-							degrees.put( p.getFirst(), degrees.get(p.getFirst()) == null ? new Integer(1) : degrees.get(p.getFirst())+1);
-							degrees.put( p.getSecond(), degrees.get(p.getSecond()) == null ? new Integer(1) : degrees.get(p.getSecond())+1);
-						}
-					}
-				}
-					
-//					List<Edge> list =  removeDuplicates( graph.getValidEdges() );
-//					Set<Node> inNodes = new HashSet<Node>( list.size() );
-//					Map<Node, Integer> degrees = graph.getDegrees( list );
-//					List<Edge> outList = new LinkedList<Edge>();
-//					List<Edge> complex = new LinkedList<Edge>();
-////					Selection by Inference
-//					if ( list.size() == 1 )
-//						outList.addAll( list );
-//					else if ( list.size() > 1 ){
-//						for( Edge e: list){
-//							inNodes.add( e.getSource() );
-//							inNodes.add( e.getDestination() );
-//						}
-//						while( !list.isEmpty() ){
-//							Edge e = list.remove(0); //Polling the top element
-//							if( degrees.get( e.getSource() ) == 1){
-//								outList.add( e );
-//								inNodes.remove( e.getSource() );
-//								inNodes.remove( e.getDestination() );
-//							} else {
-//								for( Edge outE: graph.getOutgoingEdges( e.getSource() )){
-//									
-//								}
-//								
-//							}
-//							graph.disconnect( e.getSource() );
-//							graph.disconnect( e.getDestination() );
-//						}
-//						
-//						//Draw a split line for the remaining single nodes
-////						for( Node node : inNodes){
-////							long[] tmp = node.getPosition();
-////							Complex tangent = c.getUnitVector(  tmp , 3);
-////							double angle = tangent.phase() + Math.PI / 4.0d;
-////							long sign = (long) Math.signum( Math.sin( angle ));
-////							for(int j = 0; j < 100; j++){
-////								ra.setPosition(tmp[0]+ sign * j, 0);
-////								ra.setPosition(tmp[1]+ Math.round( j*Math.tan(angle)), 1);
-////								if( !ra.get().getLabeling().isEmpty() )
-////									ra.localize( tmp );
-////							}
-////							Cursor<LabelingType<L>> cursor = 
-////									new BresenhamLine<LabelingType<L>>(ra, new Point(node.getPosition()), new Point(tmp));
-////							while( cursor.hasNext() ){
-////								cursor.fwd();
-////								cursor.get().setLabel((L)number++);
-////							}
-////						}
-//					}
-//					
-//					for( Edge e: outList){
-//						draw(img.randomAccess(), e, new BitType(false));
-//					}
-					
-//					new PrintValidPaths< L>( (L)number++ ).compute(outList, ra);
+					if( m_inference.getBooleanValue() )
+						points = 
+						new EdgeInference(c).compute(
+								points,
+								new LinkedList<Pair<Point, Point>>());
 
-					
+					for(Pair<Point, Point> line: points){
+						Cursor<LabelingType<Integer>> cursor = 
+								new BresenhamLine<LabelingType<Integer>>(lab, line.getFirst(), line.getSecond());
+						while( cursor.hasNext() ){
+//							List res = getLabeling()
+							cursor.next().setLabel(label);
+						}
+						label++;
+					}	
 				}
-				
-//				new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
-//                        new BitType(false) ).compute(img, lab);
+
 				
 				return m_labCellFactory.createCell(lab, cellValue.getLabelingMetadata());
 			}

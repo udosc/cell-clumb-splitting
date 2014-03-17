@@ -15,6 +15,8 @@ import org.knime.knip.core.data.algebra.Complex;
  */
 public class Edge {
 	
+	private int m_index;
+	
 	private final Node m_source; 
 	
 	private final Node m_destination; 
@@ -37,8 +39,16 @@ public class Edge {
 		m_numDimension = source.getPosition().length;
 		m_valid = true;
 		m_connected = null;
+//		m_index =index;
 	}
 	
+	public int getIndex(){
+		return m_index;
+	}
+	
+	public void setIndex(int index){
+		m_index = index;
+	}
 
 	public Node getSource(){
 		return m_source;
@@ -106,8 +116,12 @@ public class Edge {
 		return m_connected;
 	}
 	
-	//TODO write hashcode
-	
+    @Override
+    public int hashCode() {
+        final int first = m_source == null ? 0 : m_source.hashCode();
+        final int second = m_destination == null ? 0 : m_destination.hashCode();
+        return first ^ (second << 2);
+    }
 	
 	
 	@Override

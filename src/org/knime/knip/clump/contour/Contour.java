@@ -142,7 +142,7 @@ public class Contour
 		return new HashSet<long[]>( m_points ).size() == m_points.size();
 	}
 	
-	public List<long[]> getPointsInbetween(int start, int end){
+	public Contour getPointsInbetween(int start, int end){
 		List<long[]> out = new LinkedList<long[]>();
 		if( start == end ){
 			//Return the whole contour
@@ -161,11 +161,11 @@ public class Contour
 			}
 
 		}
-		return out;
+		return new Contour(out);
 		
 	}
 	
-	public List<long[]> getPointsInbetween(long[] start, long[] end){
+	public Contour getPointsInbetween(long[] start, long[] end){
 		
 		//TODO
 		List<long[]> out = new LinkedList<long[]>();
@@ -196,7 +196,7 @@ public class Contour
 			}
 
 		}
-		return out;
+		return new Contour(out);
 	}
 	
 	public List<long[]> getPoints(){

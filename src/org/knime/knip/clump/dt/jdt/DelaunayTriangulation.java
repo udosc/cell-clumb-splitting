@@ -1,4 +1,4 @@
-package org.knime.knip.clump.jdt;
+package org.knime.knip.clump.dt.jdt;
 
 import java.util.ArrayList;
 import java.util.Arrays;

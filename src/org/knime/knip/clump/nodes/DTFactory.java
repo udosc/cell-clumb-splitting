@@ -39,12 +39,15 @@ import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.dt.EdgeInference;
+import org.knime.knip.clump.dt.EdgePruning;
+import org.knime.knip.clump.dt.MyDelaunayTriangulation;
+import org.knime.knip.clump.dt.jdt.ImglibDelaunayTriangulation;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.GraphSplitting;
 import org.knime.knip.clump.graph.Node;
-import org.knime.knip.clump.jdt.ImglibDelaunayTriangulation;
-import org.knime.knip.clump.jdt.MyDelaunayTriangulation;
 import org.knime.knip.clump.ops.FindStartingPoint;
+import org.knime.knip.clump.ops.ValidateSplitLines;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.core.data.algebra.Complex;
 
@@ -85,8 +88,18 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 			public void addDialogComponents() {
 				addDialogComponent(new DialogComponentNumber(
 						createSigmaModel(), 
-						"Sigma", 
+						"Sigma: ", 
 						0.1d));
+				
+				addDialogComponent(new DialogComponentNumber(
+						createBetaModel(),
+						"Beta: ", 
+						0.9d));
+				
+				addDialogComponent(new DialogComponentNumber(
+						createTModel(),
+						"T: ", 
+						-0.15d));
 				
 			}
 		};
@@ -127,8 +140,6 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 		                new NativeImgLabeling<Integer, IntType>(
 		                		new ArrayImgFactory<IntType>().create(labeling, new IntType()));
 				
-				RandomAccess<LabelingType<Integer>> ra = lab.randomAccess();
-
 				Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
 						labeling, 
 						new LinkedList<Pair<L, long[]>>());
@@ -141,116 +152,31 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 						continue;
 					
 					System.out.println("Tracking label: " + i++);
-//					for(long[] point: c){
-//						ra.setPosition(point);
-////						ra.get().getMapping().intern( Arrays.asList( e.getKey() ));
-//						ra.get().setLabel(new Integer(1000));
-//					}
 					
-//					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
-					
-											
 					final List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
 							new DoubleType(),
 							m_sigma.getDoubleValue()).compute(c);
-					
-//					for(long[] p: splittingPoints){
-//						Complex tangent = c.getUnitVector( c.indefOf(p), 5);
-//						System.out.println( p[0] +", " + p[1] + ": " + tangent.re() + "-" + tangent.im());
-//						System.out.println( tangent.getMagnitude() );
-//					}
-					
-					Integer number = 0;
-//					for(long[] point: splittingPoints){
-//						ra.setPosition(point);
-//						ra.get().setLabel( (L) number++);
-//					}
-					
+
 //					new ImglibDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
 					Collection<Pair<Point, Point>> points = new MyDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
+							;
+
+					final Collection<Pair<Point, Point>> inferenced = 
+							new EdgeInference(c).compute(
+									new EdgePruning(c, m_beta.getDoubleValue(), m_t.getDoubleValue()).compute(
+											new ValidateSplitLines(img).compute(points, new LinkedList<Pair<Point, Point>>()),
+												new LinkedList<Pair<Point, Point>>()),
+									new LinkedList<Pair<Point, Point>>());
 					
-					for(Pair<Point, Point> line: points){
+					for(Pair<Point, Point> line: inferenced){
 						Cursor<BitType> cursor = 
 								new BresenhamLine<BitType>(img, line.getFirst(), line.getSecond());
 						while( cursor.hasNext() ){
 							cursor.next().set( false );
 						}
 					}
-					
-					//Pruning
-//					for( Pair<Point, Point> e: list){
-//						Complex tangentS = c.getUnitVector(  e.getFirst() , 5);
-////						printTangent(tangentS, e.getSource().getPosition(), ra);
-//						Complex tangentD = c.getUnitVector(  e.getSecond() , 5);
-////						printTangent(tangentD, e.getDestination().getPosition(), ra);
-////						System.out.println( e.getSource().getIndex() + "," + e.getDestination().getIndex() + ": " +  (tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() ));
-//						if( tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() > m_t.getDoubleValue() )
-//							graph.deleteEdge(e);
-//						Complex vector = e.getVector();
-//						final double tmp0 = Math.abs((vector.re() * tangentS.re() + vector.im() * tangentS.im()) / vector.getMagnitude());
-//						vector = e.getReverseVector();
-//						final double tmp1 = Math.abs((vector.re() * tangentD.re() + vector.im() * tangentD.im()) / vector.getMagnitude());
-//						if(  Math.max(tmp0, tmp1) > m_beta.getDoubleValue() )
-//							graph.deleteEdge(e);
-//					}
-//					List<Edge> list =  removeDuplicates( graph.getValidEdges() );
-//					Set<Node> inNodes = new HashSet<Node>( list.size() );
-//					Map<Node, Integer> degrees = graph.getDegrees( list );
-//					List<Edge> outList = new LinkedList<Edge>();
-//					List<Edge> complex = new LinkedList<Edge>();
-////					Selection by Inference
-//					if ( list.size() == 1 )
-//						outList.addAll( list );
-//					else if ( list.size() > 1 ){
-//						for( Edge e: list){
-//							inNodes.add( e.getSource() );
-//							inNodes.add( e.getDestination() );
-//						}
-//						while( !list.isEmpty() ){
-//							Edge e = list.remove(0); //Polling the top element
-//							if( degrees.get( e.getSource() ) == 1){
-//								outList.add( e );
-//								inNodes.remove( e.getSource() );
-//								inNodes.remove( e.getDestination() );
-//							} else {
-//								for( Edge outE: graph.getOutgoingEdges( e.getSource() )){
-//									
-//								}
-//								
-//							}
-//							graph.disconnect( e.getSource() );
-//							graph.disconnect( e.getDestination() );
-//						}
-//						
-//						//Draw a split line for the remaining single nodes
-////						for( Node node : inNodes){
-////							long[] tmp = node.getPosition();
-////							Complex tangent = c.getUnitVector(  tmp , 3);
-////							double angle = tangent.phase() + Math.PI / 4.0d;
-////							long sign = (long) Math.signum( Math.sin( angle ));
-////							for(int j = 0; j < 100; j++){
-////								ra.setPosition(tmp[0]+ sign * j, 0);
-////								ra.setPosition(tmp[1]+ Math.round( j*Math.tan(angle)), 1);
-////								if( !ra.get().getLabeling().isEmpty() )
-////									ra.localize( tmp );
-////							}
-////							Cursor<LabelingType<L>> cursor = 
-////									new BresenhamLine<LabelingType<L>>(ra, new Point(node.getPosition()), new Point(tmp));
-////							while( cursor.hasNext() ){
-////								cursor.fwd();
-////								cursor.get().setLabel((L)number++);
-////							}
-////						}
-//					}
-//					
-//					for( Edge e: outList){
-//						draw(img.randomAccess(), e, new BitType(false));
-//					}
-					
-//					new PrintValidPaths< L>( (L)number++ ).compute(outList, ra);
 
-					
 				}
 				
 				new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
@@ -264,14 +190,6 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 		        m_labCellFactory = new LabelingCellFactory(exec);
 		    }
 		    
-		    private List<Edge> removeDuplicates(List<Edge> list){
-		    	final List<Edge> out = new LinkedList<Edge>();
-		    	for(Edge e: list){
-		    		if( e.getSource().getIndex() < e.getDestination().getIndex() )
-		    			out.add( e );
-		    	}
-		    	return out;
-		    }
 
 			private void draw(RandomAccess<BitType> ra, Point p1, Point p2, BitType value) {
 				final Cursor<BitType> cursor = 

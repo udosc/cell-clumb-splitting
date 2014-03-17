@@ -69,7 +69,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	public boolean[][] getMatrix(){
 		boolean[][] matrix = new boolean[ m_solutions ][];
 		for(int i = 0; i < matrix.length; i++)
-			matrix[i] = new boolean[ m_nodes.size() ];
+			matrix[i] = new boolean[ m_nodes.size() + 2 * m_solutions];
 		int current = 0;
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
@@ -84,21 +84,32 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	}
 	
 	private boolean[] asBooleanArray(int i, int j){
-		boolean[] out  = new boolean[ m_nodes.size() ];
+		boolean[] out  = new boolean[ m_nodes.size() + 2 * m_solutions];
 		for(int k = 0; k < out.length; k++){
 			Edge e = m_weights[i][j].getConnectedEdge();
-			if( i < j ){
-				if( e == null ){
-					 out[k] = k >= i && k < j ? true : false;
-				 } else {		
-					out[k] = k >= i && k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
-				 }
+			if( k < m_nodes.size() ){
+				if( i < j ){
+					if( e == null ){
+						 out[k] = k >= i && k < j ? true : false;
+					 } else {		
+						out[k] = k >= i && k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
+					 }
+				} else {
+					if( e == null ){
+						 out[k] = k >= i || k < j ? true : false;
+					 } else {		
+						out[k] = k >= i || k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
+					 }			
+				}
 			} else {
-				if( e == null ){
-					 out[k] = k >= i || k < j ? true : false;
-				 } else {		
-					out[k] = k >= i || k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
-				 }			
+				if( e != null ){
+					out[k] = k - m_nodes.size()  == m_weights[i][j].getIndex() || k - m_nodes.size() == m_weights[i][j].getConnectedEdge().getIndex() ? true : false;
+				}else {
+					out[k] = k - m_nodes.size()  == m_weights[i][j].getIndex() ? true : false;
+				}
+				if( out[k] )
+					out[k+1] = true;
+				k++;
 			}
 		 }
 		return out;
@@ -108,6 +119,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	public void printMatrix(boolean[][] matrix){
 		for(int i = 0; i < matrix.length; i++){
 			for(int j = 0; j < matrix[i].length; j++){
+				if( j == m_nodes.size() )
+					System.out.print(" || ");
 				System.out.print( matrix[i][j] + ", ");
 			}
 			System.out.print("\n");
@@ -300,6 +313,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 
 	}
 	
+	
 	private void initNodes() {
 		for(int i=0; i < m_weights.length;i++){
 			for(int j=0; j < m_weights[i].length; j++){
@@ -335,7 +349,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 					}
 					
 					if( isValid )
-						m_solutions++;
+						m_weights[i][j].setIndex( m_solutions++ );
 				}
 			}
 		}
@@ -398,7 +412,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				m_weights[i][j] = new Edge(m_nodes.get(i), m_nodes.get(j), Double.MAX_VALUE);
 				m_weights[i][j].setSplitLine(
 						new Pair<Point, Point>( new Point(m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())));
-				List<long[]> list = m_cell.getPointsInbetween(start, end);
+				List<long[]> list = m_cell.getPointsInbetween(start, end).getPoints();
 //				list.addAll( getPoints(end, start));
 				
 				if( i == 0 && j == 1){
