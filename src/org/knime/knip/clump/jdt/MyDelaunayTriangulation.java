@@ -9,6 +9,11 @@ import net.imglib2.ops.operation.UnaryOperation;
 
 import org.knime.core.util.Pair;
 
+/**
+ * 
+ * @author Schlegel
+ *
+ */
 public class MyDelaunayTriangulation
 implements UnaryOperation<Collection<long[]>, Collection<Pair<Point, Point>>>{
 
@@ -16,7 +21,7 @@ implements UnaryOperation<Collection<long[]>, Collection<Pair<Point, Point>>>{
 	public Collection<Pair<Point, Point>> compute(Collection<long[]> arg0,
 			Collection<Pair<Point, Point>> arg1) {
 		
-		org.knime.knip.clump.jdt.DelaunayTriangulation dt = new org.knime.knip.clump.jdt.DelaunayTriangulation( toPoint(arg0 ));
+		DelaunayTriangulation dt = new DelaunayTriangulation( toPoint(arg0 ));
 		for(Triangle t: dt.getTriangulation()){
 			arg1.add( new Pair<Point, Point>( new Point( (long)(t.getA().getX()), (long)(t.getA().getY())  ),
 					new Point( (long)(t.getB().getX()), (long)(t.getB().getY()) ) ) );
@@ -32,7 +37,6 @@ implements UnaryOperation<Collection<long[]>, Collection<Pair<Point, Point>>>{
 
 	@Override
 	public UnaryOperation<Collection<long[]>, Collection<Pair<Point, Point>>> copy() {
-		// TODO Auto-generated method stub
 		return new MyDelaunayTriangulation();
 	}
 	

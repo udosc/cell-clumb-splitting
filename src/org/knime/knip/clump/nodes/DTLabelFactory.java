@@ -3,11 +3,9 @@ package org.knime.knip.clump.nodes;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -19,8 +17,6 @@ import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
-import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.AbstractRegionGrowing;
-import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.CCA;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
@@ -41,15 +37,11 @@ import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.graph.Edge;
-import org.knime.knip.clump.graph.GraphSplitting;
-import org.knime.knip.clump.graph.Node;
-import org.knime.knip.clump.jdt.ImglibDelaunayTriangulation;
 import org.knime.knip.clump.jdt.MyDelaunayTriangulation;
 import org.knime.knip.clump.ops.FindStartingPoint;
+import org.knime.knip.clump.ops.ValidateSplitLines;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.core.data.algebra.Complex;
-
-import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
 	extends ValueToCellNodeFactory<LabelingValue<L>> {
@@ -184,7 +176,7 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 //					}
 					final List<Pair<Point, Point>> preocessed = new LinkedList<Pair<Point, Point>>();
 					//Pruning
-					for( Pair<Point, Point> e: validate(img.randomAccess(), points)){
+					for( Pair<Point, Point> e: new ValidateSplitLines(img).compute(points, new LinkedList<Pair<Point, Point>>())){
 //						Source = i
 //						Destination = j
 						Complex tangentS = c.getUnitVector(  e.getFirst() , 5);
@@ -220,8 +212,8 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 						outList.addAll( preocessed );
 					else if ( preocessed.size() > 1 ){
 						for(Pair<Point, Point> p: preocessed){
-							degrees.put( p.getFirst(), degrees.get(p.getFirst()) == null ? new Integer(1) : degrees.get(p)+1);
-							degrees.put( p.getSecond(), degrees.get(p.getSecond()) == null ? new Integer(1) : degrees.get(p)+1);
+							degrees.put( p.getFirst(), degrees.get(p.getFirst()) == null ? new Integer(1) : degrees.get(p.getFirst())+1);
+							degrees.put( p.getSecond(), degrees.get(p.getSecond()) == null ? new Integer(1) : degrees.get(p.getSecond())+1);
 						}
 					}
 				}
@@ -324,25 +316,7 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 						value);
 			}
 			
-			private Collection<Pair<Point, Point>> validate(RandomAccess<BitType> source, Collection<Pair<Point, Point>> lines){
-				Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
-				for(Pair<Point, Point> pair: lines){
-					Cursor<BitType> cursor = 
-							new BresenhamLine<BitType>(source, 
-									pair.getFirst(), 
-									pair.getSecond());
-					int res = 0;
-					boolean isValid = true;
-					while( cursor.hasNext() ){
-						if ( !cursor.next().get() ){
-							isValid = false;
-						}
-					}
-					if ( isValid )
-						out.add(pair);
-				}
-				return out;
-			}
+
 		    
 		    private RandomAccess<LabelingType<Integer>> printTangent(Complex tangent, long[] pos, RandomAccess<LabelingType<Integer>> ra){
 		    	long r0 = (long) (pos[0] + tangent.re() * 15);

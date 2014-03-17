@@ -208,6 +208,8 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 	        		binaryImg, 
 	        		m_smFactor.getDoubleValue());
 			
+			
+			
 			List<Pair<Point, Point>> points = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
 					15, 
 					new DoubleType(),
@@ -221,6 +223,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 //					compute(points, raBinaryImg);
 //			}
 
+			cs.printMatrix( cs.getMatrix() );
 			
 			for(Pair<Point, Point> line: points){
 				Cursor<BitType> cursor = 

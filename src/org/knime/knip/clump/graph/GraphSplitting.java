@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -44,6 +43,10 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private long m_maxSize;
 	
+	private List<SplitLine<T>> m_splitLines;
+	
+	private int m_solutions;
+	
 	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor){
 //		m_templates = Arrays.asList( templates );
 		m_img = img;
@@ -62,6 +65,55 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		m_distance = distance;
 //		m_factor = factor;
 //	}
+	
+	public boolean[][] getMatrix(){
+		boolean[][] matrix = new boolean[ m_solutions ][];
+		for(int i = 0; i < matrix.length; i++)
+			matrix[i] = new boolean[ m_nodes.size() ];
+		int current = 0;
+		for(int i = 0; i < m_weights.length; i++){
+			for(int j = 0; j < m_weights[i].length; j++){
+				
+				if( m_weights[i][j].isValid() ){
+					 matrix[current++] = asBooleanArray(i, j);
+				}
+			}
+		}
+		
+		return matrix;
+	}
+	
+	private boolean[] asBooleanArray(int i, int j){
+		boolean[] out  = new boolean[ m_nodes.size() ];
+		for(int k = 0; k < out.length; k++){
+			Edge e = m_weights[i][j].getConnectedEdge();
+			if( i < j ){
+				if( e == null ){
+					 out[k] = k >= i && k < j ? true : false;
+				 } else {		
+					out[k] = k >= i && k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
+				 }
+			} else {
+				if( e == null ){
+					 out[k] = k >= i || k < j ? true : false;
+				 } else {		
+					out[k] = k >= i || k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
+				 }			
+			}
+		 }
+		return out;
+	}
+	
+	
+	public void printMatrix(boolean[][] matrix){
+		for(int i = 0; i < matrix.length; i++){
+			for(int j = 0; j < matrix[i].length; j++){
+				System.out.print( matrix[i][j] + ", ");
+			}
+			System.out.print("\n");
+		}
+	}
+
 	
 	public List<Pair<Point, Point>> compute(Contour contour, SplittingPoints<T> split){
 		List<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
@@ -260,27 +312,31 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 
 	public void validate(Img<BitType> img, int tolarate){
 		RandomAccess<BitType> ra = img.randomAccess();
+		m_solutions = 0;
 		for(int i=0; i < m_weights.length;i++){
 			for(int j=0; j < m_weights[i].length; j++){
 				if( i == j ){
 					m_weights[i][j].setValid( false );
-					continue;
-				}
-				
-				Cursor<BitType> cursor = 
-						new BresenhamLine<BitType>(ra, 
-								new Point(m_nodes.get(i).getPosition()), 
-								new Point(m_nodes.get(j).getPosition()));
-				int res = 0;
-				while( cursor.hasNext() ){
-					if ( !cursor.next().get() ){
-						if( ++res > tolarate ){
-							m_weights[i][j].setValid( false );
-							break;
+				} else {
+					Cursor<BitType> cursor = 
+							new BresenhamLine<BitType>(ra, 
+									new Point(m_nodes.get(i).getPosition()), 
+									new Point(m_nodes.get(j).getPosition()));
+					int res = 0;
+					boolean isValid = true;
+					while( cursor.hasNext() ){
+						if ( !cursor.next().get() ){
+							if( ++res > tolarate ){
+								m_weights[i][j].setValid( false );
+								isValid = false;
+								break;
+							}
 						}
 					}
+					
+					if( isValid )
+						m_solutions++;
 				}
-				
 			}
 		}
 	}
