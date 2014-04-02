@@ -50,9 +50,9 @@ public class GreedySplitting{
 		
 		m_cost = res.getWeight();
 		
-		out.add( res.getSplitLine() );
+		out.add( res.getSplitLine().get(0) );
 		if( connected != null ){
-			out.add( connected.getSplitLine() );
+			out.add( connected.getSplitLine().get(0) );
 //			m_cost += connected.getWeight();
 		}
 	

@@ -210,7 +210,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			
 			
 			
-			List<Pair<Point, Point>> points = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
+			cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
 					15, 
 					new DoubleType(),
 					m_sigma.getDoubleValue()));
@@ -224,6 +224,11 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 //			}
 
 			cs.printMatrix( cs.getMatrix() );
+			Collection<Pair<Point, Point>> points = cs.printGreedy();
+			
+			if( points == null ){
+				continue;
+			}
 			
 			for(Pair<Point, Point> line: points){
 				Cursor<BitType> cursor = 

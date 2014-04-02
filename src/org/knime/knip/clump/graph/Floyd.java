@@ -137,7 +137,7 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
         //If there isn't a path
     	if( k == -1 )
     		return null;
-        nodes.add( m_graph[k][destination].getSplitLine() );
+        nodes.add( m_graph[k][destination].getSplitLine().get(0) );
         m_cost += m_graph[k][destination].getWeight();
 //    	nodes.add(new Edge(m_nodes.get(k), m_nodes.get(destination), m_graph[k][destination].getWeight()));
 //        nodes.add( m_graph.getEdge(k, destination) );

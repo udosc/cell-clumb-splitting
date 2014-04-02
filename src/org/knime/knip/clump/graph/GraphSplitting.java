@@ -1,7 +1,9 @@
 package org.knime.knip.clump.graph;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,6 +45,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private long m_maxSize;
 	
+	private Contour[] m_boundaries;
+	
 	private List<SplitLine<T>> m_splitLines;
 	
 	private int m_solutions;
@@ -66,16 +70,27 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		m_factor = factor;
 //	}
 	
+	private double[] m_bCosts;
+	
+	private List<Pair<Integer, Integer>> m_pairs;
+	
 	public boolean[][] getMatrix(){
 		boolean[][] matrix = new boolean[ m_solutions ][];
 		for(int i = 0; i < matrix.length; i++)
-			matrix[i] = new boolean[ m_nodes.size() + 2 * m_solutions];
+			matrix[i] = new boolean[ m_nodes.size()];
 		int current = 0;
+		m_bCosts = new double[ m_solutions ];
+		m_pairs = new ArrayList<Pair<Integer, Integer>>( m_solutions );
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 				if( m_weights[i][j].isValid() ){
-					 matrix[current++] = asBooleanArray(i, j);
+					 matrix[current] = m_weights[i][j].getBoundaries();
+					 m_pairs.add(current, new Pair<Integer, Integer>(i, j));
+					 if( m_weights[i][j].getConnectedEdge() == null )
+						 m_bCosts[current++] = m_weights[i][j].getWeight();
+					 else
+						 m_bCosts[current++] = m_weights[i][j].getWeight() + m_weights[i][j].getConnectedEdge().getWeight();
 				}
 			}
 		}
@@ -83,34 +98,49 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		return matrix;
 	}
 	
+//	private List<Integer> getBoundaries(int i, int j){
+//		List<Integer> out = new LinkedList<Integer>();
+//		
+//		return out;
+//	}
+	
+	private boolean[] asBooleanArray(int i, int j, int p1, int p2){
+		boolean[] b1 = asBooleanArray(i, p1);
+		boolean[] b2 = asBooleanArray(p2, j);
+		for(int k = 0; k < b1.length; k++)
+			b1[k] |= b2[k];
+		return b1;
+	}
+	
 	private boolean[] asBooleanArray(int i, int j){
-		boolean[] out  = new boolean[ m_nodes.size() + 2 * m_solutions];
-		for(int k = 0; k < out.length; k++){
-			Edge e = m_weights[i][j].getConnectedEdge();
-			if( k < m_nodes.size() ){
+		boolean[] out  = new boolean[ m_nodes.size() ];
+		Edge e = m_weights[i][j].getConnectedEdge();
+		for(int k = 0; k <  m_nodes.size(); k++){
+
+//			if( k < m_nodes.size() ){
 				if( i < j ){
-					if( e == null ){
+//					if( e == null ){
 						 out[k] = k >= i && k < j ? true : false;
-					 } else {		
-						out[k] = k >= i && k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
-					 }
+//					 } else {		
+//						out[k] = k >= i && k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
+//					 }
 				} else {
-					if( e == null ){
-						 out[k] = k >= i || k < j ? true : false;
-					 } else {		
-						out[k] = k >= i || k < j || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? true : false;
-					 }			
+//					if( e == null ){
+						 out[k] = k >= j && k < i ? false : true;
+//					 } else {		
+//						out[k] = k >= j && k < i || k >= e.getSource().getIndex() && k < e.getDestination().getIndex()? false : true;
+//					 }			
 				}
-			} else {
-				if( e != null ){
-					out[k] = k - m_nodes.size()  == m_weights[i][j].getIndex() || k - m_nodes.size() == m_weights[i][j].getConnectedEdge().getIndex() ? true : false;
-				}else {
-					out[k] = k - m_nodes.size()  == m_weights[i][j].getIndex() ? true : false;
-				}
-				if( out[k] )
-					out[k+1] = true;
-				k++;
-			}
+//			} else {
+//				if( e != null ){
+//					out[k] = k - m_nodes.size()  == m_weights[i][j].getIndex() || k - m_nodes.size() == m_weights[i][j].getConnectedEdge().getIndex() ? true : false;
+//				}else {
+//					out[k] = k - m_nodes.size()  == m_weights[i][j].getIndex() ? true : false;
+//				}
+//				if( out[k] )
+//					out[k+1] = true;
+//				k++;
+//			}
 		 }
 		return out;
 	}
@@ -118,6 +148,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	public void printMatrix(boolean[][] matrix){
 		for(int i = 0; i < matrix.length; i++){
+			System.out.print(i + ": ");
 			for(int j = 0; j < matrix[i].length; j++){
 				if( j == m_nodes.size() )
 					System.out.print(" || ");
@@ -151,22 +182,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 5  ){
 					continue;
 				}
-				
-				
-//				if( i == 2 && j == 5){
-//					System.out.print("Q");
-//				}
-
-//				
-//				final int is = contour.indexOf(start);
-//				final int ie = contour.indexOf(end);
-			
-//				final RandomAccessibleInterval<T> part = Views.interval(
-//						Views.extendPeriodic( curvature ),new long[]{ is }, new long[] { ie });
-//				List<Contour> list = getContours(i, j);
-//				for( Contour c: list){
-//
-//				}
 				
 //				double res = calculateSimilarity( m_contour[i][j] );
 				double sim =   m_distance.compute( m_contour[i][j], m_type).getRealDouble()  ;
@@ -260,55 +275,59 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				}
 				
 				if( p1 > 0 && p2 > 0 && min < m_weights[i][p1].getWeight() + m_weights[p2][j].getWeight() ){
-					m_weights[i][p1].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
-					m_weights[i][p1].setSplitLine(new Pair<Point, Point>( 
-							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
-					m_weights[i][p1].connectTo( m_weights[p2][j] );
-					m_weights[p2][j].connectTo( m_weights[i][p1] );
-					m_weights[p2][j].setWeight( temp * ( m_contour[p2][j].size() ) / Math.abs( m_cell.size() )) ;
-					m_weights[p2][j].setSplitLine(new Pair<Point, Point>( 
+					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
+//					m_weights[i][j].setSplitLine(new Pair<Point, Point>( 
+//							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
+					m_weights[i][j].setBoundaries( asBooleanArray(i, j, p1, p2) );
+					m_weights[i][j].getSplitLine().add(new Pair<Point, Point>( 
 							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
+//					m_weights[i][p1].connectTo( m_weights[p2][j] );
+//					m_weights[p2][j].connectTo( m_weights[i][p1] );
+//					m_weights[p2][j].setWeight( temp * ( m_contour[p2][j].size() ) / Math.abs( m_cell.size() )) ;
+//					m_weights[p2][j].setSplitLine(new Pair<Point, Point>( 
+//							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
 //					m_split[][]
 				}
 
 			}
 		}
+		return null;
 		
-//		Floyd<T> floyd = new Floyd<T>(m_weights);
-//		Collection<Pair<Point, Point>> path = floyd.getMinPath();
-//		printPath(path);
-		double cost = Double.MAX_VALUE;
-//		Collection<Node> path = null;
-		Collection<Pair<Point, Point>> path = null;
-//		for(Node n: m_nodes){
-		for(Iterator<Node> it = m_nodes.iterator(); it.hasNext(); ){
-		//			Djiksta dj = new Djiksta(m_weights, m_nodes, n);
-			GreedySplitting minpath = new GreedySplitting(m_weights, m_nodes, it.next());
-			Collection<Pair<Point, Point>> list = minpath.compute();
-//			Collection<Node> list = dj.compute();
-			if (list != null && minpath.getCost() < cost && minpath.getCost() > 0.0d){
-				cost = minpath.getCost();
-				path = list;
-			}
-			
-		}
-//		double s1 = floyd.getPathCost();
-//		double s2 = calculateSimilarity( m_cell );
-		
-		
-		System.out.println("Shape Distance: " +  shapeDistance + " - Splitted :" + cost);
-		
-		if ( cost < shapeDistance ){
-//			for( Pair<Point, Point> e: getSplitLines(path)){
-////				out.add(new SplitLine( e.getSource().getPosition(), e.getDestination().getPosition(), e.getWeight() ));
-//				out.add( e );
+////		Floyd<T> floyd = new Floyd<T>(m_weights);
+////		Collection<Pair<Point, Point>> path = floyd.getMinPath();
+////		printPath(path);
+//		double cost = Double.MAX_VALUE;
+////		Collection<Node> path = null;
+//		Collection<Pair<Point, Point>> path = null;
+////		for(Node n: m_nodes){
+//		for(Iterator<Node> it = m_nodes.iterator(); it.hasNext(); ){
+//		//			Djiksta dj = new Djiksta(m_weights, m_nodes, n);
+//			GreedySplitting minpath = new GreedySplitting(m_weights, m_nodes, it.next());
+//			Collection<Pair<Point, Point>> list = minpath.compute();
+////			Collection<Node> list = dj.compute();
+//			if (list != null && minpath.getCost() < cost && minpath.getCost() > 0.0d){
+//				cost = minpath.getCost();
+//				path = list;
 //			}
+//			
+//		}
+////		double s1 = floyd.getPathCost();
+////		double s2 = calculateSimilarity( m_cell );
+//		
+//		
+//		System.out.println("Shape Distance: " +  shapeDistance + " - Splitted :" + cost);
+//		
+//		if ( cost < shapeDistance ){
+////			for( Pair<Point, Point> e: getSplitLines(path)){
+//////				out.add(new SplitLine( e.getSource().getPosition(), e.getDestination().getPosition(), e.getWeight() ));
+////				out.add( e );
+////			}
+////			return out;
+//			out.addAll( path );
 //			return out;
-			out.addAll( path );
-			return out;
-		} else {
-			return out;
-		}
+//		} else {
+//			return out;
+//		}
 		
 
 	}
@@ -396,7 +415,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		m_contour = new Contour[ points.size() ][];
 //		m_distances = new Double[splittingPoints.size()][];
 		m_nodes = new ArrayList<Node>( points.size() );
-
+		m_boundaries = new Contour[ points.size() ];
 		
 		for(int i = 0; i < points.size(); i++){
 			m_nodes.add(i, new Node(i, points.get(i)));
@@ -410,7 +429,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				long[] end = points.get(j);
 				m_weights[i][j] = new Edge(m_nodes.get(i), m_nodes.get(j), Double.MAX_VALUE);
-				m_weights[i][j].setSplitLine(
+				m_weights[i][j].setBoundaries( asBooleanArray(i, j) );
+				m_weights[i][j].getSplitLine().add(
 						new Pair<Point, Point>( new Point(m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())));
 				List<long[]> list = m_cell.getPointsInbetween(start, end).getPoints();
 //				list.addAll( getPoints(end, start));
@@ -513,9 +533,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		System.out.println(" - Total: " + m_cost);
 	}
 	
-	public Pair<Point, Point> getSplittingLine(int i, int j){
-		return m_weights[i][j].getSplitLine();
-	}
 
 	@Override
 	public String toString(){
@@ -534,7 +551,29 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
 		for(Node node: nodes){
 			if( node.getPrev() != null)
-				out.add( m_weights[ node.getIndex()][ node.getPrev()].getSplitLine());
+				for(Pair<Point, Point> p: m_weights[ node.getIndex()][ node.getPrev()].getSplitLine())
+					out.add( p );
+		}
+		return out;
+	}
+	
+	public Collection<Pair<Point, Point>> printGreedy(){
+		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+		boolean[][] temp = getMatrix();
+		
+		if( m_bCosts.length == 0 || temp.length == 0)
+			return null;
+		
+//		MinPath min = new MinPath(m_bCosts, temp);
+//		min.printMatrix();
+		Solutions solutions = new Solutions(m_bCosts, temp);
+//		List<Integer> solution = min.getSolution();
+		List<Integer> solution = solutions.calc();
+		if ( solution == null )
+			return null;
+		for(Integer i: solution){
+			for( Pair<Point, Point> line : m_weights[m_pairs.get(i).getFirst()][m_pairs.get(i).getSecond()].getSplitLine() )
+				out.add( line);
 		}
 		return out;
 	}
@@ -542,100 +581,332 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 
 }
 
-class Greedy{
-	
-	private final Node m_start;
-	
-	private Node m_end;
-	
-	private final List<Node> m_nodes;
-	
-	private final Edge[][] m_dist;
-	
-	private double m_cost;
-	
-	
-	public Greedy(Edge[][] weight, List<Node> nodes, Node start){
-		m_dist = weight;
-		m_nodes = new ArrayList<Node>( nodes );
-		m_start = start;
-		m_end = start;
-//		for(int i = 0; i < nodes.size(); i++){
-//			m_prev[i] = nodes.get(i).copy();
-//			m_prev[i].setPrev(null);
-//			m_prev[i].setDistance(Double.MAX_VALUE);
-////			m_dist[i] = new double[ nodes.size() ];
-////			for(int j = 0; j < m_dist[i].length; j++){
-////				m_dist[i][j] = weight[i][j].isValid() ? weight[i][j].getWeight() : Double.MAX_VALUE;
-////			}
+//class Greedy{
+//	
+//	private final Node m_start;
+//	
+//	private Node m_end;
+//	
+//	private final List<Node> m_nodes;
+//	
+//	private final Edge[][] m_dist;
+//	
+//	private double m_cost;
+//	
+//	
+//	public Greedy(Edge[][] weight, List<Node> nodes, Node start){
+//		m_dist = weight;
+//		m_nodes = new ArrayList<Node>( nodes );
+//		m_start = start;
+//		m_end = start;
+////		for(int i = 0; i < nodes.size(); i++){
+////			m_prev[i] = nodes.get(i).copy();
+////			m_prev[i].setPrev(null);
+////			m_prev[i].setDistance(Double.MAX_VALUE);
+//////			m_dist[i] = new double[ nodes.size() ];
+//////			for(int j = 0; j < m_dist[i].length; j++){
+//////				m_dist[i][j] = weight[i][j].isValid() ? weight[i][j].getWeight() : Double.MAX_VALUE;
+//////			}
+////		}
+////		m_prev[ m_start.getIndex() ].setDistance(0.0d);
+//	}
+//	
+//	public Collection<Pair<Point, Point>> compute(){
+//		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+//		Node start = m_start;
+//		m_cost = 0.0d;
+//		boolean first = true;
+//		while( !m_nodes.isEmpty()){
+//			Edge res = getMinEdge( start );
+//			if ( res == null)
+//				return null;
+//			if( !first)
+//				m_nodes.remove( start );
+//			else 
+//				first = false;
+//				
+//			Edge connceted = res.getConnectedEdge(); 
+//			m_cost += res.getWeight();
+//			if(  connceted != null ){
+//				out.add( connceted.getSplitLine() );
+//				m_end = res.getSource();
+//				m_nodes.remove( res.getDestination() );
+//				m_cost += connceted.getWeight();
+//			}
+//			start = res.getDestination();
+//			out.add( res.getSplitLine() );
+//			if( start.equals( m_start ))
+//				break;
 //		}
-//		m_prev[ m_start.getIndex() ].setDistance(0.0d);
-	}
-	
-	public Collection<Pair<Point, Point>> compute(){
-		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
-		Node start = m_start;
-		m_cost = 0.0d;
-		boolean first = true;
-		while( !m_nodes.isEmpty()){
-			Edge res = getMinEdge( start );
-			if ( res == null)
-				return null;
-			if( !first)
-				m_nodes.remove( start );
-			else 
-				first = false;
-				
-			Edge connceted = res.getConnectedEdge(); 
-			m_cost += res.getWeight();
-			if(  connceted != null ){
-				out.add( connceted.getSplitLine() );
-				m_end = res.getSource();
-				m_nodes.remove( res.getDestination() );
-				m_cost += connceted.getWeight();
-			}
-			start = res.getDestination();
-			out.add( res.getSplitLine() );
-			if( start.equals( m_start ))
-				break;
-		}
+//
+//		
+//		return out;
+//	}
+//	
+//	
+//	private Edge getMinEdge( Node n){
+//		Integer i = getMinNode(n.getIndex());
+//		return i == null ? null : m_dist[ n.getIndex() ][ i ];
+//	}
+//	
+//	private Integer getMinNode(int n){
+//		Integer out = null;
+//		double min = Double.MAX_VALUE;
+//		for(int i = 0; i < m_dist[n].length; i++){
+//			if( m_nodes.contains( m_dist[n][i].getDestination() ) && m_dist[n][i].getWeight() < min){
+//				out = i;
+//				min = m_dist[n][i].getWeight();
+//			}
+//		}
+//		return out;
+//	}
+//	
+//	private boolean relax(Node u, Node v){
+//		if( m_dist[ u.getIndex() ][ v.getIndex() ].isValid() ){
+//			final double res = u.getDistance() + m_dist[u.getIndex()][v.getIndex()].getWeight();
+//			if ( res < v.getDistance()){
+//				v.setDistance( res );
+//				v.setPrev( u.getIndex() );
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//	
+//	public double getCost(){
+//		return m_cost;
+//	}
+//			
+//}
 
+class Solutions{
+	
+	private double[] m_cost;
+	
+	private int[] m_prev;
+	
+	private boolean[][] m_constraints;
+	
+	private int m_length;
+	
+	private List<List<Integer>> m_steps;
+	
+	private List<List<Integer>> m_solution;
+	
+	double m_final;
+	
+	
+	public Solutions(double[] cost, boolean[][] constrain ){
+		m_length = constrain[0].length;
+		m_cost = new double[ cost.length ];
+		for( int i = 0; i < m_cost.length; i++){
+			m_cost[i] = cost[i];
+		}
+		m_constraints = constrain;
+		m_steps = new LinkedList<List<Integer>>();
+		m_solution = new LinkedList<List<Integer>>();
+	}
+	
+	public List<Integer> calc(){
+		initSteps();
+		for(int i = 1; i < m_length; i++){
+			nextStep(i);
+		}
+		List<Integer> out = null;
+		m_final = Double.MAX_VALUE;
+		for(List<Integer> list: m_solution){
+			double res = 0.0d;
+			if( isSolution( toArray(list)) ){
+				for(Integer i: list){
+					res += m_cost[i];
+				}
+				if( res < m_final ){
+					m_final = res;
+					out = list;
+				}
+			}
+		}
+		return out;
+	}
+	
+	private void initSteps(){
+		m_steps.clear();
+		for(int i = 0; i < m_constraints.length; i++){
+			if ( m_constraints[i][0] ){
+				List<Integer> res = new LinkedList<Integer>();
+				res.add( i );
+				m_steps.add( res );
+			}
+		}
+	}
+	
+	private void nextStep(int index){
+//		List<Integer> list;
+//		while(( list = m_steps.peek() ) != null){
+		List<List<Integer>> newOnes = new LinkedList<List<Integer>>();
+		for(List<Integer> list: m_steps){
+			boolean[] array = toArray(list);
+			
+			if( array[index]){
+				newOnes.add(list);
+			}
+			
+//			if( isSolution(array))
+//				m_solution.add(list);
+//			else{
+				for(int r = 0; r < m_constraints.length; r++){
+					if( m_constraints[r][index] && isValid(array, r) ){
+						List<Integer> res = new LinkedList<Integer>( list );
+						res.add(r);
+						
+						boolean[] nArray = toArray(res);
+						
+						if( isSolution( nArray) ){
+							m_solution.add(res);
+						} else{
+							newOnes.add( res ); 
+						}
+						
+
+					}
+				}
+//			}
+		}
+		m_steps.clear();
+		m_steps.addAll( newOnes );
+	}
+	
+	private boolean isSolution(boolean[] array){
+		boolean out = true;
+		for(boolean b: array)
+			out &= b;
+		return out;
+	}
+	
+	private boolean[] toArray(List<Integer> list){
+		boolean[] out = new boolean[ m_length ];
+		for(Integer i: list){
+			merge(out, i);
+		}
+		return out;
+	}
 		
-		return out;
+	private boolean isValid(boolean[] array, int index){
+		for(int i = 0; i < m_constraints[index].length; i++){
+			if ( m_constraints[index][i] && array[i])
+				return false;
+		}
+		return true;
 	}
 	
-	
-	private Edge getMinEdge( Node n){
-		Integer i = getMinNode(n.getIndex());
-		return i == null ? null : m_dist[ n.getIndex() ][ i ];
+	private boolean[] merge(boolean[] array, int index){
+		for(int i = 0; i < m_constraints[index].length; i++){
+			 array[i] = m_constraints[index][i] || array[i];
+		}
+		return array;
 	}
 	
-	private Integer getMinNode(int n){
-		Integer out = null;
+}
+
+class MinPath{
+	
+	private double[] m_cost;
+	
+	private int[] m_prev;
+	
+	private boolean[][] m_constraints;
+	
+	private int m_length;
+	
+	private List<Integer> m_solutions;
+	
+	public MinPath(double[] cost, boolean[][] constrain ){
+		m_length = constrain[0].length;
+		m_cost = new double[ cost.length ];
+		for( int i = 0; i < m_cost.length; i++){
+			m_cost[i] = 0.0d;
+		}
+		m_prev = new int[ cost.length ];
+		m_constraints = constrain;
+		m_solutions = calc(cost);
+	}
+	
+	private List<Integer> calc(double[] cost){
+		for(int i = 1; i < cost.length; i++){
+			double res = Double.MAX_VALUE;
+			for(int j = 0; j < i; j++){
+				if( isValid(i, j)){
+					double temp = cost[i] + m_cost[j];
+					if( temp < res){
+						res = temp;
+						m_prev[i] = j;
+					}
+				}
+			}
+			m_cost[i] = res;
+			m_constraints[i] = merge(i, m_prev[i]);
+		}
+		List<Integer> nodes = new LinkedList<Integer>();
 		double min = Double.MAX_VALUE;
-		for(int i = 0; i < m_dist[n].length; i++){
-			if( m_nodes.contains( m_dist[n][i].getDestination() ) && m_dist[n][i].getWeight() < min){
-				out = i;
-				min = m_dist[n][i].getWeight();
+		for(int i= 0; i < m_cost.length;i++){
+			if( isSolution(m_constraints[i]) && m_cost[i] < min ){
+				min = m_cost[i];
+				nodes.clear();
+				addNodes(i, nodes);
 			}
+		}
+		for(Integer i: nodes){
+			System.out.println("solution: "+i);
+		}
+		
+		return nodes;
+		
+		
+	}
+	
+	public List<Integer> getSolution(){
+		return m_solutions;
+	}
+	
+	private List<Integer> addNodes(int index, List<Integer> list){
+		list.add( index );
+		if( m_prev[index] != index ){
+//			list.add(m_prev[index]);
+			addNodes(m_prev[index], list);
+		}
+		return list;
+	}
+	
+	private boolean[] merge(int i, int j){
+		boolean[] out = new boolean[ m_length];
+		for(int n = 0; n < m_constraints[i].length; n++){
+			 out[n] = m_constraints[i][n] || m_constraints[j][n];
 		}
 		return out;
 	}
 	
-	private boolean relax(Node u, Node v){
-		if( m_dist[ u.getIndex() ][ v.getIndex() ].isValid() ){
-			final double res = u.getDistance() + m_dist[u.getIndex()][v.getIndex()].getWeight();
-			if ( res < v.getDistance()){
-				v.setDistance( res );
-				v.setPrev( u.getIndex() );
-				return true;
-			}
-		}
-		return false;
+	private boolean isSolution(boolean[] array){
+		boolean out = true;
+		for(boolean b: array)
+			out &= b;
+		return out;
 	}
 	
-	public double getCost(){
-		return m_cost;
+	private boolean isValid(int i, int j){
+		for(int n = 0; n < m_constraints[i].length; n++){
+			if ( m_constraints[i][n] && m_constraints[j][n])
+				return false;
+		}
+		return true;
+	}
+	
+	public void printMatrix(){
+		for(int i = 0; i < m_constraints.length; i++){
+			for(int j = 0; j < m_constraints[i].length; j++){
+				System.out.print( m_constraints[i][j] + "; ");
+			}
+			System.out.print("\n");
+		}
 	}
 }
 

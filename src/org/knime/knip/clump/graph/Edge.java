@@ -1,6 +1,8 @@
 package org.knime.knip.clump.graph;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.imglib2.Point;
 
@@ -25,12 +27,13 @@ public class Edge {
 	
 	private int m_numDimension;
 	
-	private Pair<Point, Point> m_splitLine;
+	private List<Pair<Point, Point>> m_splitLine;
 	
 	private boolean m_valid;
 	
 	private Edge m_connected;
 	
+	private boolean[] m_boundaries;
 	
 	public Edge(Node source, Node destination, double weight){
 		m_source = source;
@@ -39,6 +42,7 @@ public class Edge {
 		m_numDimension = source.getPosition().length;
 		m_valid = true;
 		m_connected = null;
+		m_splitLine = new LinkedList<Pair<Point, Point>>();
 //		m_index =index;
 	}
 	
@@ -100,13 +104,13 @@ public class Edge {
 		m_valid = valid;
 	}
 	
-	public Pair<Point, Point> getSplitLine(){
+	public List<Pair<Point, Point>> getSplitLine(){
 		return m_splitLine;
 	}
 	
-	public void setSplitLine(Pair<Point, Point> splitLine){
-		m_splitLine = splitLine;
-	}
+//	public void setSplitLine(Pair<Point, Point> splitLine){
+//		m_splitLine = splitLine;
+//	}
 	
 	public void connectTo(Edge edge){
 		m_connected = edge;
@@ -114,6 +118,14 @@ public class Edge {
 	
 	public Edge getConnectedEdge(){
 		return m_connected;
+	}
+	
+	public boolean[] getBoundaries(){
+		return m_boundaries;
+	}
+	
+	public void setBoundaries(boolean[] boundaries){
+		m_boundaries = boundaries;
 	}
 	
     @Override
