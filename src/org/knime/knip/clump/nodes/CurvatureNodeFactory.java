@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.imglib2.Cursor;
+import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
@@ -16,7 +17,9 @@ import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.real.DoubleType;
 
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusCellFactory;
@@ -26,8 +29,12 @@ import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.curvature.CurvatureFactory;
 import org.knime.knip.clump.curvature.KCosineCurvature;
 import org.knime.knip.clump.ops.FindStartingPoint;
+import org.knime.knip.clump.types.CurvatureCreationEnum;
+import org.knime.knip.clump.types.DistancesMeasuresEnum;
+import org.knime.knip.core.util.EnumUtils;
 import org.knime.knip.core.util.ImgUtils;
 
 /**
@@ -38,6 +45,10 @@ import org.knime.knip.core.util.ImgUtils;
  */
 public class CurvatureNodeFactory<L extends Comparable<L>> 
 	extends ValueToCellNodeFactory<LabelingValue<L>> {
+	
+    private static SettingsModelString createFacotoryModel(){
+    	return new SettingsModelString("Factory", CurvatureCreationEnum.K_COSINE.name());
+    }
 
 	@Override
 	protected ValueToCellNodeDialog<LabelingValue<L>> createNodeDialog() {
@@ -45,7 +56,9 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 
 			@Override
 			public void addDialogComponents() {
-				// TODO Auto-generated method stub
+		        addDialogComponent("Options", "Factory: ",  
+		        		new DialogComponentStringSelection(createFacotoryModel(), 
+		        				"Factory", EnumUtils.getStringListFromToString(CurvatureCreationEnum.values())));
 				
 			}
 		};
@@ -57,9 +70,11 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 
 			private ImgPlusCellFactory m_imgCellFactory;
 			
+			private SettingsModelString m_smModel = createFacotoryModel();
+			
 			@Override
 			protected void addSettingsModels(List<SettingsModel> settingsModels) {
-				// TODO Auto-generated method stub
+				settingsModels.add( m_smModel );
 				
 			}
 
@@ -90,8 +105,17 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 					i++;
 					if( contour.length() < 20 )
 						continue;
-						
-					PointSampleList<DoubleType> curvature = new KCosineCurvature<DoubleType>(new DoubleType(), 5).getPointSampleList( contour );
+					
+					CurvatureFactory<DoubleType> factory = CurvatureCreationEnum.getFactory( 
+							EnumUtils.valueForName(m_smModel.getStringValue(), CurvatureCreationEnum.values()),
+							5,
+							new DoubleType());
+					
+					IterableInterval<DoubleType> curvature = factory.getPointSampleList( contour );
+					
+					
+					
+//					PointSampleList<DoubleType> curvature = new KCosineCurvature<DoubleType>(new DoubleType(), 5).getPointSampleList( contour );
 //					PointSampleList<DoubleType> curvature = new GaussianCurvature<DoubleType>(new DoubleType(), 5).getPointSampleList();
 //					Curvature<DoubleType> curv = new Curvature<DoubleType>(
 //							contour, 

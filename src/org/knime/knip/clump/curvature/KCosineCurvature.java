@@ -2,7 +2,6 @@ package org.knime.knip.clump.curvature;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -11,6 +10,12 @@ import net.imglib2.type.numeric.RealType;
 
 import org.knime.knip.clump.contour.Contour;
 
+/**
+ * 
+ * @author Schlegel
+ *
+ * @param <T>
+ */
 public class KCosineCurvature<T extends RealType<T> & NativeType<T>> 
 implements CurvatureFactory<T>{
 	
@@ -44,6 +49,7 @@ implements CurvatureFactory<T>{
 		return out;
 	}
 	
+	@Override
 	public PointSampleList<T> getPointSampleList(Contour contour){
 		m_curvature = new PointSampleList<T>(2);
 		for(int i = 0; i < contour.length(); i++){
@@ -71,12 +77,7 @@ implements CurvatureFactory<T>{
 
 		final double out = ( 1 - Math.abs( d ) ) * 
 				Math.signum( crossProduct(center, p1, p2));
-		
-//		if( Double.isNaN(out)){
-//			System.out.println(distance(center, p1));
-//			System.out.println(distance(center, p2));
-//			System.out.println("");
-//		}
+
 		return out;
 	}
 
@@ -97,8 +98,6 @@ implements CurvatureFactory<T>{
 			final double delta = p1[i] - p2[i];
 			sum += delta * delta;
 		}
-//		if( Double.isNaN(sum))
-//			System.out.println("");
 		return Math.sqrt(sum);
 	}
 

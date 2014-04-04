@@ -691,7 +691,7 @@ class Solutions{
 	
 	private List<List<Integer>> m_steps;
 	
-	private List<List<Integer>> m_solution;
+	private List<Pair<List<Integer>, Double>> m_solution;
 	
 	double m_final;
 	
@@ -704,7 +704,7 @@ class Solutions{
 		}
 		m_constraints = constrain;
 		m_steps = new LinkedList<List<Integer>>();
-		m_solution = new LinkedList<List<Integer>>();
+		m_solution = new LinkedList<Pair<List<Integer>, Double>>();
 	}
 	
 	public List<Integer> calc(){
@@ -714,18 +714,15 @@ class Solutions{
 		}
 		List<Integer> out = null;
 		m_final = Double.MAX_VALUE;
-		for(List<Integer> list: m_solution){
-			double res = 0.0d;
-			if( isSolution( toArray(list)) ){
-				for(Integer i: list){
-					res += m_cost[i];
-				}
-				if( res < m_final ){
-					m_final = res;
-					out = list;
-				}
+		for(Pair<List<Integer>, Double> pair: m_solution){
+			System.out.println(pair.getFirst() + ": " + pair.getSecond());
+//			double res = Double.MAX_VALUE;
+			if( pair.getSecond() <  m_final){
+				out = pair.getFirst();
+				m_final = pair.getSecond();
 			}
 		}
+		System.out.println("Solution: " + out + ": " + m_final);
 		return out;
 	}
 	
@@ -738,6 +735,14 @@ class Solutions{
 				m_steps.add( res );
 			}
 		}
+	}
+	
+	private double calc(List<Integer> list){
+		double out = 0.0d;
+		for(Integer i: list){
+			out += m_cost[i];
+		}
+		return out;
 	}
 	
 	private void nextStep(int index){
@@ -762,7 +767,7 @@ class Solutions{
 						boolean[] nArray = toArray(res);
 						
 						if( isSolution( nArray) ){
-							m_solution.add(res);
+							m_solution.add(new Pair<List<Integer>, Double>(res, calc(res)));
 						} else{
 							newOnes.add( res ); 
 						}

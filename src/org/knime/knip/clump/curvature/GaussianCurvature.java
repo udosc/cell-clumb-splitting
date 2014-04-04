@@ -96,13 +96,16 @@ implements CurvatureFactory<T> {
 			final T sample = m_type.createVariable();
 			sample.setReal( t / r);
 			m_curvature.add(new Point( contour.get(i)), sample);
+			c.fwd();
 			c.get().set(sample);
 		}
 		
 		return out;
 	}
 	
-	public PointSampleList<T> getPointSampleList(){
+	@Override
+	public PointSampleList<T> getPointSampleList(Contour contour){
+		createCurvatureImg(contour);
 		return m_curvature;
 	}
 	
