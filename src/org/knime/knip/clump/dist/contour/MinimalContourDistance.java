@@ -11,7 +11,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.dist.InverseDFTDistance;
+import org.knime.knip.clump.dist.DFTDistance;
 import org.knime.knip.core.algorithm.InplaceFFT;
 import org.knime.knip.core.data.algebra.Complex;
 
@@ -21,7 +21,7 @@ import org.knime.knip.core.data.algebra.Complex;
  *
  * @param <T>
  */
-public class DFTDistance<T extends RealType<T> & NativeType<T>> 
+public class MinimalContourDistance<T extends RealType<T> & NativeType<T>> 
 	implements ContourDistance<T>{
 		
 	private final int m_numberOfDesc;
@@ -34,7 +34,7 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 	
 	private final boolean m_normalize;
 	
-	public DFTDistance(List<Contour> templates, T type, int numberOfDesc, boolean normalize){
+	public MinimalContourDistance(List<Contour> templates, T type, int numberOfDesc, boolean normalize){
 		m_numberOfDesc = numberOfDesc;
 		m_type = type;
 		m_templates = templates;
@@ -51,7 +51,7 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 	public T compute(Contour arg0, T arg2) {
 		double min = Double.MAX_VALUE;
 		for( Complex[] c : m_descriptor){
-			final double actual = new InverseDFTDistance<T>( m_numberOfDesc, m_type ).compute(
+			final double actual = new DFTDistance<T>( m_numberOfDesc, m_type ).compute(
 					c, 
 					m_normalize ? createScaleNormalizedCoefficents(arg0, m_type.createVariable()) : createCoefficent(arg0, m_type.createVariable()), 
 					m_type.createVariable()).getRealDouble(); 
@@ -66,7 +66,7 @@ public class DFTDistance<T extends RealType<T> & NativeType<T>>
 
 	@Override
 	public UnaryOperation<Contour, T> copy() {
-		return new DFTDistance<T>(m_templates , m_type, m_numberOfDesc, m_normalize);
+		return new MinimalContourDistance<T>(m_templates , m_type, m_numberOfDesc, m_normalize);
 	}
 	
 	private Complex[] createScaleNormalizedCoefficents(Contour contour, T type){

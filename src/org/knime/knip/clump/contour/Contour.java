@@ -69,7 +69,7 @@ public class Contour
 	
 	public static <T extends ComplexType<T> & NativeType<T>> RandomAccessibleInterval<T> asRandomAccessibleInterval(Contour contour, T type){
 		final Img<T> out = new ArrayImgFactory<T>().create(
-				new long[]{ contour.length(), 1 }, type.createVariable());	
+				new long[]{ contour.length() }, type.createVariable());	
 		
 		Cursor<T> c = out.cursor();
 		

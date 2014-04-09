@@ -1,4 +1,4 @@
-package org.knime.knip.clump.dist.contour;
+package org.knime.knip.clump.curvature;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +12,8 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.CurvatureFactory;
 import org.knime.knip.clump.dist.MinRAIDistance;
+import org.knime.knip.clump.dist.contour.ContourDistance;
 import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
 import org.knime.knip.core.util.ImgUtils;
 

@@ -47,9 +47,10 @@ import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.nodes.filter.convolver.ConvolverNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.curvature.CurvatureDistance;
 import org.knime.knip.clump.curvature.KCosineCurvature;
-import org.knime.knip.clump.dist.contour.CurvatureDistance;
 import org.knime.knip.clump.dist.contour.CurvatureFourier;
+import org.knime.knip.clump.dist.contour.MinimalContourDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.GraphSplitting;
 import org.knime.knip.clump.ops.FindStartingPoint;
@@ -202,9 +203,9 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			
 	        
 			GraphSplitting<DoubleType, Integer> cs = new GraphSplitting<DoubleType, Integer>(
-//					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 32),
+//					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 64),
 	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
-//					new DFTDistance<DoubleType>(m_templates, new DoubleType(), 16, false),
+//					new MinimalContourDistance<DoubleType>(m_templates, new DoubleType(), 64, true),
 	        		binaryImg, 
 	        		m_smFactor.getDoubleValue());
 			

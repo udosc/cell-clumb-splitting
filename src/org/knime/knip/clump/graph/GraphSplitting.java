@@ -179,7 +179,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 5  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 64  ){
 					continue;
 				}
 				
@@ -189,13 +189,63 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				double dist = m_factor * calculateDistance(i, j);
 				double res =   ( sim + dist ) *
 						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
-//				if ( res < m_weights[i][j].getWeight()){
 				
-				if ( res > shapeDistance ){
+				if ( sim > shapeDistance ){
 					m_weights[i][j].setValid( false );
 				} else {
 					m_weights[i][j].setWeight( res  );
 				}
+				
+				
+				double min = Double.MAX_VALUE;
+				double temp = Double.MAX_VALUE;
+				int p1 = -1;
+				int p2 = -1;
+				//Check if a contour lying inside the cell fits better
+//				for(int k = j+1; k < m_nodes.size(); k++){
+//					for(int l = k + 1; l < m_nodes.size(); l++){
+				for(int k: getPointsBetween(i, j)){
+					for(int l: getPointsBetween(i, j)){
+						if( k == l || !m_weights[k][l].isValid() )
+							continue;
+						Contour c = createContour(i, k, l, j);
+						
+						if ( c.size() > m_maxSize * 1.5d )
+							continue;
+						
+						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * calculateDistance(i, j);
+//						double dist = tmp 
+						tmp *=
+								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
+						
+						if( dist < min){
+							min = dist;
+							temp = tmp;
+							p1 = k;
+							p2 = l;
+						}
+						
+					}
+				}
+				
+				if( p1 > 0 && p2 > 0 && min < m_weights[i][p1].getWeight() + m_weights[p2][j].getWeight() ){
+					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
+//					m_weights[i][j].setSplitLine(new Pair<Point, Point>( 
+//							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
+					m_weights[i][j].setBoundaries( asBooleanArray(i, j, p1, p2) );
+					m_weights[i][j].getSplitLine().add(new Pair<Point, Point>( 
+							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
+					m_weights[i][j].setValid(true);
+//					m_weights[i][p1].connectTo( m_weights[p2][j] );
+//					m_weights[p2][j].connectTo( m_weights[i][p1] );
+//					m_weights[p2][j].setWeight( temp * ( m_contour[p2][j].size() ) / Math.abs( m_cell.size() )) ;
+//					m_weights[p2][j].setSplitLine(new Pair<Point, Point>( 
+//							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
+//					m_split[][]
+				}
+//				if ( res < m_weights[i][j].getWeight()){
+				
+
 				
 //				m_weights[i][j].setWeight( res  );
 				
@@ -236,100 +286,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		}
 		System.out.println( this.toString()  );
 		
-		for(int i = 0; i < m_weights.length; i++){
-			for(int j = 0; j < m_weights[i].length; j++){
-		
-							
-				if (m_contour[i][j].size() < 5 || !m_weights[i][j].isValid() ){
-					continue;
-				}
-				double min = Double.MAX_VALUE;
-				double temp = Double.MAX_VALUE;
-				int p1 = -1;
-				int p2 = -1;
-				//Check if a contour lying inside the cell fits better
-//				for(int k = j+1; k < m_nodes.size(); k++){
-//					for(int l = k + 1; l < m_nodes.size(); l++){
-				for(int k: getPointsBetween(i, j)){
-					for(int l: getPointsBetween(i, j)){
-						if( k == l || !m_weights[k][l].isValid() )
-							continue;
-						Contour c = createContour(i, k, l, j);
-						
-						if ( c.size() > m_maxSize * 1.25d )
-							continue;
-						
-						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * calculateDistance(i, j);
-//						double dist = tmp 
-						double dist = tmp *
-								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
-						
-						if( dist < min){
-							min = dist;
-							temp = tmp;
-							p1 = k;
-							p2 = l;
-						}
-						
-					}
-				}
-				
-				if( p1 > 0 && p2 > 0 && min < m_weights[i][p1].getWeight() + m_weights[p2][j].getWeight() ){
-					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
-//					m_weights[i][j].setSplitLine(new Pair<Point, Point>( 
-//							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
-					m_weights[i][j].setBoundaries( asBooleanArray(i, j, p1, p2) );
-					m_weights[i][j].getSplitLine().add(new Pair<Point, Point>( 
-							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
-//					m_weights[i][p1].connectTo( m_weights[p2][j] );
-//					m_weights[p2][j].connectTo( m_weights[i][p1] );
-//					m_weights[p2][j].setWeight( temp * ( m_contour[p2][j].size() ) / Math.abs( m_cell.size() )) ;
-//					m_weights[p2][j].setSplitLine(new Pair<Point, Point>( 
-//							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
-//					m_split[][]
-				}
-
-			}
-		}
 		return null;
-		
-////		Floyd<T> floyd = new Floyd<T>(m_weights);
-////		Collection<Pair<Point, Point>> path = floyd.getMinPath();
-////		printPath(path);
-//		double cost = Double.MAX_VALUE;
-////		Collection<Node> path = null;
-//		Collection<Pair<Point, Point>> path = null;
-////		for(Node n: m_nodes){
-//		for(Iterator<Node> it = m_nodes.iterator(); it.hasNext(); ){
-//		//			Djiksta dj = new Djiksta(m_weights, m_nodes, n);
-//			GreedySplitting minpath = new GreedySplitting(m_weights, m_nodes, it.next());
-//			Collection<Pair<Point, Point>> list = minpath.compute();
-////			Collection<Node> list = dj.compute();
-//			if (list != null && minpath.getCost() < cost && minpath.getCost() > 0.0d){
-//				cost = minpath.getCost();
-//				path = list;
-//			}
-//			
-//		}
-////		double s1 = floyd.getPathCost();
-////		double s2 = calculateSimilarity( m_cell );
-//		
-//		
-//		System.out.println("Shape Distance: " +  shapeDistance + " - Splitted :" + cost);
-//		
-//		if ( cost < shapeDistance ){
-////			for( Pair<Point, Point> e: getSplitLines(path)){
-//////				out.add(new SplitLine( e.getSource().getPosition(), e.getDestination().getPosition(), e.getWeight() ));
-////				out.add( e );
-////			}
-////			return out;
-//			out.addAll( path );
-//			return out;
-//		} else {
-//			return out;
-//		}
-		
-
 	}
 	
 	
