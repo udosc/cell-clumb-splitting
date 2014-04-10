@@ -20,6 +20,7 @@ import net.imglib2.type.numeric.RealType;
 import org.knime.core.util.Pair;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.dist.contour.ContourDistance;
+import org.knime.knip.clump.dt.MyDelaunayTriangulation;
 import org.knime.knip.clump.split.SplittingPoints;
 import org.knime.knip.clump.util.MyUtils;
 
@@ -84,7 +85,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
 				
-				if( m_weights[i][j].isValid() ){
+				if( m_weights[i][j].isValid() && current < matrix.length ){
 					 matrix[current] = m_weights[i][j].getBoundaries();
 					 m_pairs.add(current, new Pair<Integer, Integer>(i, j));
 					 if( m_weights[i][j].getConnectedEdge() == null )
@@ -167,11 +168,15 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		init( points );
 		validate(m_img, 2);
 		initNodes();
+		if( points.size() > 3 )
+			validateDelaunayTriangualtion(points);
 //		validate(m_img, 1);
 		
-//		System.out.println( this );
+		System.out.println( this );
 		
 		final double shapeDistance = m_distance.compute( m_cell, m_type).getRealDouble();
+		
+		System.out.println( "Shape Distance: " + shapeDistance);
 		
 //		RandomAccessibleInterval<T> curvature = new KCosineCurvature<T>(m_distance.getType(), 5).createCurvatureImg(contour);
 				
@@ -179,13 +184,15 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 64  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 30  ){
 					continue;
 				}
 				
 //				double res = calculateSimilarity( m_contour[i][j] );
-				double sim =   m_distance.compute( m_contour[i][j], m_type).getRealDouble()  ;
+//				double sim =   m_distance.compute( m_contour[i][j], m_type).getRealDouble()  ;
 
+				double sim = m_distance.compute( new Contour(m_contour[i][j], new Contour( getPoints(j, i))), m_type).getRealDouble();
+				
 				double dist = m_factor * calculateDistance(i, j);
 				double res =   ( sim + dist ) *
 						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
@@ -210,7 +217,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 							continue;
 						Contour c = createContour(i, k, l, j);
 						
-						if ( c.size() > m_maxSize * 1.5d )
+						if ( c.size() > m_maxSize * 1.5d || c.size() < 64 )
 							continue;
 						
 						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * calculateDistance(i, j);
@@ -298,6 +305,32 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			}
 		}
 		
+	}
+	
+	public void validateDelaunayTriangualtion(List<long[]> points){
+		for(int i=0; i < m_weights.length;i++){
+			for(int j=0; j < m_weights[i].length; j++){
+				m_weights[i][j].setValid(false);
+			}
+		}
+		Collection<Pair<Point, Point>> lines = new MyDelaunayTriangulation().compute(points, new LinkedList<Pair<Point, Point>>());
+		for(Pair<Point, Point> pair: lines){
+			int i = getIndex(pair.getFirst());
+			int j = getIndex(pair.getSecond());
+			m_weights[i][j].setValid(true);
+			m_weights[j][i].setValid(true);
+		}
+	}
+	
+	private int getIndex(Point point){
+		int out = -1;
+		for(Node n: m_nodes){
+			if( n.getPosition()[0] == point.getLongPosition(0) && n.getPosition()[1] == point.getLongPosition(1) ){
+				out = n.getIndex();
+				return out;
+			}
+		}
+		return out;
 	}
 
 	public void validate(Img<BitType> img, int tolarate){

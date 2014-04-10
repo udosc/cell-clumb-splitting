@@ -3,6 +3,8 @@ package org.knime.knip.clump.graph;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.imglib2.Point;
+
 
 /**
  * 
@@ -33,6 +35,10 @@ public class Node
 		
 	public int getIndex(){
 		return m_index;
+	}
+	
+	public Point getPoint(){
+		return Point.wrap(m_position);
 	}
 	
 	public long[] getPosition(){
