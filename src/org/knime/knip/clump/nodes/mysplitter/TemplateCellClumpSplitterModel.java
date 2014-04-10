@@ -1,4 +1,4 @@
-package org.knime.knip.clump.nodes;
+package org.knime.knip.clump.nodes.mysplitter;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,6 +33,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
@@ -47,15 +48,13 @@ import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.nodes.filter.convolver.ConvolverNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.CurvatureDistance;
+import org.knime.knip.clump.curvature.CurvatureFactory;
 import org.knime.knip.clump.curvature.KCosineCurvature;
-import org.knime.knip.clump.dist.contour.CurvatureFourier;
-import org.knime.knip.clump.dist.contour.MinimalContourDistance;
+import org.knime.knip.clump.dist.contour.ContourDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.GraphSplitting;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
-import org.knime.knip.clump.types.DistancesMeasuresEnum;
 
 /**
  * 
@@ -64,7 +63,7 @@ import org.knime.knip.clump.types.DistancesMeasuresEnum;
  * @param <L>
  * @param <T>
  */
-public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends RealType<T> & NativeType<T>>
+public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends RealType<T> & NativeType<T>>
 	extends ValueToCellNodeModel<LabelingValue<L>, LabelingCell<Integer>>{
 
 	private int m_templateIndex;
@@ -72,20 +71,19 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 	private List<Contour> m_templates;
 	
 	private final SettingsModelString m_smTemplateColumn = createTemplateColumnModel();
-	
-    private final SettingsModelIntegerBounded m_smOrder = createOrderColumnModel();
-    
+  
     private final SettingsModelDouble m_sigma = createSigmaModel();
-    
-//    private final SettingsModelDouble m_threshold = createThresholdModel();
+       
+    private final SettingsModelInteger m_smOrder = createOrderModel();
     
     private final SettingsModelDouble m_smFactor = createFactorModel();
-    
-    private final SettingsModelString m_smDistance = createDistancesModel();
-	
+   	
 	private LabelingCellFactory m_labCellFactory;
 		
-	
+    protected static SettingsModelInteger createOrderModel(){
+    	return new SettingsModelInteger("Order: ", 5);
+    }
+    
     protected static SettingsModelString createTemplateColumnModel() {
         return new SettingsModelString("column_template", "");
     }
@@ -94,17 +92,10 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
     	return new SettingsModelDouble("Sigma: ", 2.0d);
     }
     
-    protected static SettingsModelDouble createThresholdModel(){
-    	return new SettingsModelDouble("Threshold: ", 0.2d);
-    }
-    
     protected static SettingsModelDoubleBounded createFactorModel(){
     	return new SettingsModelDoubleBounded("Factor ", 0.1, 0.0, 100.0);
     }
     
-    protected static SettingsModelString createDistancesModel(){
-    	return new SettingsModelString("Distance", DistancesMeasuresEnum.CANBERRA.name());
-    }
     
     protected static SettingsModelIntegerBounded createOrderColumnModel(){
         return new SettingsModelIntegerBounded("Order ",
@@ -113,9 +104,24 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
     }
     
     private final NodeLogger LOGGER = NodeLogger.getLogger(ConvolverNodeModel.class);
+    
 	
 	public TemplateCellClumpSplitterModel(){
 		super(new PortType[]{BufferedDataTable.TYPE});
+	}
+	
+	protected abstract ContourDistance<DoubleType> createContourDistance();
+	
+	protected CurvatureFactory<DoubleType> createCurvatureFactory(){
+		return new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue());
+	}
+	
+	protected List<Contour> getTemplates(){
+		return m_templates;
+	}
+	
+	protected double getSigma(){
+		return m_sigma.getDoubleValue();
 	}
 	
 	@Override
@@ -123,9 +129,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 		settingsModels.add(m_smTemplateColumn);
 		settingsModels.add(m_smOrder);
 		settingsModels.add(m_sigma);
-		settingsModels.add(m_smDistance);
 		settingsModels.add(m_smFactor);
-//		settingsModels.add(m_threshold);
 	}
 	
 	@Override
@@ -160,10 +164,6 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 		
 		RandomAccess<BitType> raBinaryImg = binaryImg.randomAccess();
 		
-//		Labeling<L> out = ImgUtils.createEmptyCopy(labeling);
-//		RandomAccess<LabelingType<L>> ra = out.randomAccess();
-		
-		
 		final Labeling<Integer> lab =
                 new NativeImgLabeling<Integer, IntType>(
                 		new ArrayImgFactory<IntType>().create(labeling, new IntType()));
@@ -171,6 +171,8 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 		Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
 				labeling, 
 				new LinkedList<Pair<L, long[]>>());
+		
+		final ContourDistance<DoubleType> cd = createContourDistance();
 
 		for(Pair<L, long[]> start: map){
 			Contour contour = new BinaryFactory(binaryImg, start.getSecond()).createContour();
@@ -179,31 +181,12 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			if( contour.length() < 20)
 				continue;
 			
-//			Curvature<DoubleType> curv = 
-//					new Curvature<DoubleType>(
-//							contour, 
-//							5, 
-//							new DoubleType());
+			System.out.println(cellValue.getLabelingMetadata().getName() + " Processing Label: " + start.getFirst());
 			
 
-			
-			System.out.println(cellValue.getLabelingMetadata().getName() + " Processing Label: " + start.getFirst());
-//			for(long[] point: contour){
-//				ra.setPosition(point);
-////				ra.get().getMapping().intern( Arrays.asList( e.getKey() ));
-//				ra.get().setLabel((L) i);
-//			}
-			
-					
-			
-//			System.out.println( mean + std );
-			
-//			curv.gaussian(m_sigma.getDoubleValue(), 
-//					this.getExecutorService() );
-			
-	        
 			GraphSplitting<DoubleType, Integer> cs = new GraphSplitting<DoubleType, Integer>(
-					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 32),
+					cd,
+//					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 32),
 //	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
 //					new MinimalContourDistance<DoubleType>(m_templates, new DoubleType(), 64, true),
 	        		binaryImg, 
@@ -216,13 +199,6 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 					new DoubleType(),
 					m_sigma.getDoubleValue()));
 			
-//			cs.draw(lab.randomAccess());
-			
-//			System.out.println( cs );
-//			if ( points != null ){
-//				new PrintMinPath<DoubleType, BitType>( new BitType( false )).
-//					compute(points, raBinaryImg);
-//			}
 
 			cs.printMatrix( cs.getMatrix() );
 			Collection<Pair<Point, Point>> points = cs.printGreedy();
@@ -303,16 +279,6 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 
 			
             for(Contour contour: cc){
-            	
-//            	list.add( new KCosineCurvature<DoubleType>(new DoubleType(), 5).createCurvatureImg(contour) );
-//            	
-//            	
-//            	
-//            	Curvature<DoubleType> curvature = new Curvature<DoubleType>(
-//            			contour, 
-//          				m_smOrder.getIntValue(),new DoubleType());
-//            	curvature.gaussian( m_sigma.getDoubleValue(),
-//            			this.getExecutorService());
             	m_templates.add( contour );
             }
         }
