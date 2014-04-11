@@ -11,7 +11,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.CurvatureFactory;
+import org.knime.knip.clump.curvature.factory.CurvatureFactory;
 import org.knime.knip.clump.dist.DFTDistance;
 import org.knime.knip.clump.ops.FourierOfCurvature;
 import org.knime.knip.core.data.algebra.Complex;

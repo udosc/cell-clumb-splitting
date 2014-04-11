@@ -47,7 +47,7 @@ import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.Curvature;
-import org.knime.knip.clump.curvature.KCosineCurvature;
+import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 import org.knime.knip.clump.dist.contour.CurvatureFourier;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.FourierOfCurvature;

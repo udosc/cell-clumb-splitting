@@ -3,9 +3,9 @@ package org.knime.knip.clump.types;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-import org.knime.knip.clump.curvature.CurvatureFactory;
-import org.knime.knip.clump.curvature.GaussianCurvature;
-import org.knime.knip.clump.curvature.KCosineCurvature;
+import org.knime.knip.clump.curvature.factory.CurvatureFactory;
+import org.knime.knip.clump.curvature.factory.GaussianCurvature;
+import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 
 /**
  * 

@@ -26,10 +26,16 @@ public class FourierOfCurvature<T extends RealType<T> >{
 		
 	private final double m_magnitude;
 	
+	private final int m_nDesc;
+	
 	public FourierOfCurvature(RandomAccessibleInterval<T> curvature){
+		this(curvature, (int)Math.pow(2, 
+					Math.floor( Math.log( curvature.dimension(0) ) / Math.log(2)    )));
+	}
+	
+	public FourierOfCurvature(RandomAccessibleInterval<T> curvature, int nDesc){
 		//Computes the number of descriptors for the FFT
-			final int nDesc = (int)Math.pow(2, 
-					Math.floor( Math.log( curvature.dimension(0) ) / Math.log(2)    )); 
+			m_nDesc = nDesc;
 			
 			m_curvature = curvature;
 			

@@ -16,7 +16,5 @@ Bundle-ClassPath: lib/commons-math3-3.2.jar,
  lib/ij-1.47i.jar,
  lib/vecmath.jar,
  lib/VIB-lib-2.0.0-SNAPSHOT.jar
-Import-Package: org.eclipse.jface.preference,
- org.eclipse.ui.plugin
 Bundle-ActivationPolicy: lazy
 

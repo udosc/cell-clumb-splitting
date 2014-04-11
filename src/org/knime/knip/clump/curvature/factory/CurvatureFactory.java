@@ -1,4 +1,4 @@
-package org.knime.knip.clump.curvature;
+package org.knime.knip.clump.curvature.factory;
 
 import net.imglib2.IterableInterval;
 import net.imglib2.img.Img;

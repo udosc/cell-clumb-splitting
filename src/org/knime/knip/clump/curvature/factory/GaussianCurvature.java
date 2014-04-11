@@ -1,4 +1,4 @@
-package org.knime.knip.clump.curvature;
+package org.knime.knip.clump.curvature.factory;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;

@@ -2,11 +2,8 @@ package org.knime.knip.clump.nodes;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -42,16 +39,11 @@ import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.dt.EdgeInference;
 import org.knime.knip.clump.dt.EdgePruning;
 import org.knime.knip.clump.dt.MyDelaunayTriangulation;
-import org.knime.knip.clump.dt.jdt.ImglibDelaunayTriangulation;
 import org.knime.knip.clump.graph.Edge;
-import org.knime.knip.clump.graph.GraphSplitting;
-import org.knime.knip.clump.graph.Node;
 import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.ops.ValidateSplitLines;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.core.data.algebra.Complex;
-
-import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
 	extends ValueToCellNodeFactory<LabelingValue<L>> {

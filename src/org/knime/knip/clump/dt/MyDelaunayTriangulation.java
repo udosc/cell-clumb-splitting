@@ -1,5 +1,9 @@
 package org.knime.knip.clump.dt;
 
+import il.ac.idc.jdt.DelaunayTriangulation;
+import il.ac.idc.jdt.JDTPoint;
+import il.ac.idc.jdt.Triangle;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -9,9 +13,6 @@ import net.imglib2.Point;
 import net.imglib2.ops.operation.UnaryOperation;
 
 import org.knime.core.util.Pair;
-import org.knime.knip.clump.dt.jdt.DelaunayTriangulation;
-import org.knime.knip.clump.dt.jdt.JDTPoint;
-import org.knime.knip.clump.dt.jdt.Triangle;
 import org.knime.knip.clump.graph.Edge;
 
 /**
