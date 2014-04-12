@@ -1,4 +1,4 @@
-package org.knime.knip.clump.warp;
+package org.knime.knip.clump.warping;
 
 import ij.ImagePlus;
 import ij.process.ImageProcessor;

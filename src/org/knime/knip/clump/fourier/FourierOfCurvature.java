@@ -1,10 +1,8 @@
-package org.knime.knip.clump.ops;
+package org.knime.knip.clump.fourier;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
-import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
-import net.imglib2.ops.operation.UnaryOperation;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
@@ -20,13 +18,12 @@ import org.knime.knip.core.data.algebra.Complex;
  */
 public class FourierOfCurvature<T extends RealType<T> >{
 		
-	private final RandomAccessibleInterval<T> m_curvature;	
 		
 	private final Complex[] m_descriptor;
 		
 	private final double m_magnitude;
-	
-	private final int m_nDesc;
+
+	private final int m_numberOfDescriptors;
 	
 	public FourierOfCurvature(RandomAccessibleInterval<T> curvature){
 		this(curvature, (int)Math.pow(2, 
@@ -35,46 +32,31 @@ public class FourierOfCurvature<T extends RealType<T> >{
 	
 	public FourierOfCurvature(RandomAccessibleInterval<T> curvature, int nDesc){
 		//Computes the number of descriptors for the FFT
-			m_nDesc = nDesc;
 			
-			m_curvature = curvature;
-			
-			m_descriptor = new Complex[ nDesc ];
-			
-			final RealRandomAccess<T> rra = Views.interpolate( curvature,
-					new NLinearInterpolatorFactory<T>()).realRandomAccess();
-			
-			Complex[] complex = new Complex[ nDesc ];
-			
-			final double step = (MyUtils.numElements(curvature) - 1.0d)/ (double) nDesc ;
-			
-			//Working with 1-dimensional data so fixing dim 1 to 0
+		m_descriptor = new Complex[ nDesc ];
+		
+		m_numberOfDescriptors = nDesc;
+		
+		final RealRandomAccess<T> rra = Views.interpolate( curvature,
+				new NLinearInterpolatorFactory<T>()).realRandomAccess();
+		
+		Complex[] complex = new Complex[ nDesc ];
+		
+		final double step = (MyUtils.numElements(curvature) - 1.0d)/ (double) nDesc ;
+		
+		//Working with 1-dimensional data so fixing dim 1 to 0
 //				rra.setPosition(0, 1);
-			for(int i = 0; i < nDesc; i++){
-				rra.setPosition((i*step), 0);
-				complex[i] = new Complex( rra.get().getRealDouble(), 0.0d);
-			}
-			
-	        final Complex[] transformed = InplaceFFT.fft( complex );
-	        m_magnitude = transformed[0].getMagnitude();
-	         
-
-	        
-//		        out = new Complex[ transformed.length / 2 ];
-//		        for (int t = 1; t <= out.length; t++) {
-//		            out[t - 1] = 
-//		            		new Complex(
-//		            				transformed[t].re() / m_magnitude, 
-//		            				transformed[t].im() / m_magnitude);
-////		            System.out.println(t-1 + ": " + out[t - 1]);
-//		        }
-//		        
-//		        return out;
-//		        return transformed;
-	        
-	        for( int i = 0; i < complex.length; i++){
-	        	m_descriptor[i] = new Complex(transformed[i].re(), transformed[i].im());
-	        }
+		for(int i = 0; i < nDesc; i++){
+			rra.setPosition((i*step), 0);
+			complex[i] = new Complex( rra.get().getRealDouble(), 0.0d);
+		}
+		
+        final Complex[] transformed = InplaceFFT.fft( complex );
+        m_magnitude = transformed[0].getMagnitude();
+                 
+        for( int i = 0; i < complex.length; i++){
+        	m_descriptor[i] = new Complex(transformed[i].re(), transformed[i].im());
+        }
 
 	}
 	
@@ -109,6 +91,9 @@ public class FourierOfCurvature<T extends RealType<T> >{
 		
 	}
 
+	public int getNumberOfDescriptors(){
+		return m_numberOfDescriptors;
+	}
 
 	public double getMagnitude(){
 		return m_magnitude;

@@ -9,8 +9,10 @@ import java.util.List;
 
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealRandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
@@ -46,13 +48,13 @@ import org.knime.core.util.Pair;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.curvature.Curvature;
+import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.KCosineCurvature;
-import org.knime.knip.clump.dist.contour.CurvatureFourier;
-import org.knime.knip.clump.ops.FindStartingPoint;
-import org.knime.knip.clump.ops.FourierOfCurvature;
-import org.knime.knip.core.algorithm.InplaceFFT;
+import org.knime.knip.clump.fourier.FourierOfCurvature;
+import org.knime.knip.clump.util.MyUtils;
 import org.knime.knip.core.data.algebra.Complex;
+import org.knime.knip.core.util.ImgUtils;
+
 
 
 /**
@@ -63,11 +65,6 @@ import org.knime.knip.core.data.algebra.Complex;
  */
 public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L extends Comparable<L>> 
 	extends NodeModel {
-    
-    // the logger instance
-    private static final NodeLogger logger = NodeLogger
-            .getLogger(FTCurvatureNodeModel.class);
-        
     
     private final SettingsModelInteger m_order = 
     		createOrderModel();
@@ -100,11 +97,11 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
     private int m_imageId;
     
 
-    private List<List<Double>> m_curvature;
+    private List<List<Double>> m_curvatures;
     
-    private List<List<Double>> m_ft;
+    private List<List<Double>> m_ftCurvatures;
     
-    private List<String> m_header;
+    private List<String> m_headers;
     
     /**
      * Constructor for the node model.
@@ -116,15 +113,16 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
     /**
      * {@inheritDoc}
      */
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
 //    	final int numberOfImgs = inData[0].getRowCount();
 
-    	m_curvature = new LinkedList<List<Double>>(  );
-    	m_ft = new LinkedList<List<Double>>(  );
-    	m_header = new LinkedList<String>();
+    	m_curvatures = new LinkedList<List<Double>>(  );
+    	m_ftCurvatures = new LinkedList<List<Double>>(  );
+    	m_headers = new LinkedList<String>();
     	
     	int max = 0;
 
@@ -132,11 +130,7 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
     		
     		final LabelingCell<L> cell = ((LabelingCell<L>) row.getCell( m_imageId ));
 			final Labeling<L> labeling = 
-    				cell.getLabeling();
-			
-			RandomAccessibleInterval<LabelingType<L>> rai =
-					Views.zeroMin( Views.rotate(labeling, 0, 1));
-			
+    				cell.getLabeling();	
 			
 			
 			final Img<BitType> binaryImg = new ArrayImgFactory<BitType>().create(labeling, new BitType());
@@ -146,110 +140,57 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
 			
 			
 			
-			Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
+			final Collection<Pair<L, long[]>> map = new FindStartingPoints<L>().compute(
 					labeling, 
 					new LinkedList<Pair<L, long[]>>());
 			
     		for(Pair<L, long[]> start: map){
 
-    			Contour contour = 
+    			final Contour contour = 
     					new BinaryFactory(binaryImg, start.getSecond()).createContour();
     		        		
         		
-    			Img<DoubleType> curvature = new KCosineCurvature<DoubleType>(new DoubleType(), m_order.getIntValue()).createCurvatureImg(contour);
+    			final Img<DoubleType> curvature = new KCosineCurvature<DoubleType>(new DoubleType(), m_order.getIntValue()).createCurvatureImg(contour);
+    
+    			
+    			final FourierOfCurvature<DoubleType> fd = new FourierOfCurvature<DoubleType>( curvature );
+    			final int nDesc = fd.getNumberOfDescriptors();
     			
         		List<Double> values = 
         				new ArrayList<Double>( (int) curvature.dimension(0) );
         		
+        		//Interpolate the data to be the same length as the ft ones
+        		final Img<DoubleType> interprolateCurv = ImgUtils.createEmptyCopy(curvature, new long[]{ nDesc });
+        		final RealRandomAccess<DoubleType> rra = Views.interpolate( curvature,
+        				new NLinearInterpolatorFactory<DoubleType>()).realRandomAccess();
+        		        		
+        		final double step = (MyUtils.numElements(curvature) - 1.0d)/ (double) nDesc ;
         		
-        		
-        		Cursor<DoubleType> c = Views.iterable( curvature ).cursor();
-        		
-        		while( c.hasNext()){
-        			values.add( c.next().getRealDouble() );
+        		for(int i = 0; i < nDesc; i++){
+        			rra.setPosition((i*step), 0);
+        			values.add( rra.get().getRealDouble() );
         		}
-        		m_curvature.add( values );
-        		m_header.add( cell.getStringValue() + ": " + start.getFirst() );
+
+        		m_curvatures.add( values );
+        		m_headers.add( cell.getStringValue() + ": " + start.getFirst() );
+        		        		
         		
-        		int nDesc = (int)Math.pow(2, 
-        				Math.ceil( Math.log( curvature.dimension(0) ) / Math.log(2)    )); 
         		
-        		FourierOfCurvature<DoubleType> fd = new FourierOfCurvature<DoubleType>( curvature );
-        		
-//        		Complex[] nDescriptor = new FourierShapeDescription<DoubleType>().
-//        			compute(curvature, new Complex[ m_numberOfFD.getIntValue() ]);
-//        		
-//        		Complex[] descriptors = new Complex[ nDesc ];
-//        		for(int i = 0; i < descriptors.length; i++){
-//        			descriptors[i] = i < nDescriptor.length ? nDescriptor[i] : 
-//        				new Complex(0.0d, 0.0d);
-//        		}
-//        		
-// 
-//        		
-//        		List<Double> ftValues = 
-//        				new ArrayList<Double>( nDesc );
-//        		
-//        		for(Complex complex: InplaceFFT.ifft(descriptors)){
-//        			ftValues.add( complex.re() );
-//        		}
         		
         		List<Double> list = new LinkedList<Double>();
         		for(double d: fd.lowPass(m_numberOfFD.getIntValue()))
         			list.add( d );
-        		m_ft.add( list );
-//       
-//        		
-//        		Complex[] complex = new Complex[ 256 ];
-//        		Complex[] descriptor = new Complex[256];
-//        		int n = 0;
-//        		while( c.hasNext() ){
-//        			final double res = c.next().getRealDouble();
-//        			values.add( res );
-//        			complex[n++] = new Complex( res, 0);
-//        		}
-//        		
-//        		for(int i = n; i < 256; i++)
-//        			complex[i] = new Complex(0,0);
-//        		
-//	            Complex[] transformed = InplaceFFT.fft( complex );
-//	            double dcMagnitude = transformed[0].getMagnitude();
-////	            dcMagnitude = 1.0d;
-//	            
-//	            for (int t = 1; t < (transformed.length / 2); t++) {
-//	                descriptor[t - 1] = 
-//	                		new Complex(transformed[t].re() / dcMagnitude, transformed[t].im() / dcMagnitude);
-//	                System.out.println(t-1 + ": " + descriptor[t - 1]);
-//	            }
-        		
-//	            Complex[] nDescriptor = new FourierShapeDescription<DoubleType>(32).compute(curvature,
-//	            		new Complex[16]);
-//
-//	            for(int i = 0; i < nDescriptor.length; i++){
-//	            	if( nDescriptor[i] == null )
-//	            		nDescriptor[i] = new Complex(0.0d, 0.0d);
-//	            }
-//	            
-//	            Complex[] transformed = InplaceFFT.ifft(nDescriptor);
-//	            
-//	            List<Double> fftvalues = new ArrayList<Double>( (int) curvature.dimension(0) );
-//	            for(int i = 0; i < (int) curvature.dimension(0); i++){
-//	            	fftvalues.add(i, transformed[i].re() );
-//	            }
-//	           
-//        		m_data.add( values );
-//        		m_data.add( fftvalues );
-////        		Complex[] re = InplaceFFT.ifft(x);
-//        		
+        		m_ftCurvatures.add( list );
+     		
         		if( values.size() > max )
         			max = values.size();
     		}
         }
     	
-    	DataColumnSpec[] allColSpecs = new DataColumnSpec[  m_curvature.size() ];
+    	DataColumnSpec[] allColSpecs = new DataColumnSpec[  m_curvatures.size() ];
         for(int i = 0; i < allColSpecs.length; i++)
         	allColSpecs[i] = 
-        		new DataColumnSpecCreator( m_header.get(i), DoubleCell.TYPE).createSpec();
+        		new DataColumnSpecCreator( m_headers.get(i), DoubleCell.TYPE).createSpec();
     	
     	
         BufferedDataContainer container1 = exec.createDataContainer( 
@@ -259,16 +200,16 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
     			new DataTableSpec( allColSpecs ));
         
     	for(int i = 0; i < max; i++){
-    		DataCell[] cells = new DataCell[ m_curvature.size() ];
-    		DataCell[] ftCells = new DataCell[ m_ft.size() ];
-    		for(int j = 0; j < m_curvature.size(); j++){
+    		DataCell[] cells = new DataCell[ m_curvatures.size() ];
+    		DataCell[] ftCells = new DataCell[ m_ftCurvatures.size() ];
+    		for(int j = 0; j < m_curvatures.size(); j++){
     			try {
-    				cells[j] = new DoubleCell( m_curvature.get(j).get(i) );
+    				cells[j] = new DoubleCell( m_curvatures.get(j).get(i) );
     			} catch(IndexOutOfBoundsException e){
     				cells[j] = new MissingCell( "unknown value" );
     			}
     			try {
-    				ftCells[j] = new DoubleCell( m_ft.get(j).get(i) );
+    				ftCells[j] = new DoubleCell( m_ftCurvatures.get(j).get(i) );
     			} catch(IndexOutOfBoundsException e){
     				ftCells[j] = new MissingCell( "unknown value" );
     			}

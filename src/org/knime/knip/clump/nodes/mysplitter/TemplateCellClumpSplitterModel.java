@@ -48,12 +48,12 @@ import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.nodes.filter.convolver.ConvolverNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
 import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 import org.knime.knip.clump.dist.contour.ContourDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.GraphSplitting;
-import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 
 /**
@@ -168,7 +168,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
                 new NativeImgLabeling<Integer, IntType>(
                 		new ArrayImgFactory<IntType>().create(labeling, new IntType()));
 
-		Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
+		Collection<Pair<L, long[]>> map = new FindStartingPoints<L>().compute(
 				labeling, 
 				new LinkedList<Pair<L, long[]>>());
 		
@@ -265,7 +265,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
             List<Contour> cc = new LinkedList<Contour>();
             Labeling<L> labeling = ((LabelingValue<L>)row.getCell( m_templateIndex )).getLabeling();
             
-			Collection<Pair<L, long[]>> startPoints = new FindStartingPoint<L>().compute(
+			Collection<Pair<L, long[]>> startPoints = new FindStartingPoints<L>().compute(
 					labeling, 
 					new LinkedList<Pair<L, long[]>>());
 			

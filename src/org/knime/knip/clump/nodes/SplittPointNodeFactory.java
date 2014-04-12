@@ -39,10 +39,10 @@ import org.knime.knip.base.node.ValueToCellsNodeFactory;
 import org.knime.knip.base.node.ValueToCellsNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.Curvature;
-import org.knime.knip.clump.ops.FindStartingPoint;
-import org.knime.knip.clump.ops.StandardDeviation;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
+import org.knime.knip.clump.util.StandardDeviation;
 import org.knime.knip.core.util.ImgUtils;
 import org.knime.knip.core.util.PolygonTools;
 /**
@@ -112,7 +112,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 				Labeling<L> out = ImgUtils.createEmptyCopy(labeling);
 				RandomAccess<LabelingType<L>> ra = out.randomAccess();
 
-				Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
+				Collection<Pair<L, long[]>> map = new FindStartingPoints<L>().compute(
 						labeling, 
 						new LinkedList<Pair<L, long[]>>());
 				

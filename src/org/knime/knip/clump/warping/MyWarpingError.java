@@ -1,4 +1,4 @@
-package org.knime.knip.clump.warp;
+package org.knime.knip.clump.warping;
 
 import ij.ImagePlus;
 import net.imglib2.Cursor;
@@ -12,7 +12,6 @@ import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 
-import org.knime.knip.clump.ops.ConvertToImagePlus;
 import org.knime.knip.clump.types.WarpingErrorEnums;
 import org.knime.knip.core.util.MiscViews;
 import org.knime.knip.imagej2.core.util.IJToImg;
@@ -147,14 +146,15 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<T>> {
 	}
 
 	private ImagePlus createMask(int size){
-		Img<FloatType> img = new ArrayImgFactory<FloatType>().
-				create(new long[]{size, size}, new FloatType());
+		final ImgPlus<FloatType> img = ImgPlus.wrap( new ArrayImgFactory<FloatType>().
+				create(new long[]{size, size}, new FloatType()));
 		
 		Cursor<FloatType> c = img.cursor();
 		while( c.hasNext() ){
 			c.next().setReal( 1.0f );
 		}
 		
-		return new ConvertToImagePlus<FloatType>().compute(img, null);
+		return new ImgToIJ().compute(img, new ImagePlus());
+//		return new ConvertToImagePlus<FloatType>().compute(img, null);
 	}
 }

@@ -16,7 +16,7 @@ import org.knime.knip.base.KNIPConstants;
 import org.knime.knip.base.ThreadPoolExecutorService;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.Curvature;
-import org.knime.knip.clump.ops.StandardDeviation;
+import org.knime.knip.clump.util.StandardDeviation;
 
 /**
  * 

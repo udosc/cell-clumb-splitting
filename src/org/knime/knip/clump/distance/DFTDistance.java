@@ -1,4 +1,4 @@
-package org.knime.knip.clump.dist;
+package org.knime.knip.clump.distance;
 
 import net.imglib2.ops.operation.BinaryOperation;
 import net.imglib2.type.numeric.RealType;

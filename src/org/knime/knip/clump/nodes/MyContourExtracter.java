@@ -24,7 +24,7 @@ import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
-import org.knime.knip.clump.ops.FindStartingPoint;
+import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.core.util.ImgUtils;
 
 public class MyContourExtracter<L extends Comparable<L>>
@@ -72,7 +72,7 @@ public class MyContourExtracter<L extends Comparable<L>>
 				Labeling<L> out = ImgUtils.createEmptyCopy(labeling);
 				RandomAccess<LabelingType<L>> ra = out.randomAccess();
 
-				Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
+				Collection<Pair<L, long[]>> map = new FindStartingPoints<L>().compute(
 						labeling, 
 						new LinkedList<Pair<L, long[]>>());
 				

@@ -52,6 +52,10 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private int m_solutions;
 	
+	private double[] m_bCosts;
+	
+	private List<Pair<Integer, Integer>> m_pairs;
+	
 	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor){
 //		m_templates = Arrays.asList( templates );
 		m_img = img;
@@ -63,17 +67,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				m_maxSize = c.size();
 		}
 	}
-	
-//	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor, List<Contour> templates){
-//		m_templates =  templates;
-//		m_img = img;
-//		m_distance = distance;
-//		m_factor = factor;
-//	}
-	
-	private double[] m_bCosts;
-	
-	private List<Pair<Integer, Integer>> m_pairs;
+
 	
 	public boolean[][] getMatrix(){
 		boolean[][] matrix = new boolean[ m_solutions ][];

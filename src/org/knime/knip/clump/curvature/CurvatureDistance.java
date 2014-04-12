@@ -13,8 +13,8 @@ import net.imglib2.type.numeric.RealType;
 
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
-import org.knime.knip.clump.dist.MinRAIDistance;
 import org.knime.knip.clump.dist.contour.ContourDistance;
+import org.knime.knip.clump.distance.MinRAIDistance;
 import org.knime.knip.core.ops.filters.GaussNativeTypeOp;
 import org.knime.knip.core.util.ImgUtils;
 

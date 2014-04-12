@@ -63,8 +63,7 @@ extends AbstractCursor<T>{
 
 	@Override
 	public long getLongPosition(int d) {
-		// TODO Auto-generated method stub
-		return 0;
+		return m_cursor.getLongPosition(d);
 	}
 
 	@Override

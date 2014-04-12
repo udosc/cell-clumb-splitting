@@ -1,5 +1,6 @@
 package org.knime.knip.ops;
 
+import junit.framework.Assert;
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -7,8 +8,9 @@ import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
 import org.junit.Test;
-import org.knime.knip.clump.ops.FourierOfCurvature;
+import org.knime.knip.clump.fourier.FourierOfCurvature;
 import org.knime.knip.core.data.algebra.Complex;
+
 
 /** Tests if two signatures are translataion-invariant
  * 
@@ -46,6 +48,7 @@ public class NumberOfDescriptors {
 		
 		for(int j = 1; j < NUMBER_OF_DESCRIPTORS; j++){
 			System.out.println( c1[j].getMagnitude() / c1[0].getMagnitude() + " - " + c2[j].getMagnitude() / c2[0].getMagnitude());
+			Assert.assertEquals(c1[j].getMagnitude() / c1[0].getMagnitude() , c2[j].getMagnitude() / c2[0].getMagnitude(), 0.01d);
 		}
 	}
 

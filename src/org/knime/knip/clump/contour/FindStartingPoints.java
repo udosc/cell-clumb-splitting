@@ -1,16 +1,11 @@
-package org.knime.knip.clump.ops;
+package org.knime.knip.clump.contour;
 
 import java.util.Collection;
-import java.util.Map;
 
-import org.knime.core.util.Pair;
-
-import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.ops.operation.UnaryOperation;
-import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
-import net.imglib2.type.logic.BitType;
+
+import org.knime.core.util.Pair;
 
 /**
  * 
@@ -18,7 +13,7 @@ import net.imglib2.type.logic.BitType;
  *
  * @param <L>
  */
-public class FindStartingPoint<L extends Comparable<L>> 
+public class FindStartingPoints<L extends Comparable<L>> 
 	implements UnaryOperation<Labeling<L>, Collection<Pair<L,long[]>>> {
 
 	@Override
@@ -36,7 +31,7 @@ public class FindStartingPoint<L extends Comparable<L>>
 
 	@Override
 	public UnaryOperation<Labeling<L>, Collection<Pair<L, long[]>>> copy() {
-		return new FindStartingPoint<L>();
+		return new FindStartingPoints<L>();
 	}
 
 }

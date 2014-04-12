@@ -7,7 +7,7 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.numeric.real.DoubleType;
 
 import org.junit.Test;
-import org.knime.knip.clump.dist.MinRAIDistance;
+import org.knime.knip.clump.distance.MinRAIDistance;
 
 public class MinRAITest {
 	

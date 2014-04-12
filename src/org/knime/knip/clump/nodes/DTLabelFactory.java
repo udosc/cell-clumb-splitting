@@ -38,13 +38,13 @@ import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.dt.EdgeInference;
 import org.knime.knip.clump.dt.EdgePruning;
 import org.knime.knip.clump.dt.MyDelaunayTriangulation;
 import org.knime.knip.clump.graph.Edge;
-import org.knime.knip.clump.ops.FindStartingPoint;
-import org.knime.knip.clump.ops.ValidateSplitLines;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
+import org.knime.knip.clump.split.ValidateSplitLines;
 import org.knime.knip.core.data.algebra.Complex;
 
 public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
@@ -159,7 +159,7 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 				
 				RandomAccess<LabelingType<Integer>> ra = lab.randomAccess();
 
-				Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
+				Collection<Pair<L, long[]>> map = new FindStartingPoints<L>().compute(
 						labeling, 
 						new LinkedList<Pair<L, long[]>>());
 				

@@ -1,4 +1,4 @@
-package org.knime.knip.clump.warp;
+package org.knime.knip.clump.warping;
 
 import org.knime.knip.clump.types.WarpingErrorEnums;
 import org.knime.knip.core.util.ImgUtils;

@@ -29,9 +29,9 @@ import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
+import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
 import org.knime.knip.clump.curvature.factory.KCosineCurvature;
-import org.knime.knip.clump.ops.FindStartingPoint;
 import org.knime.knip.clump.types.CurvatureCreationEnum;
 import org.knime.knip.clump.types.DistancesMeasuresEnum;
 import org.knime.knip.core.util.EnumUtils;
@@ -95,7 +95,7 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 				
 				RandomAccess<DoubleType> ra = out.randomAccess();
 
-				Collection<Pair<L, long[]>> map = new FindStartingPoint<L>().compute(
+				Collection<Pair<L, long[]>> map = new FindStartingPoints<L>().compute(
 						labeling, 
 						new LinkedList<Pair<L, long[]>>());
 				
