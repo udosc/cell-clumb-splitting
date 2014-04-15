@@ -1,10 +1,7 @@
 package org.knime.knip.clump.graph;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -69,7 +66,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	}
 
 	
-	public boolean[][] getMatrix(){
+	public boolean[][] createMatrix(){
 		boolean[][] matrix = new boolean[ m_solutions ][];
 		for(int i = 0; i < matrix.length; i++)
 			matrix[i] = new boolean[ m_nodes.size()];
@@ -211,7 +208,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 							continue;
 						Contour c = createContour(i, k, l, j);
 						
-						if ( c.size() > m_maxSize * 1.5d || c.size() < 64 )
+						if ( c.size() > m_maxSize * 1.75d || c.size() < 32 )
 							continue;
 						
 						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * calculateDistance(i, j);
@@ -543,7 +540,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	public Collection<Pair<Point, Point>> printGreedy(){
 		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
-		boolean[][] temp = getMatrix();
+		boolean[][] temp = createMatrix();
 		
 		if( m_bCosts.length == 0 || temp.length == 0)
 			return null;

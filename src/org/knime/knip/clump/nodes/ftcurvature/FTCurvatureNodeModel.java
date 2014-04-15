@@ -7,14 +7,11 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.labeling.Labeling;
-import net.imglib2.labeling.LabelingType;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
@@ -37,7 +34,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -52,8 +48,6 @@ import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 import org.knime.knip.clump.fourier.FourierOfCurvature;
 import org.knime.knip.clump.util.MyUtils;
-import org.knime.knip.core.data.algebra.Complex;
-import org.knime.knip.core.util.ImgUtils;
 
 
 
@@ -160,7 +154,6 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
         				new ArrayList<Double>( (int) curvature.dimension(0) );
         		
         		//Interpolate the data to be the same length as the ft ones
-        		final Img<DoubleType> interprolateCurv = ImgUtils.createEmptyCopy(curvature, new long[]{ nDesc });
         		final RealRandomAccess<DoubleType> rra = Views.interpolate( curvature,
         				new NLinearInterpolatorFactory<DoubleType>()).realRandomAccess();
         		        		

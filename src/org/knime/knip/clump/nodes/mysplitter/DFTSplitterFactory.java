@@ -22,8 +22,8 @@ public class DFTSplitterFactory<L extends Comparable<L>, T extends RealType<T> &
 	}
 
 	@Override
-	public CurvatureSplitterModel<L, T> createNodeModel() {
-		return new CurvatureSplitterModel<L, T>();
+	public DFTSplitterModel<L, T> createNodeModel() {
+		return new DFTSplitterModel<L, T>();
 	}
 
 }

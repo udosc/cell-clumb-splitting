@@ -16,7 +16,7 @@ public class DFTSplitterModel<L extends Comparable<L>, T extends RealType<T> & N
     private final SettingsModelInteger m_smDescriptor = createDiscriptorModel();
     
     protected static SettingsModelInteger createDiscriptorModel(){
-    	return new SettingsModelInteger("Used descriptors: ", 16);
+    	return new SettingsModelInteger("Used descriptors: ", 32);
     }
     
     protected void addSettingsModels(List<SettingsModel> settingsModels) {

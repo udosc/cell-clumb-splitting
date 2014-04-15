@@ -27,23 +27,27 @@ import org.knime.knip.clump.util.StandardDeviation;
 public class CurvatureSplittingPoints<T extends RealType<T> & NativeType<T>> 
 	implements SplittingPoints<T> {
 
-	private int m_order;
+	private final int m_order;
 	
-	private T m_type;
+	private final T m_type;
 	
-	private int m_radius;
+	private final int m_radius;
 		
-	private double m_sigma;
+	private final double m_sigma;
 	
-	public CurvatureSplittingPoints(int order, int radius, T type){
+	private Double m_threshold;
+	
+	public CurvatureSplittingPoints(int order, int radius, T type, double sigma){
 		m_order 	= order;
 		m_radius 	= radius;
 		m_type 		= type.createVariable();
+		m_sigma 	= sigma;
+		m_threshold = null;
 	}
 	
-	public CurvatureSplittingPoints(int order, int radius, T type, double sigma){
-		this(order, radius, type);
-		m_sigma = sigma;
+	public CurvatureSplittingPoints(int order, int radius, T type, double sigma, Double threshold){
+		this(order, radius, type, sigma);
+		m_threshold = threshold;
 	}
 	
 	@Override
@@ -56,13 +60,17 @@ public class CurvatureSplittingPoints<T extends RealType<T> & NativeType<T>>
 		curv.gaussian(m_sigma, new ThreadPoolExecutorService(
 	            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool(KNIPConstants.THREADS_PER_NODE)));
 		
-		final double mean = new Mean<T, DoubleType>().
-				compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
-		
-		final double std = new StandardDeviation<T, DoubleType>(mean).
-				compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
-		
-		final double threshold = mean + std;
+		if( m_threshold == null ){
+			final double mean = new Mean<T, DoubleType>().
+					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
+			
+			final double std = new StandardDeviation<T, DoubleType>(mean).
+					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
+			
+			m_threshold = mean + std;
+			
+			System.out.println( "Setting the threshold to " + m_threshold);
+		}
 
 		final PriorityQueue<Pair<Integer, Double>> queue = new PriorityQueue<Pair<Integer, Double>>(
 				10, 
@@ -88,7 +96,7 @@ public class CurvatureSplittingPoints<T extends RealType<T> & NativeType<T>>
 			
 			
 			final double res = curv.getCurvature(i).getRealDouble();
-			if ( res >= threshold && 
+			if ( res >= m_threshold && 
 					res >= curv.getCurvature(i-1).getRealDouble() &&
 					res >= curv.getCurvature(i+1).getRealDouble()){
 				queue.add( new Pair<Integer, Double>(i, res) );

@@ -200,7 +200,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 					m_sigma.getDoubleValue()));
 			
 
-			cs.printMatrix( cs.getMatrix() );
+			cs.printMatrix( cs.createMatrix() );
 			Collection<Pair<Point, Point>> points = cs.printGreedy();
 			
 			if( points == null ){

@@ -184,7 +184,8 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 					final List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
 							new DoubleType(),
-							m_sigma.getDoubleValue()).compute(c);
+							m_sigma.getDoubleValue(),
+							m_k.getDoubleValue()).compute(c);
 					
 //					for(long[] p: splittingPoints){
 //						Complex tangent = c.getUnitVector( c.indefOf(p), 5);

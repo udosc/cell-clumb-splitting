@@ -43,12 +43,18 @@ public class NumberOfDescriptors {
 		
 		
 		
-		Complex[] c1 = new FourierOfCurvature<DoubleType>(img, 128).getDescriptors(NUMBER_OF_DESCRIPTORS);
-		Complex[] c2 = new FourierOfCurvature<DoubleType>(ref, 256).getDescriptors(NUMBER_OF_DESCRIPTORS);
+//		Complex[] c1 = new FourierOfCurvature<DoubleType>(img, 128).getDescriptors(NUMBER_OF_DESCRIPTORS);
+//		Complex[] c2 = new FourierOfCurvature<DoubleType>(ref, 256).getDescriptors(NUMBER_OF_DESCRIPTORS);
 		
+		double[] d1 = new FourierOfCurvature<DoubleType>(img, 128).getMagnitudes(NUMBER_OF_DESCRIPTORS, true);
+		double[] d2 = new FourierOfCurvature<DoubleType>(ref, 128).getMagnitudes(NUMBER_OF_DESCRIPTORS, true);
+		
+//		System.out.println("first: " + c1[0].getMagnitude() + " - " + c2[0].getMagnitude());
 		for(int j = 1; j < NUMBER_OF_DESCRIPTORS; j++){
-			System.out.println( c1[j].getMagnitude() / c1[0].getMagnitude() + " - " + c2[j].getMagnitude() / c2[0].getMagnitude());
-			Assert.assertEquals(c1[j].getMagnitude() / c1[0].getMagnitude() , c2[j].getMagnitude() / c2[0].getMagnitude(), 0.01d);
+//			System.out.println( c1[j].getMagnitude() / c1[0].getMagnitude() + " - " + c2[j].getMagnitude() / c2[0].getMagnitude());
+//			Assert.assertEquals(c1[j].getMagnitude() / c1[0].getMagnitude() , c2[j].getMagnitude() / c2[0].getMagnitude(), 0.01d);
+			System.out.println( d1[j] + " - " + d2[j]);
+			Assert.assertEquals(d1[j] , d2[j], 0.01d);
 		}
 	}
 
