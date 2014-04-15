@@ -257,8 +257,6 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
         
         m_templates = new LinkedList<Contour>();
         
-        List<RandomAccessibleInterval<DoubleType>> list = new LinkedList<RandomAccessibleInterval<DoubleType>>( );
-        
         while (it.hasNext()) {
             final DataRow row = it.next();
             

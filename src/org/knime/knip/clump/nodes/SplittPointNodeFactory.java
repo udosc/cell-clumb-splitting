@@ -131,13 +131,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 					}
 					
 					Curvature<DoubleType> curv = new Curvature<DoubleType>(c, 5, new DoubleType());
-					
-					final double mean = new Mean<DoubleType, DoubleType>().
-							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
-					
-					final double std = new StandardDeviation<DoubleType, DoubleType>(mean).
-							compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
-											
+															
 					
 //					new CurvatureSplittingPoints<DoubleType>(5,
 //							15, 
@@ -147,7 +141,8 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 					List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
 							new DoubleType(),
-							m_sigma.getDoubleValue()).compute(c);
+							m_sigma.getDoubleValue(),
+							m_threshold.getDoubleValue()).compute(c);
 					
 					Integer number = 0;
 					for(long[] point: splittingPoints){

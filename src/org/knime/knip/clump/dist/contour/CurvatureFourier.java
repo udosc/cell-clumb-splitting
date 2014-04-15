@@ -13,7 +13,6 @@ import net.imglib2.view.Views;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
 import org.knime.knip.clump.fourier.FourierOfCurvature;
-import org.knime.knip.clump.util.ComplexArrayDistance;
 import org.knime.knip.core.data.algebra.Complex;
 
 public class CurvatureFourier<T extends RealType<T>> 

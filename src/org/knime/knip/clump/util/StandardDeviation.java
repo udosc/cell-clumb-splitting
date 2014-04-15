@@ -3,7 +3,6 @@ package org.knime.knip.clump.util;
 import java.util.Iterator;
 
 import net.imglib2.ops.operation.UnaryOperation;
-import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.type.numeric.RealType;
 
 public class StandardDeviation<T extends RealType<T>, V extends RealType<V>>

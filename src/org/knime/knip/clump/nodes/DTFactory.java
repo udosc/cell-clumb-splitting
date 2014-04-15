@@ -45,6 +45,13 @@ import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.clump.split.ValidateSplitLines;
 import org.knime.knip.core.data.algebra.Complex;
 
+/**
+ * 
+ * @author Schlegel
+ *
+ * @param <L>
+ * @param <T>
+ */
 public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
 	extends ValueToCellNodeFactory<LabelingValue<L>> {
 	
@@ -52,7 +59,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
     
     private final SettingsModelDouble m_t = createTModel();
     
-    private final SettingsModelDouble m_k = createKModel();
+    private final SettingsModelDouble m_kurv = createKurvModel();
     
     private final SettingsModelDouble m_beta = createBetaModel();
     
@@ -68,7 +75,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
     	return new SettingsModelDouble("T: ", -0.15d);
     }
     
-    protected static SettingsModelDouble createKModel(){
+    protected static SettingsModelDouble createKurvModel(){
     	return new SettingsModelDouble("Curvature: ", 0.1d);
     }
 
@@ -81,17 +88,22 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				addDialogComponent(new DialogComponentNumber(
 						createSigmaModel(), 
 						"Sigma: ", 
-						0.1d));
+						2.0d));
 				
 				addDialogComponent(new DialogComponentNumber(
 						createBetaModel(),
-						"Beta: ", 
+						"Beta-Threshold: ", 
 						0.9d));
 				
 				addDialogComponent(new DialogComponentNumber(
 						createTModel(),
-						"T: ", 
+						"T-Threshold: ", 
 						-0.15d));
+				
+				addDialogComponent(new DialogComponentNumber(
+						createKurvModel(),
+						"Curvature-Threshold: ", 
+						0.1d));
 				
 			}
 		};
@@ -108,7 +120,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				settingsModels.add( m_sigma );
 				settingsModels.add( m_beta );
 				settingsModels.add( m_t );
-				settingsModels.add( m_k );
+				settingsModels.add( m_kurv );
 			}
 
 			@Override
@@ -148,11 +160,13 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					final List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
 							new DoubleType(),
-							m_sigma.getDoubleValue()).compute(c);
+							m_sigma.getDoubleValue(),
+							m_kurv.getDoubleValue()).compute(c);
 
 //					new ImglibDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
-					Collection<Pair<Point, Point>> points = new MyDelaunayTriangulation().compute(splittingPoints, new LinkedList<Pair<Point, Point>>());
-							;
+					Collection<Pair<Point, Point>> points = new MyDelaunayTriangulation().compute(
+							splittingPoints, new LinkedList<Pair<Point, Point>>());
+							
 
 					final Collection<Pair<Point, Point>> inferenced = 
 							new EdgeInference(c).compute(
