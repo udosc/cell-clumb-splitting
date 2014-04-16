@@ -4,6 +4,7 @@ import net.imglib2.Cursor;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.ops.operation.iterable.unary.Mean;
+import net.imglib2.ops.operation.iterable.unary.Sum;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -27,12 +28,13 @@ public class DiscretHelpers {
 						1,
 						support);
 		
+		final double sum = new Sum<DoubleType, T>().compute(view.iterator(), type.createVariable()).getRealDouble();
 		final double mean = new Mean<DoubleType, T>().compute(view.iterator(), type.createVariable()).getRealDouble();
 		final Cursor<DoubleType> cursor = view.cursor();
 		Cursor<T> outC = out.cursor();
 		while( outC.hasNext() ){
 			cursor.fwd();
-			outC.next().setReal( cursor.get().getRealDouble() - mean );
+			outC.next().setReal( cursor.get().getRealDouble() );
 		}
 		return out;
 	}
@@ -47,12 +49,13 @@ public class DiscretHelpers {
 						1,
 						support);
 		
+		final double sum = new Sum<DoubleType, T>().compute(view.iterator(), type.createVariable()).getRealDouble();
 		final double mean = new Mean<DoubleType, T>().compute(view.iterator(), type.createVariable()).getRealDouble();
 		final Cursor<DoubleType> cursor = view.cursor();
 		Cursor<T> outC = out.cursor();
 		while( outC.hasNext() ){
 			cursor.fwd();
-			outC.next().setReal( cursor.get().getRealDouble() - mean);
+			outC.next().setReal(  (cursor.get().getRealDouble()  ));
 		}
 		return out;
 	}

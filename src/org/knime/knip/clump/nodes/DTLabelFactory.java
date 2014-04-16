@@ -132,8 +132,8 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 				settingsModels.add( m_beta );
 				settingsModels.add( m_t );
 				settingsModels.add( m_k );
-				settingsModels.add( m_beta );
-				settingsModels.add( m_t );
+				settingsModels.add( m_prune );
+				settingsModels.add( m_inference );
 			}
 
 			@Override
@@ -213,12 +213,13 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 									new LinkedList<Pair<Point, Point>>());
 					}
 					
-					if( m_inference.getBooleanValue() )
+					if( m_inference.getBooleanValue() ){
 						points = 
 						new EdgeInference(c).compute(
 								points,
 								new LinkedList<Pair<Point, Point>>());
-
+					}
+						
 					for(Pair<Point, Point> line: points){
 						Cursor<LabelingType<Integer>> cursor = 
 								new BresenhamLine<LabelingType<Integer>>(lab, line.getFirst(), line.getSecond());

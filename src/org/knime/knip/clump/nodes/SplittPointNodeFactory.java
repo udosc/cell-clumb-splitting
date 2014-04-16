@@ -123,7 +123,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 					if( c.length() < 20 )
 						continue;
 					
-					System.out.println("Tracking label: " + i++);
+					System.out.println("Tracking label: " + i++ + " at Position " + start.getSecond()[0] + ", " + start.getSecond()[1]);
 					for(long[] point: c){
 						ra.setPosition(point);
 //						ra.get().getMapping().intern( Arrays.asList( e.getKey() ));

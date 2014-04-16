@@ -201,7 +201,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 			
 
 			cs.printMatrix( cs.createMatrix() );
-			Collection<Pair<Point, Point>> points = cs.printGreedy();
+			Collection<Pair<Point, Point>> points = cs.getSolutions();
 			
 			if( points == null ){
 				continue;

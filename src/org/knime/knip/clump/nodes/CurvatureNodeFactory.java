@@ -7,7 +7,6 @@ import java.util.List;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
-import net.imglib2.collection.PointSampleList;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
@@ -31,9 +30,7 @@ import org.knime.knip.clump.contour.BinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
-import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 import org.knime.knip.clump.types.CurvatureCreationEnum;
-import org.knime.knip.clump.types.DistancesMeasuresEnum;
 import org.knime.knip.core.util.EnumUtils;
 import org.knime.knip.core.util.ImgUtils;
 

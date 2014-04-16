@@ -45,8 +45,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private Contour[] m_boundaries;
 	
-	private List<SplitLine<T>> m_splitLines;
-	
 	private int m_solutions;
 	
 	private double[] m_bCosts;
@@ -163,7 +161,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			validateDelaunayTriangualtion(points);
 //		validate(m_img, 1);
 		
-		System.out.println( this );
+//		System.out.println( this );
 		
 		final double shapeDistance = m_distance.compute( m_cell, m_type).getRealDouble();
 		
@@ -175,17 +173,17 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 30  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 60  ){
 					continue;
 				}
 				
 //				double res = calculateSimilarity( m_contour[i][j] );
 //				double sim =   m_distance.compute( m_contour[i][j], m_type).getRealDouble()  ;
 
-				double sim = m_distance.compute( new Contour(m_contour[i][j], new Contour( getPoints(j, i))), m_type).getRealDouble();
+				double sim = m_distance.compute( new Contour(m_contour[i][j]), m_type).getRealDouble();
 				
-				double dist = m_factor * calculateDistance(i, j);
-				double res =   ( sim + dist ) *
+				double dist = calculateDistance(i, j);
+				double res =   ( sim ) *
 						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
 				
 				if ( sim > shapeDistance ){
@@ -538,7 +536,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		return out;
 	}
 	
-	public Collection<Pair<Point, Point>> printGreedy(){
+	public Collection<Pair<Point, Point>> getSolutions(){
 		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
 		boolean[][] temp = createMatrix();
 		
