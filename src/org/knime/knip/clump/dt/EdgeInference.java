@@ -55,6 +55,12 @@ implements UnaryOperation<Collection<Pair<Point, Point>>, Collection<Pair<Point,
 						used.add( res.getFirst() );
 						used.add( res.getSecond() );
 						degrees.put( res.getFirst(), null);
+						
+						List<Pair<Point, Point>> list ;
+						for( Pair<Point, Point> pair: degrees.get(res.getSecond())){
+							degrees.put( pair.getSecond(), null);
+						}
+						
 						degrees.put( res.getSecond(), null);
 						modified = true;
 					} 

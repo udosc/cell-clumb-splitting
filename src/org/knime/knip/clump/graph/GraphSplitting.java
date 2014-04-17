@@ -173,7 +173,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 60  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 32  ){
 					continue;
 				}
 				
@@ -182,8 +182,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 
 				double sim = m_distance.compute( new Contour(m_contour[i][j]), m_type).getRealDouble();
 				
-				double dist = calculateDistance(i, j);
-				double res =   ( sim ) *
+				double dist =  calculateDistance(i, j) / m_contour[i][j].size();
+				double res =   ( sim + m_factor * dist) *
 						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
 				
 				if ( sim > shapeDistance ){
@@ -194,7 +194,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				
 				
 				double min = Double.MAX_VALUE;
-				double temp = Double.MAX_VALUE;
+//				double temp = Double.MAX_VALUE;
 				int p1 = -1;
 				int p2 = -1;
 				//Check if a contour lying inside the cell fits better
@@ -206,17 +206,18 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 							continue;
 						Contour c = createContour(i, k, l, j);
 						
+
+						
 						if ( c.size() > m_maxSize * 1.75d || c.size() < 32 )
 							continue;
 						
-						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * calculateDistance(i, j);
+						double tmp = m_distance.compute(c, m_type).getRealDouble() + m_factor * ((calculateDistance(i, j) + calculateDistance(k, l)) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
 //						double dist = tmp 
 						tmp *=
 								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
 						
-						if( dist < min){
-							min = dist;
-							temp = tmp;
+						if( tmp < min){
+							min = tmp;
 							p1 = k;
 							p2 = l;
 						}
@@ -224,8 +225,13 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 					}
 				}
 				
+				if( i == 1 && j == 0){
+					System.out.println();
+				}
+				
 				if( p1 > 0 && p2 > 0 && min < m_weights[i][p1].getWeight() + m_weights[p2][j].getWeight() ){
-					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
+//					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
+					m_weights[i][j].setWeight( min ) ;
 //					m_weights[i][j].setSplitLine(new Pair<Point, Point>( 
 //							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
 					m_weights[i][j].setBoundaries( asBooleanArray(i, j, p1, p2) );

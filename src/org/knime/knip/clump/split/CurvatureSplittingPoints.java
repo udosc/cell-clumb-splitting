@@ -67,7 +67,7 @@ public class CurvatureSplittingPoints<T extends RealType<T> & NativeType<T>>
 			final double std = new StandardDeviation<T, DoubleType>(mean).
 					compute(curv.getImg().iterator(), new DoubleType(0.0d)).getRealDouble();
 			
-			m_threshold = mean + std;
+			m_threshold = mean + 2 *std;
 			
 			System.out.println( "Setting the threshold to " + m_threshold);
 		}
