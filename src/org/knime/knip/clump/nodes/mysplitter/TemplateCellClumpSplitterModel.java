@@ -54,6 +54,8 @@ import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 import org.knime.knip.clump.dist.contour.ContourDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.GraphSplitting;
+import org.knime.knip.clump.graph.Post;
+import org.knime.knip.clump.graph.SplitLine;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 
 /**
@@ -201,17 +203,15 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 			
 
 			cs.printMatrix( cs.createMatrix() );
-			Collection<Pair<Point, Point>> points = cs.getSolutions();
+			List<SplitLine<BitType>> points = new Post().compute(cs.getSolutions(), new LinkedList<SplitLine<T>>() );
 			
 			if( points == null ){
 				continue;
 			}
 			
-			for(Pair<Point, Point> line: points){
-				Cursor<BitType> cursor = 
-						new BresenhamLine<BitType>(raBinaryImg, line.getFirst(), line.getSecond());
-				while( cursor.hasNext() ){
-					cursor.next().set( false );
+			for(SplitLine<BitType> line: points){
+				while( line.hasNext() ){
+					line.next().set( false );
 				}
 			}
 			

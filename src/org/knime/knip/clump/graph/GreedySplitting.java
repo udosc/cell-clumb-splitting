@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.imglib2.Point;
+import net.imglib2.type.logic.BitType;
 
 import org.knime.core.util.Pair;
 
@@ -39,51 +40,51 @@ public class GreedySplitting{
 //		m_prev[ m_start.getIndex() ].setDistance(0.0d);
 	}
 	
-	public Collection<Pair<Point, Point>> compute(){
-		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
-		Node start = m_start;
-		m_cost = 0.0d;
-		boolean first = true;
-		
-		final Edge res = getMinEdge( start );
-		final Edge connected = res.getConnectedEdge();
-		
-		m_cost = res.getWeight();
-		
-		out.add( res.getSplitLine().get(0) );
-		if( connected != null ){
-			out.add( connected.getSplitLine().get(0) );
-//			m_cost += connected.getWeight();
-		}
-	
-		
-		
-//		while( !m_nodes.isEmpty()){
-//			Edge res = getMinEdge( start );
-//			if ( res == null)
-//				return null;
-//			if( !first)
-//				m_nodes.remove( start );
-//			else 
-//				first = false;
-//				
-//			Edge connceted = res.getConnectedEdge(); 
-//			m_cost += res.getWeight();
-//			if(  connceted != null ){
-//				out.add( connceted.getSplitLine() );
-//				m_end = res.getSource();
-//				m_nodes.remove( res.getDestination() );
-//				m_cost += connceted.getWeight();
-//			}
-//			start = res.getDestination();
-//			out.add( res.getSplitLine() );
-//			if( start.equals( m_start ))
-//				break;
+//	public Collection<Pair<Point, Point>> compute(){
+//		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+//		Node start = m_start;
+//		m_cost = 0.0d;
+//		boolean first = true;
+//		
+//		final Edge<BitType> res = getMinEdge( start );
+//		final Edge<BitType> connected = res.getConnectedEdge();
+//		
+//		m_cost = res.getWeight();
+//		
+//		out.add( res.getSplitLine().get(0) );
+//		if( connected != null ){
+//			out.add( connected.getSplitLine().get(0) );
+////			m_cost += connected.getWeight();
 //		}
-
-		
-		return out;
-	}
+//		return out;
+//		
+//		
+////		while( !m_nodes.isEmpty()){
+////			Edge res = getMinEdge( start );
+////			if ( res == null)
+////				return null;
+////			if( !first)
+////				m_nodes.remove( start );
+////			else 
+////				first = false;
+////				
+////			Edge connceted = res.getConnectedEdge(); 
+////			m_cost += res.getWeight();
+////			if(  connceted != null ){
+////				out.add( connceted.getSplitLine() );
+////				m_end = res.getSource();
+////				m_nodes.remove( res.getDestination() );
+////				m_cost += connceted.getWeight();
+////			}
+////			start = res.getDestination();
+////			out.add( res.getSplitLine() );
+////			if( start.equals( m_start ))
+////				break;
+////		}
+//
+//		
+//
+//	}
 	
 	
 	private Edge getMinEdge( Node n){

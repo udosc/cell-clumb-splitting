@@ -25,7 +25,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 //	static final double NOT_CONNECTED = Double.MAX_VALUE;
 		
-	private Edge[][] m_weights;
+	private Edge<BitType>[][] m_weights;
 	
 	private Contour[][] m_contour;
 	
@@ -235,7 +235,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //					m_weights[i][j].setSplitLine(new Pair<Point, Point>( 
 //							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
 					m_weights[i][j].setBoundaries( asBooleanArray(i, j, p1, p2) );
-					m_weights[i][j].getSplitLine().add(new Pair<Point, Point>( 
+					m_weights[i][j].getSplitLines().add(new SplitLine<BitType>(m_img, 
 							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
 					m_weights[i][j].setValid(true);
 //					m_weights[i][p1].connectTo( m_weights[p2][j] );
@@ -413,10 +413,10 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			long[] start = points.get(i);
 			for(int j = 0; j < m_weights[i].length; j++){
 				long[] end = points.get(j);
-				m_weights[i][j] = new Edge(m_nodes.get(i), m_nodes.get(j), Double.MAX_VALUE);
+				m_weights[i][j] = new Edge<BitType>(m_nodes.get(i), m_nodes.get(j), Double.MAX_VALUE);
 				m_weights[i][j].setBoundaries( asBooleanArray(i, j) );
-				m_weights[i][j].getSplitLine().add(
-						new Pair<Point, Point>( new Point(m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())));
+				m_weights[i][j].getSplitLines().add(new SplitLine<BitType>(m_img,
+						new Point(m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())));
 				List<long[]> list = m_cell.getPointsInbetween(start, end).getPoints();
 //				list.addAll( getPoints(end, start));
 				
@@ -522,8 +522,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
-		for(Edge[] dd: m_weights){
-			for(Edge d: dd){
+		for(Edge<BitType>[] dd: m_weights){
+			for(Edge<BitType> d: dd){
 				sb.append(d.isValid() ? d.getWeight() : "-");
 				sb.append( ", ");
 			}
@@ -532,18 +532,18 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		return sb.toString();
 	}
 	
-	private Collection<Pair<Point, Point>> getSplitLines(Collection<Node> nodes){
-		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+	private List<SplitLine<BitType>> getSplitLines(Collection<Node> nodes){
+		List<SplitLine<BitType>> out = new LinkedList<SplitLine<BitType>>();
 		for(Node node: nodes){
 			if( node.getPrev() != null)
-				for(Pair<Point, Point> p: m_weights[ node.getIndex()][ node.getPrev()].getSplitLine())
+				for(SplitLine<BitType> p: m_weights[ node.getIndex()][ node.getPrev()].getSplitLines())
 					out.add( p );
 		}
 		return out;
 	}
 	
-	public Collection<Pair<Point, Point>> getSolutions(){
-		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+	public List<SplitLine<BitType>> getSolutions(){
+		List<SplitLine<BitType>> out = new LinkedList<SplitLine<BitType>>();
 		boolean[][] temp = createMatrix();
 		
 		if( m_bCosts.length == 0 || temp.length == 0)
@@ -557,7 +557,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		if ( solution == null )
 			return null;
 		for(Integer i: solution){
-			for( Pair<Point, Point> line : m_weights[m_pairs.get(i).getFirst()][m_pairs.get(i).getSecond()].getSplitLine() )
+			List<SplitLine<BitType>> list = m_weights[m_pairs.get(i).getFirst()][m_pairs.get(i).getSecond()].getSplitLines();
+			for( SplitLine<BitType> line : list)
 				out.add( line);
 		}
 		return out;

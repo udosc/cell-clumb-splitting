@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import net.imglib2.Point;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 
 import org.knime.core.util.Pair;
@@ -17,7 +18,7 @@ import org.knime.core.util.Pair;
 public class Floyd<T extends RealType<T> & NativeType<T>> {
 	
 	
-	private final Edge[][] m_graph;
+	private final Edge<BitType>[][] m_graph;
 		
 	private int[][] m_next;
 	
@@ -27,7 +28,7 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 	
 	private double m_pathCost;
 	
-	public Floyd(Edge[][] graph){
+	public Floyd(Edge<BitType>[][] graph){
 		m_graph = graph;
 		calc();
 	}
@@ -83,13 +84,13 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 		return m_dist[i][j] != null;
 	}
 	
-	public Collection<Pair<Point, Point>> getMinPath(){
-		Collection<Pair<Point, Point>> out = new LinkedList<Pair<Point, Point>>();
+	public Collection<SplitLine<BitType>> getMinPath(){
+		Collection<SplitLine<BitType>> out = new LinkedList<SplitLine<BitType>>();
 		double weight = Double.MAX_VALUE;
 		for(int i = 0; i < m_graph.length; i++){
 			m_cost = 0.0d;
 			
-			Collection<Pair<Point, Point>> path = getShortestPath(i, i);
+			Collection<SplitLine<BitType>> path = getShortestPath(i, i);
 
 			
 			if( m_cost < weight){
@@ -126,18 +127,18 @@ public class Floyd<T extends RealType<T> & NativeType<T>> {
 //		return out;
 //	}
 	
-	public Collection<Pair<Point, Point>> getShortestPath(int source, int destination){
-		return shortestPath(new LinkedList<Pair<Point, Point>>(), source, destination);
+	public Collection<SplitLine<BitType>> getShortestPath(int source, int destination){
+		return shortestPath(new LinkedList<SplitLine<BitType>>(), source, destination);
 	}
 	
-    private Collection<Pair<Point, Point>> shortestPath(Collection<Pair<Point, Point>> nodes, int source, int destination){
+    private Collection<SplitLine<BitType>> shortestPath(Collection<SplitLine<BitType>> nodes, int source, int destination){
 
         int k = m_next[source][destination];
         
         //If there isn't a path
     	if( k == -1 )
     		return null;
-        nodes.add( m_graph[k][destination].getSplitLine().get(0) );
+        nodes.add( m_graph[k][destination].getSplitLines().get(0) );
         m_cost += m_graph[k][destination].getWeight();
 //    	nodes.add(new Edge(m_nodes.get(k), m_nodes.get(destination), m_graph[k][destination].getWeight()));
 //        nodes.add( m_graph.getEdge(k, destination) );

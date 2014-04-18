@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.imglib2.Point;
+import net.imglib2.RandomAccessible;
+import net.imglib2.type.numeric.RealType;
 
 import org.knime.core.util.Pair;
 import org.knime.knip.core.data.algebra.Complex;
@@ -15,7 +17,7 @@ import org.knime.knip.core.data.algebra.Complex;
  * @author Udo Schlegel
  *
  */
-public class Edge {
+public class Edge<T extends RealType<T>> {
 	
 	private int m_index;
 	
@@ -27,11 +29,11 @@ public class Edge {
 	
 	private int m_numDimension;
 	
-	private List<Pair<Point, Point>> m_splitLine;
+	private List<SplitLine<T>> m_splitLine;
 	
 	private boolean m_valid;
 	
-	private Edge m_connected;
+	private Edge<T> m_connected;
 	
 	private boolean[] m_boundaries;
 	
@@ -42,7 +44,7 @@ public class Edge {
 		m_numDimension = source.getPosition().length;
 		m_valid = true;
 		m_connected = null;
-		m_splitLine = new LinkedList<Pair<Point, Point>>();
+		m_splitLine = new LinkedList<SplitLine<T>>();
 //		m_index =index;
 	}
 	
@@ -103,20 +105,20 @@ public class Edge {
 	public void setValid(boolean valid){
 		m_valid = valid;
 	}
-	
-	public List<Pair<Point, Point>> getSplitLine(){
+		
+	public List<SplitLine<T>> getSplitLines(){
 		return m_splitLine;
 	}
 	
-//	public void setSplitLine(Pair<Point, Point> splitLine){
-//		m_splitLine = splitLine;
-//	}
+	public SplitLine<T> getSplitLine(RandomAccessible<T> ra){
+		return new SplitLine<T>(ra, m_source.getPoint(), m_destination.getPoint());
+	}
 	
-	public void connectTo(Edge edge){
+	public void connectTo(Edge<T> edge){
 		m_connected = edge;
 	}
 	
-	public Edge getConnectedEdge(){
+	public Edge<T> getConnectedEdge(){
 		return m_connected;
 	}
 	
@@ -139,7 +141,7 @@ public class Edge {
 	@Override
 	public boolean equals(Object obj){
 		if ( obj instanceof Edge ){
-			Edge e = (Edge) obj;
+			Edge<T> e = (Edge<T>) obj;
 			return this.getSource().equals( e.getSource() )
 					&& this.getDestination().equals( e.getDestination() );
 		} return super.equals(obj);
