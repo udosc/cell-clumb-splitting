@@ -13,6 +13,7 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
+import net.imglib2.ops.types.ConnectedType;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
@@ -42,7 +43,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.data.labeling.LabelingCell;
-import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.AbstractBinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.KCosineCurvature;
@@ -69,6 +70,11 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
     private final SettingsModelIntegerBounded m_numberOfFD =
     		createNumberModel();
     
+    private final SettingsModelString m_type = createTypeModel();
+    
+	protected static SettingsModelString createTypeModel() {
+		return new SettingsModelString("connection_type", ConnectedType.values()[0].toString());
+	}
     
     protected static SettingsModelString createImageModel(){
     	return new SettingsModelString("Image ID", "Image");
@@ -141,7 +147,7 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
     		for(Pair<L, long[]> start: map){
 
     			final Contour contour = 
-    					new BinaryFactory(binaryImg, start.getSecond()).createContour();
+    					AbstractBinaryFactory.factory(binaryImg, start.getSecond(), m_type.getStringValue()).createContour();
     		        		
         		
     			final Img<DoubleType> curvature = new KCosineCurvature<DoubleType>(new DoubleType(), m_order.getIntValue()).createCurvatureImg(contour);

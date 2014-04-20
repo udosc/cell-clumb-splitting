@@ -10,33 +10,41 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
+import net.imglib2.ops.types.ConnectedType;
 import net.imglib2.type.logic.BitType;
 
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Pair;
-import org.knime.knip.base.data.img.ImgPlusCellFactory;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
 import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
-import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.AbstractBinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.FindStartingPoints;
+import org.knime.knip.core.util.EnumUtils;
 import org.knime.knip.core.util.ImgUtils;
 
 public class MyContourExtracter<L extends Comparable<L>>
 	extends ValueToCellNodeFactory<LabelingValue<L>>{
 
+	 private static SettingsModelString createTypeModel() {
+	        return new SettingsModelString("connection_type", ConnectedType.values()[0].toString());
+	 }
+	
 	@Override
 	protected ValueToCellNodeDialog<LabelingValue<L>> createNodeDialog() {
 		return new ValueToCellNodeDialog<LabelingValue<L>>() {
 
 			@Override
 			public void addDialogComponents() {
-				// TODO Auto-generated method stub
+                addDialogComponent("Options", "Settings", new DialogComponentStringSelection(createTypeModel(),
+                        "Connection Type", EnumUtils.getStringCollectionFromToString(ConnectedType.values())));
 				
 			}
 		};
@@ -47,13 +55,12 @@ public class MyContourExtracter<L extends Comparable<L>>
 		return new ValueToCellNodeModel<LabelingValue<L>, LabelingCell<L>>() {
 
 			private LabelingCellFactory m_labCellFactory;
-			
-			private ImgPlusCellFactory m_imgCellFactory;
+					
+			private final SettingsModelString m_type = createTypeModel();
 			
 			@Override
 			protected void addSettingsModels(List<SettingsModel> settingsModels) {
-				// TODO Auto-generated method stub
-				
+				settingsModels.add( createTypeModel() );
 			}
 
 			@Override
@@ -76,9 +83,11 @@ public class MyContourExtracter<L extends Comparable<L>>
 						labeling, 
 						new LinkedList<Pair<L, long[]>>());
 				
+				
+				
 				Integer i = 0;
 				for(Pair<L, long[]> start: map){
-					Contour c = new BinaryFactory(img, start.getSecond()).createContour();
+					Contour c = AbstractBinaryFactory.factory(img, start.getSecond(), m_type.getStringValue()).createContour();
 					System.out.println("Tracking label: " + i++);
 					for(long[] point: c){
 						ra.setPosition(point);
@@ -92,7 +101,6 @@ public class MyContourExtracter<L extends Comparable<L>>
 			
             protected void prepareExecute(final ExecutionContext exec) {
                 m_labCellFactory = new LabelingCellFactory(exec);
-                m_imgCellFactory = new ImgPlusCellFactory(exec);
             }
 		};
 	}

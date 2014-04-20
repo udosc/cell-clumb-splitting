@@ -110,9 +110,9 @@ public class Edge<T extends RealType<T>> {
 		return m_splitLine;
 	}
 	
-	public SplitLine<T> getSplitLine(RandomAccessible<T> ra){
-		return new SplitLine<T>(ra, m_source.getPoint(), m_destination.getPoint());
-	}
+//	public SplitLine<T> getSplitLine(RandomAccessible<T> ra){
+//		return new SplitLine<T>(ra, m_source.getPoint(), m_destination.getPoint());
+//	}
 	
 	public void connectTo(Edge<T> edge){
 		m_connected = edge;

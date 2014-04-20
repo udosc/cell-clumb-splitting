@@ -20,25 +20,29 @@ import net.imglib2.type.numeric.RealType;
 public class SplitLine<T extends RealType<T>>
 extends AbstractCursor<T>{
 		
+	private final int m_index;
+	
 	private final Cursor<T> m_cursor;
 	
 	private final Point m_p1;
 	
 	private final Point m_p2;
 		
-	public SplitLine(RandomAccessible<T> ra, Point p1, Point p2){
+	public SplitLine(int index, RandomAccessible<T> ra, Point p1, Point p2){
 		super( ra.numDimensions() );
+		m_index = index;
 		m_cursor = new BresenhamLine<T>(ra, p1, p2);
 		m_p1 = p1;
 		m_p2 = p2;
 	}
 	
-	public SplitLine(RandomAccessible<T> ra, long[] p1, long[] p2){
-		this(ra, Point.wrap(p1), Point.wrap(p2));
+	public SplitLine(int index, RandomAccessible<T> ra, long[] p1, long[] p2){
+		this(index, ra, Point.wrap(p1), Point.wrap(p2));
 	}
 	
-	private SplitLine(Cursor<T> cursor, Point p1, Point p2){
+	private SplitLine(int index, Cursor<T> cursor, Point p1, Point p2){
 		super( cursor.numDimensions() );
+		m_index = index;
 		m_cursor = cursor;
 		m_p1 = p1;
 		m_p2 = p2;
@@ -55,6 +59,22 @@ extends AbstractCursor<T>{
 
 	public Point getP2(){
 		return m_p2;
+	}
+	
+	public int getIndex(){
+		return m_index;
+	}
+	
+	public double euclideanDistance(){
+		double out = 0.0d;
+		long[] p1 = new long[ numDimensions() ];
+		m_p1.localize(p1);
+		long[] p2 = new long[ numDimensions() ];
+		m_p2.localize(p2);
+		for(int i = 0; i < numDimensions(); i++){
+			out += (p1[i] - p2[i]) * ((p1[i] - p2[i]));
+		}
+		return Math.sqrt( out );
 	}
 	
 	@Override
@@ -89,7 +109,7 @@ extends AbstractCursor<T>{
 
 	@Override
 	public AbstractCursor<T> copy() {
-		return new SplitLine<T>(m_cursor, m_p1, m_p2);
+		return new SplitLine<T>(m_index, m_cursor, m_p1, m_p2);
 	}
 
 	@Override

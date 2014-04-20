@@ -18,6 +18,7 @@ import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.AbstractRegionGrowing;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.CCA;
+import net.imglib2.ops.types.ConnectedType;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
@@ -46,7 +47,7 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.NodeUtils;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.nodes.filter.convolver.ConvolverNodeModel;
-import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.AbstractBinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
@@ -54,6 +55,7 @@ import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 import org.knime.knip.clump.dist.contour.ContourDistance;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.GraphSplitting;
+import org.knime.knip.clump.graph.Nuclei;
 import org.knime.knip.clump.graph.Post;
 import org.knime.knip.clump.graph.SplitLine;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
@@ -79,9 +81,15 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
     private final SettingsModelInteger m_smOrder = createOrderModel();
     
     private final SettingsModelDouble m_smFactor = createFactorModel();
+    
+    private final SettingsModelString m_type = createTypeModel();
    	
 	private LabelingCellFactory m_labCellFactory;
 		
+	protected static SettingsModelString createTypeModel() {
+		return new SettingsModelString("connection_type", ConnectedType.values()[0].toString());
+	}
+	
     protected static SettingsModelInteger createOrderModel(){
     	return new SettingsModelInteger("Order: ", 5);
     }
@@ -177,7 +185,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 		final ContourDistance<DoubleType> cd = createContourDistance();
 
 		for(Pair<L, long[]> start: map){
-			Contour contour = new BinaryFactory(binaryImg, start.getSecond()).createContour();
+			Contour contour = AbstractBinaryFactory.factory(binaryImg, start.getSecond(), m_type.getStringValue()).createContour();
 			
 			
 			if( contour.length() < 20)
@@ -196,20 +204,24 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 			
 			
 			
-			cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
+			final List<Nuclei<BitType>> list = cs.compute(contour, new CurvatureSplittingPoints<DoubleType>(5,
 					15, 
 					new DoubleType(),
 					m_sigma.getDoubleValue()));
 			
+			if( list == null ){
+				continue;
+			}
 
-			cs.printMatrix( cs.createMatrix() );
-			List<SplitLine<BitType>> points = new Post().compute(cs.getSolutions(), new LinkedList<SplitLine<T>>() );
+//			cs.printMatrix( cs.createMatrix() );
+			List<SplitLine<BitType>> points = new Post().compute(cs.getSolutions( list ), new LinkedList<SplitLine<T>>() );
 			
 			if( points == null ){
 				continue;
 			}
 			
-			for(SplitLine<BitType> line: points){
+			
+			for(SplitLine<BitType> line: cs.getSolutions( list )){
 				while( line.hasNext() ){
 					line.next().set( false );
 				}
@@ -272,7 +284,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 					binaryImg);
 			
 			for(Pair<L, long[]> p: startPoints){
-				cc.add( new BinaryFactory(binaryImg, p.getSecond()).createContour() );
+				cc.add( AbstractBinaryFactory.factory(binaryImg, p.getSecond(), m_type.getStringValue()).createContour() );
 			}
 
 			

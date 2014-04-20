@@ -12,6 +12,7 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.meta.ImgPlus;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
+import net.imglib2.ops.types.ConnectedType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.real.DoubleType;
 
@@ -26,7 +27,7 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
-import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.AbstractBinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
@@ -46,6 +47,10 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
     private static SettingsModelString createFacotoryModel(){
     	return new SettingsModelString("Factory", CurvatureCreationEnum.K_COSINE.name());
     }
+    
+	private static SettingsModelString createTypeModel() {
+		return new SettingsModelString("connection_type", ConnectedType.values()[0].toString());
+	}
 
 	@Override
 	protected ValueToCellNodeDialog<LabelingValue<L>> createNodeDialog() {
@@ -57,6 +62,8 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 		        		new DialogComponentStringSelection(createFacotoryModel(), 
 		        				"Factory", EnumUtils.getStringListFromToString(CurvatureCreationEnum.values())));
 				
+		        addDialogComponent("Options", "Settings", new DialogComponentStringSelection(createTypeModel(),
+                        "Connection Type", EnumUtils.getStringCollectionFromToString(ConnectedType.values())));
 			}
 		};
 	}
@@ -68,6 +75,8 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 			private ImgPlusCellFactory m_imgCellFactory;
 			
 			private SettingsModelString m_smModel = createFacotoryModel();
+			
+			private final SettingsModelString m_type = createTypeModel();
 			
 			@Override
 			protected void addSettingsModels(List<SettingsModel> settingsModels) {
@@ -98,7 +107,7 @@ public class CurvatureNodeFactory<L extends Comparable<L>>
 				
 				Integer i = 0;
 				for(Pair<L, long[]> start: map){
-					Contour contour = new BinaryFactory(binaryImg, start.getSecond()).createContour();
+					Contour contour = AbstractBinaryFactory.factory(binaryImg, start.getSecond(), m_type.getStringValue()).createContour();
 					i++;
 					if( contour.length() < 20 )
 						continue;

@@ -45,8 +45,6 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 				"/master");
 		m_nodeFactories.put(CSSFactory.class.getCanonicalName(),
 				"/master");
-		m_nodeFactories.put(CSDFactory.class.getCanonicalName(),
-				"/master");
 
 
 

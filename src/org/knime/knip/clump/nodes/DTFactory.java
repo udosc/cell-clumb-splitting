@@ -17,6 +17,7 @@ import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.AbstractRegionGrowing;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.CCA;
+import net.imglib2.ops.types.ConnectedType;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
@@ -25,8 +26,10 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
@@ -34,7 +37,7 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
-import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.AbstractBinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.dt.EdgeInference;
@@ -44,6 +47,7 @@ import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.clump.split.ValidateSplitLines;
 import org.knime.knip.core.data.algebra.Complex;
+import org.knime.knip.core.util.EnumUtils;
 
 /**
  * 
@@ -78,6 +82,10 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
     protected static SettingsModelDouble createKurvModel(){
     	return new SettingsModelDouble("Curvature: ", 0.1d);
     }
+    
+	private static SettingsModelString createTypeModel() {
+		return new SettingsModelString("connection_type", ConnectedType.values()[0].toString());
+	}
 
 	@Override
 	protected ValueToCellNodeDialog<LabelingValue<L>> createNodeDialog() {
@@ -105,6 +113,9 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 						"Curvature-Threshold: ", 
 						0.1d));
 				
+				addDialogComponent("Options", "Settings", new DialogComponentStringSelection(createTypeModel(),
+                        "Connection Type", EnumUtils.getStringCollectionFromToString(ConnectedType.values())));
+				
 			}
 		};
 	}
@@ -114,6 +125,8 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 		return new ValueToCellNodeModel<LabelingValue<L>, LabelingCell<Integer>>(){
 			
 			private LabelingCellFactory m_labCellFactory;
+			
+			private final SettingsModelString m_type = createTypeModel();
 
 			@Override
 			protected void addSettingsModels(List<SettingsModel> settingsModels) {
@@ -150,7 +163,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				
 				Integer i = 0;
 				for(Pair<L, long[]> start: map){
-					Contour c = new BinaryFactory(img, start.getSecond()).createContour();
+					Contour c = AbstractBinaryFactory.factory(img, start.getSecond(), m_type.getStringValue()).createContour();
 					
 					if( c.length() < 20 )
 						continue;

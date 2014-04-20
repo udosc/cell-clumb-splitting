@@ -23,7 +23,7 @@ import org.knime.knip.core.util.ImgUtils;
 public class MyUtils {
 	
 	private MyUtils(){ };
-
+	
 	public static<T extends RealType<T>> int numElements(RandomAccessibleInterval<T> ra){
 		int out = 1;
 		for(int i = 0; i < ra.numDimensions(); i++){

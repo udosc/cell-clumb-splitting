@@ -17,6 +17,7 @@ import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.operation.labeling.unary.LabelingToImg;
+import net.imglib2.ops.types.ConnectedType;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
@@ -26,9 +27,11 @@ import net.imglib2.type.numeric.real.DoubleType;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.Pair;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
@@ -36,7 +39,7 @@ import org.knime.knip.base.data.labeling.LabelingValue;
 import org.knime.knip.base.node.ValueToCellNodeDialog;
 import org.knime.knip.base.node.ValueToCellNodeFactory;
 import org.knime.knip.base.node.ValueToCellNodeModel;
-import org.knime.knip.clump.contour.BinaryFactory;
+import org.knime.knip.clump.contour.AbstractBinaryFactory;
 import org.knime.knip.clump.contour.Contour;
 import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.dt.EdgeInference;
@@ -46,6 +49,7 @@ import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.split.CurvatureSplittingPoints;
 import org.knime.knip.clump.split.ValidateSplitLines;
 import org.knime.knip.core.data.algebra.Complex;
+import org.knime.knip.core.util.EnumUtils;
 
 public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & NativeType<T>> 
 	extends ValueToCellNodeFactory<LabelingValue<L>> {
@@ -61,6 +65,10 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
     private final SettingsModelBoolean m_prune = createPruneModel();
     
     private final SettingsModelBoolean m_inference = createInferenceModel();
+    
+	private static SettingsModelString createTypeModel() {
+		return new SettingsModelString("connection_type", ConnectedType.values()[0].toString());
+	}
     
     protected static SettingsModelDouble createSigmaModel(){
     	return new SettingsModelDouble("Sigma: ", 2.0d);
@@ -116,6 +124,9 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 						createInferenceModel(), 
 						"Inference Edges"));
 				
+				addDialogComponent("Options", "Settings", new DialogComponentStringSelection(createTypeModel(),
+                        "Connection Type", EnumUtils.getStringCollectionFromToString(ConnectedType.values())));
+				
 			}
 		};
 	}
@@ -125,6 +136,8 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 		return new ValueToCellNodeModel<LabelingValue<L>, LabelingCell<Integer>>(){
 			
 			private LabelingCellFactory m_labCellFactory;
+			
+			private final SettingsModelString m_type = createTypeModel();
 
 			@Override
 			protected void addSettingsModels(List<SettingsModel> settingsModels) {
@@ -165,7 +178,7 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 				
 				Integer i = 0;
 				for(Pair<L, long[]> start: map){
-					Contour c = new BinaryFactory(img, start.getSecond()).createContour();
+					Contour c = AbstractBinaryFactory.factory(img, start.getSecond(), m_type.getStringValue()).createContour();
 					
 					
 					if( c.length() < 20 )
