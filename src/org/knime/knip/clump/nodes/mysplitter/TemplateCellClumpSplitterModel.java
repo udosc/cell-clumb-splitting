@@ -215,7 +215,9 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 			}
 
 //			cs.printMatrix( cs.createMatrix() );
-			List<SplitLine<BitType>> points = new Post().compute(cs.getSolutions( list ), new LinkedList<SplitLine<T>>() );
+			List<SplitLine<BitType>> points = new Post().compute(
+					cs.getSolutions( list ), 
+					new LinkedList<SplitLine<T>>() );
 			
 			if( points == null ){
 				continue;

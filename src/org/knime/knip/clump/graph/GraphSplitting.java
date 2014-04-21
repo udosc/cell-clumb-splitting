@@ -33,6 +33,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private double m_factor;
 	
+	private double m_totalSim;
+	
 	private Contour m_cell;
 	
 	private List<Node> m_nodes;
@@ -152,7 +154,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 
 	
 	public List<Nuclei<BitType>> compute(Contour contour, SplittingPoints<T> split){
-		List<Nuclei<BitType>> out = new LinkedList<Nuclei<BitType>>();
+		List<Nuclei<BitType>> out = new ArrayList<Nuclei<BitType>>();
 		m_cell = contour;
 		
 		List<long[]> points = split.compute(contour);
@@ -166,6 +168,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		System.out.println( this );
 		
 		final double shapeDistance = m_distance.compute( m_cell, m_type).getRealDouble();
+		
+		m_totalSim = shapeDistance;
 		
 		System.out.println( "Shape Distance: " + shapeDistance);
 		
@@ -196,6 +200,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				
 				m_weights[i][j].setWeight( res  );
 				
+				out.add( new Nuclei<BitType>(asBooleanArray(i, j), getSplitLine(i, j) , res));
+				
 				double min = Double.MAX_VALUE;
 //				double temp = Double.MAX_VALUE;
 				int p1 = -1;
@@ -223,7 +229,16 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 						tmp += m_factor * ( calculateDistance(i, j) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
 //						tmp +=  m_factor * ((calculateDistance(i, j) + calculateDistance(k, l)) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
 						
+						tmp *=
+								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
 						
+						if ( tmp > m_weights[i][j].getWeight() )
+							continue;
+						
+						List<SplitLine<BitType>> list = new LinkedList<SplitLine<BitType>>();
+						list.add( getSplitLine(i, j));
+						list.add( getSplitLine(k, l));
+						out.add( new Nuclei<BitType>(asBooleanArray(i, j, k, l), list , tmp));
 						
 						if( tmp < min){
 							min = tmp;
@@ -233,9 +248,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 						
 					}
 				}
-				if(  p1 > 0 && p2 > 0)
-					min *=
-						(( m_contour[i][p1].size() + m_contour[p2][j].size() ) / ((double) m_cell.size() ))  ;
+				
+					
 				
 				if( p1 > 0 && p2 > 0 && min < m_weights[i][p1].getWeight() + m_weights[p2][j].getWeight() ){
 //					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
@@ -256,23 +270,21 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 					list.add( getSplitLine(i, p1));
 					list.add( getSplitLine(p2, j));
 					out.add( new Nuclei<BitType>(asBooleanArray(i, j, p1, p2), list , min));
-				} else {
-					out.add( new Nuclei<BitType>(asBooleanArray(i, j), getSplitLine(i, j) , res));
-				}
-
+				} 
 			}
-		}
-		System.out.println( this.toString()  );
-		
-		int x = 0;
-		for(Nuclei<BitType> n: out){
-			System.out.print(x++ +": ");
-			for(boolean b: n.getConstrains()){
-				System.out.print(b + ", ");
-			}
-			System.out.println();
 		}
 		return out;
+//		System.out.println( this.toString()  );
+//		
+//		int x = 0;
+//		for(Nuclei<BitType> n: out){
+//			System.out.print(x++ +": ");
+//			for(boolean b: n.getConstrains()){
+//				System.out.print(b + ", ");
+//			}
+//			System.out.println();
+//		}
+//		return out;
 	}
 	
 	public SplitLine<BitType> getSplitLine(int i, int j){
@@ -560,6 +572,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		Solutions solutions = new Solutions(m_bCosts, temp);
 //		List<Integer> solution = min.getSolution();
 		List<Nuclei<BitType>> solution = s.calc();
+		if(m_totalSim < s.getCost() )
+			return out;
 		if ( solution == null )
 			return null;
 		for(Nuclei<BitType> i: solution){
@@ -712,6 +726,10 @@ class Solution<T extends RealType<T>>{
 		}
 		System.out.println("Solution: " + out + ": " + m_final);
 		return out;
+	}
+	
+	public double getCost(){
+		return m_final;
 	}
 	
 	private List<Nuclei<T>> getNuclei(List<Integer> list){
