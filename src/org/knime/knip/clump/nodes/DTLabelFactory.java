@@ -147,6 +147,7 @@ public class DTLabelFactory<L extends Comparable<L>, T extends RealType<T> & Nat
 				settingsModels.add( m_k );
 				settingsModels.add( m_prune );
 				settingsModels.add( m_inference );
+				settingsModels.add( m_type );
 			}
 
 			@Override

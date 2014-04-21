@@ -60,7 +60,7 @@ public class MyContourExtracter<L extends Comparable<L>>
 			
 			@Override
 			protected void addSettingsModels(List<SettingsModel> settingsModels) {
-				settingsModels.add( createTypeModel() );
+				settingsModels.add( m_type );
 			}
 
 			@Override

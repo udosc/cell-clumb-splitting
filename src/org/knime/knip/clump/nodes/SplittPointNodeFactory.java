@@ -104,7 +104,7 @@ public class SplittPointNodeFactory<T extends RealType<T> & NativeType<T>, L ext
 			protected void addSettingsModels(List<SettingsModel> settingsModels) {
 				settingsModels.add(m_sigma);
 				settingsModels.add(m_threshold);
-				
+				settingsModels.add(m_type);
 			}
 
 			@Override

@@ -43,11 +43,6 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 				"/master");
 		m_nodeFactories.put(WarpingErrorFactory.class.getCanonicalName(), 
 				"/master");
-		m_nodeFactories.put(CSSFactory.class.getCanonicalName(),
-				"/master");
-
-
-
 
 		return m_nodeFactories.keySet();
 	}

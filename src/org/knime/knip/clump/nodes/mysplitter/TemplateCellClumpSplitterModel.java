@@ -140,6 +140,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 		settingsModels.add(m_smOrder);
 		settingsModels.add(m_sigma);
 		settingsModels.add(m_smFactor);
+		settingsModels.add(m_type);
 	}
 	
 	@Override

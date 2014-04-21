@@ -1,61 +1,46 @@
 package org.knime.knip.clump.contour;
 
-import net.imglib2.RandomAccess;
+import java.awt.Polygon;
+import java.util.ArrayList;
+import java.util.List;
+
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing.AbstractRegionGrowing;
 import net.imglib2.type.logic.BitType;
 
+import org.knime.knip.core.util.PolygonTools;
+
 public class BinaryFactory4Connected extends AbstractBinaryFactory{
 
-	private int m_dir;
+	private Contour m_contour;
 	
-	public BinaryFactory4Connected(RandomAccessibleInterval<BitType> img){
-		this(img, findStartingPoint(img));
-	}
+	private final RandomAccessibleInterval<BitType> m_img;
+	
+	private final int[] m_start;
 	
 	public BinaryFactory4Connected(RandomAccessibleInterval<BitType> img, long[] start){
-		super(img, start);
-		m_dir = 0;
+		m_img = img;
+		m_start = new int[]{ (int)start[0], (int)start[1]};
 	}
-	
+
 	@Override
-	protected long[] nextPoint(RandomAccess<BitType> ra, long[] center) {
-		int index = ( m_dir + 3) % 4;
-		for(int i = 0 ; i < 4; i++){
-			index = (index + i) % 4;
-			long[] res = next(center, index);
-			ra.setPosition(res);
-			if( ra.get().get() ){
-				m_dir = index;
-				return res;
-			}
-		}
-		return null;
+	public Contour createContour() {
+		if( m_contour == null )
+			m_contour = wrap( PolygonTools.extractPolygon(m_img, m_start));
+		return m_contour;
 	}
 	
-	private long[] next(long[] pos, int index){
-		long[] newPos = new long[ pos.length ];
-		switch(index){
-			case 0:
-				newPos[0] = pos[0] + 1;
-				newPos[1] = pos[1];
-				break;
-			case 1:
-				newPos[0] = pos[0];
-				newPos[1] = pos[1] - 1;
-				break;
-			case 2:
-				newPos[0] = pos[0] - 1;
-				newPos[1] = pos[1];
-				break;
-			case 3:
-				newPos[0] = pos[0];
-				newPos[1] = pos[1] + 1;
-				break;
-			default:
-				throw new RuntimeException( this.getClass().getCanonicalName() + ": Unknown index: " + index);
+	public static Contour wrap(Polygon polygon){
+		final int[] xpoints = polygon.xpoints;
+		final int[] ypoints = polygon.ypoints;
+		
+		final List<long[]> list = new ArrayList<long[]>( polygon.npoints );
+		
+		for(int i = 0; i < polygon.npoints; i++){
+			list.add( new long[]{ xpoints[i], ypoints[i]} );
 		}
-		return newPos;
+		
+		return new Contour(list);
 	}
 
 	@Override

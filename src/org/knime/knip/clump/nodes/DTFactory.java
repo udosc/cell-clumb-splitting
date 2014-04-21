@@ -134,6 +134,7 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				settingsModels.add( m_beta );
 				settingsModels.add( m_t );
 				settingsModels.add( m_kurv );
+				settingsModels.add( m_type );
 			}
 
 			@Override

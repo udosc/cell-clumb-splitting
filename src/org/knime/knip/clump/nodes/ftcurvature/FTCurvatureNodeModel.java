@@ -252,6 +252,7 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
         m_numberOfFD.saveSettingsTo(settings);
         m_imageColumn.saveSettingsTo(settings);
         m_order.saveSettingsTo(settings);
+        m_type.saveSettingsTo(settings);
     }
 
     /**
@@ -264,6 +265,7 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
         m_numberOfFD.loadSettingsFrom(settings);
         m_imageColumn.loadSettingsFrom(settings);
         m_order.loadSettingsFrom(settings);
+        m_type.loadSettingsFrom(settings);
     }
 
     /**
@@ -276,7 +278,7 @@ public class FTCurvatureNodeModel<T extends RealType<T> & NativeType<T>, L exten
         m_numberOfFD.validateSettings(settings);
         m_imageColumn.validateSettings(settings);
         m_order.validateSettings(settings);
-
+        m_type.validateSettings(settings);
     }
     
     /**
