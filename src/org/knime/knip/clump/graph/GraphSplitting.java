@@ -223,7 +223,11 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 					System.out.println();
 				}
 				
-				for(int k: getPointsBetween(i, j)){
+				List<Integer> l1 =  getPointsBetween(i, j);
+				if( l1.size() > 3)
+					l1 = l1.subList(0, 3);
+				
+				for(int k: l1){
 					for(int l: getPointsBetween(k, j)){
 						if( !m_weights[k][l].isValid() )
 							continue;
@@ -404,9 +408,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				List<long[]> list = m_cell.getPointsInbetween(start, end).getPoints();
 //				list.addAll( getPoints(end, start));
 				
-				if( i == 0 && j == 1){
-					System.out.print("Q");
-				}
 				
 				m_contour[i][j] = new Contour( list );
 			}
@@ -650,7 +651,7 @@ class Solution<T extends RealType<T>>{
 		List<Nuclei<T>> out = new LinkedList<Nuclei<T>>();
 		m_final = Double.MAX_VALUE;
 		for(Pair<List<Integer>, Double> pair: m_solution){
-			System.out.println(pair.getFirst() + ": " + pair.getSecond());
+
 //			double res = Double.MAX_VALUE;
 			if( pair.getSecond() <  m_final){
 				out = getNuclei( pair.getFirst() );
