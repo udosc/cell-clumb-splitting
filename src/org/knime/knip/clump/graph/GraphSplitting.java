@@ -27,6 +27,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 //	static final double NOT_CONNECTED = Double.MAX_VALUE;
 		
+	private static final int MIN_SIZE = 32;
+
 	private Edge<BitType>[][] m_weights;
 	
 	private Contour[][] m_contour;
@@ -159,17 +161,22 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		
 		List<long[]> points = split.compute(contour);
 		init( points );
-		validate(m_img, 2);
+
 		initNodes();
 		if( points.size() > 3 )
 			validateDelaunayTriangualtion(points);
+		else 
+			validate(m_img, 2);
 //		validate(m_img, 1);
 		
 //		System.out.println( this );
 		
 		final double shapeDistance = m_distance.compute( m_cell, m_type).getRealDouble();
 		
-		m_totalSim = shapeDistance;
+		if( contour.size() > m_maxSize * 2.0d )
+			m_totalSim = Double.MAX_VALUE;
+		else
+			m_totalSim = shapeDistance;
 		
 		System.out.println( "Shape Distance: " + shapeDistance);
 		
@@ -179,7 +186,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < 32  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < MIN_SIZE  ){
 					continue;
 				}
 				
@@ -189,8 +196,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				double sim = m_distance.compute( new Contour(m_contour[i][j]), m_type).getRealDouble();
 				
 				double dist =  m_factor * (calculateDistance(i, j) / m_contour[i][j].size());
-				double res =   ( sim + dist) *
-						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
+				double res =    sim + dist;
+//						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
 				
 //				if ( sim > shapeDistance ){
 //					m_weights[i][j].setValid( false );
@@ -198,9 +205,11 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //					m_weights[i][j].setWeight( res  );
 //				}
 				
+
 				m_weights[i][j].setWeight( res  );
 				
-				out.add( new Nuclei<BitType>(asBooleanArray(i, j), getSplitLine(i, j) , res));
+				if ( m_contour[i][j].size() < m_maxSize * 1.5d)
+					out.add( new Nuclei<BitType>(asBooleanArray(i, j), getSplitLine(i, j) , res));
 				
 				double min = Double.MAX_VALUE;
 //				double temp = Double.MAX_VALUE;
@@ -215,22 +224,23 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				}
 				
 				for(int k: getPointsBetween(i, j)){
-					for(int l: getPointsBetween(i, j)){
-						if( k > l || !m_weights[k][l].isValid() )
+					for(int l: getPointsBetween(k, j)){
+						if( !m_weights[k][l].isValid() )
 							continue;
 						Contour c = createContour(i, k, l, j);
 						
-
+						if( out.size() == 7 )
+							System.out.println();
 						
-						if ( c.size() > m_maxSize * 1.75d || c.size() < 32 )
+						if ( c.size() > m_maxSize * 1.5d || c.size() < MIN_SIZE )
 							continue;
 						
 						double tmp = m_distance.compute(c, m_type).getRealDouble();
 						tmp += m_factor * ( calculateDistance(i, j) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
 //						tmp +=  m_factor * ((calculateDistance(i, j) + calculateDistance(k, l)) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
 						
-						tmp *=
-								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
+//						tmp *=
+//								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
 						
 						if ( tmp > m_weights[i][j].getWeight() )
 							continue;
@@ -273,8 +283,10 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				} 
 			}
 		}
+		System.out.println( this.toString()  );
+		
 		return out;
-//		System.out.println( this.toString()  );
+//		
 //		
 //		int x = 0;
 //		for(Nuclei<BitType> n: out){
@@ -358,23 +370,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		}
 	}
 	
-	private List<Contour> getContours(int i, int j){
-		List<Contour> out = new LinkedList<Contour>();
-		out.add( m_contour[i][j] );
-		
-		for(int k = i+1; k < j; k++){
-			for(int l = k + 1; l < j; l++){
-				out.add( createContour(i, k, l, j));
-			}
-		}
-		
-//		for(int k = i; k < m_nodes.size(); ++k){
-//			for(int l = k; l < m_nodes.size(); ++l){
-//				out.add( createContour(i, k, l, j) );
-//			}
-//		}
-		return out;
-	}
 	
 	private double calculateDistance(int i, int j){
 		return  calculateSpliteLineLength(m_nodes.get(i).getPosition(), m_nodes.get(j).getPosition()) ;
@@ -383,16 +378,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	private double calculateSpliteLineLength(long[] i, long[] j){
 		return MyUtils.distance(i, j);
 	}
-	
-		
-//	private double calculateSimilarity(Contour part){
-//		double min = Double.MAX_VALUE;
-//			double res = m_distance.compute(template, part, m_distance.getType().createVariable()).getRealDouble();
-//			if( res < min )
-//				min = res;
-//		}
-//		return min;
-//	}
 	
 	private void init(List<long[]> points){
 		m_weights = new Edge[ points.size() ][];
@@ -427,29 +412,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			}
 		}
 	}
-	
-//	public RandomAccess<LabelingType<L>> draw(RandomAccess<LabelingType<L>> ra){
-//		Integer k = 0;
-//		for(int i = 0; i < m_contour.length; i++){
-//			for(int j = 0; j < m_contour[i].length; j++){
-//				for( long[] pos: m_contour[i][j].getIterator()){
-//					ra.setPosition(pos);
-//					if( ra.get().getLabeling() == null){
-//						List<L> list = new LinkedList<L>();
-//						list.add((L) k);
-//						ra.get().setLabeling(list);
-//					} else {
-//						List<L> list = ra.get().getLabeling();
-//						list.add((L) k);
-//						ra.get().setLabeling(list);	
-//					}
-//				}
-//				k++;
-//			}
-//		}
-//		return ra;
-//	}
-	
+
 	private Contour createContour(int start, int p1, int p2, int end){
 		List<long[]> first = new ArrayList<long[]>(m_contour[start][p1].getPoints());
 		List<long[]> between = getPoints(p1, p2);
@@ -460,17 +423,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //		first.addAll(last);
 		return new Contour(first);
 	}
-	
-
-//	private List<Node> getConnectedNodes(int index){
-//		List<Node> out = new LinkedList<Node>();
-//		for(int i = 0; i < m_weights[index].length; i++){
-//			if( m_weights[index][i] != NOT_CONNECTED && index != i)
-//				out.add( m_nodes.get(i) );
-//		}
-//		return out;
-//	}
-	
+		
 	private List<long[]> getPoints(int start, int end){
 		return getPoints( m_nodes.get(start).getPosition(), m_nodes.get(end).getPosition());
 	}
@@ -508,15 +461,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		return out;
 	}
 	
-	private void printPath(Collection<Pair<Point, Point>> path){
-		for(Pair<Point, Point> edge: path){
-			System.out.print(m_cell.indexOf( new long[] { edge.getFirst().getIntPosition(0), edge.getFirst().getIntPosition(1) })+ " -> " + 
-					m_cell.indexOf( new long[] { edge.getSecond().getIntPosition(0), edge.getSecond().getIntPosition(1) }) + ", ");
-//			System.out.print(edge.getWeight() + " - ");
-		}
-//		System.out.println(" - Total: " + m_cost);
-	}
-	
 
 	@Override
 	public String toString(){
@@ -529,16 +473,6 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			sb.append("\r");
 		}
 		return sb.toString();
-	}
-	
-	private List<SplitLine<BitType>> getSplitLines(Collection<Node> nodes){
-		List<SplitLine<BitType>> out = new LinkedList<SplitLine<BitType>>();
-		for(Node node: nodes){
-			if( node.getPrev() != null)
-				for(SplitLine<BitType> p: m_weights[ node.getIndex()][ node.getPrev()].getSplitLines())
-					out.add( p );
-		}
-		return out;
 	}
 	
 //	public List<SplitLine<BitType>> getSolutions(){
@@ -565,7 +499,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	public List<SplitLine<BitType>> getSolutions(List<Nuclei<BitType>> nuclei){
 		List<SplitLine<BitType>> out = new LinkedList<SplitLine<BitType>>();
 
-		Solution<BitType> s = new Solution<BitType>( nuclei, m_boundaries.length, m_factor);
+		Solution<BitType> s = new Solution<BitType>( nuclei, m_boundaries.length);
 		
 //		MinPath min = new MinPath(m_bCosts, temp);
 //		min.printMatrix();
@@ -578,8 +512,10 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			return null;
 		for(Nuclei<BitType> i: solution){
 			//List<SplitLine<BitType>> list = m_weights[m_pairs.get(i).getFirst()][m_pairs.get(i).getSecond()].getSplitLines();
-			for( SplitLine<BitType> line : i.getSplitLines() )
-				out.add( line );
+			for( SplitLine<BitType> line : i.getSplitLines() ){
+				if( !out.contains(line) )
+					out.add( line );
+			}
 		}
 		return out;
 	}
@@ -699,12 +635,9 @@ class Solution<T extends RealType<T>>{
 	
 	private double m_final;
 	
-	private double m_factor;
-	
-	public Solution(List<Nuclei<T>> nuclei, int length, double factor){
+	public Solution(List<Nuclei<T>> nuclei, int length){
 		m_nuclei = nuclei;
 		m_length = length;
-		m_factor = factor;
 		m_steps = new LinkedList<List<Integer>>();
 		m_solution = new LinkedList<Pair<List<Integer>, Double>>();
 	}
@@ -830,139 +763,6 @@ class Solution<T extends RealType<T>>{
 	}
 }
 
-class Solutions{
-	
-	private double[] m_cost;
-		
-	private boolean[][] m_constraints;
-	
-	private double[][] m_distances;
-	
-	private int m_length;
-	
-	private List<List<Integer>> m_steps;
-	
-	private List<Pair<List<Integer>, Double>> m_solution;
-	
-	double m_final;
-	
-	
-	public Solutions(double[] cost, boolean[][] constrain){
-		m_length = constrain[0].length;
-		m_cost = new double[ cost.length ];
-		for( int i = 0; i < m_cost.length; i++){
-			m_cost[i] = cost[i];
-		}
-		m_constraints = constrain;
-		m_steps = new LinkedList<List<Integer>>();
-		m_solution = new LinkedList<Pair<List<Integer>, Double>>();
-	}
-	
-	public List<Integer> calc(){
-		initSteps();
-		for(int i = 1; i < m_length; i++){
-			nextStep(i);
-		}
-		List<Integer> out = null;
-		m_final = Double.MAX_VALUE;
-		for(Pair<List<Integer>, Double> pair: m_solution){
-			System.out.println(pair.getFirst() + ": " + pair.getSecond());
-//			double res = Double.MAX_VALUE;
-			if( pair.getSecond() <  m_final){
-				out = pair.getFirst();
-				m_final = pair.getSecond();
-			}
-		}
-		System.out.println("Solution: " + out + ": " + m_final);
-		return out;
-	}
-	
-	private void initSteps(){
-		m_steps.clear();
-		for(int i = 0; i < m_constraints.length; i++){
-			if ( m_constraints[i][0] ){
-				List<Integer> res = new LinkedList<Integer>();
-				res.add( i );
-				m_steps.add( res );
-			}
-		}
-	}
-	
-	private double calc(List<Integer> list){
-		double out = 0.0d;
-		for(Integer i: list){
-			out += m_cost[i];
-		}
-		return out;
-	}
-	
-	private void nextStep(int index){
-//		List<Integer> list;
-//		while(( list = m_steps.peek() ) != null){
-		List<List<Integer>> newOnes = new LinkedList<List<Integer>>();
-		for(List<Integer> list: m_steps){
-			boolean[] array = toArray(list);
-			
-			if( array[index]){
-				newOnes.add(list);
-			}
-			
-//			if( isSolution(array))
-//				m_solution.add(list);
-//			else{
-				for(int r = 0; r < m_constraints.length; r++){
-					if( m_constraints[r][index] && isValid(array, r) ){
-						List<Integer> res = new LinkedList<Integer>( list );
-						res.add(r);
-						
-						boolean[] nArray = toArray(res);
-						
-						if( isSolution( nArray) ){
-							m_solution.add(new Pair<List<Integer>, Double>(res, calc(res)));
-						} else{
-							newOnes.add( res ); 
-						}
-						
-
-					}
-				}
-//			}
-		}
-		m_steps.clear();
-		m_steps.addAll( newOnes );
-	}
-	
-	private boolean isSolution(boolean[] array){
-		boolean out = true;
-		for(boolean b: array)
-			out &= b;
-		return out;
-	}
-	
-	private boolean[] toArray(List<Integer> list){
-		boolean[] out = new boolean[ m_length ];
-		for(Integer i: list){
-			merge(out, i);
-		}
-		return out;
-	}
-		
-	private boolean isValid(boolean[] array, int index){
-		for(int i = 0; i < m_constraints[index].length; i++){
-			if ( m_constraints[index][i] && array[i])
-				return false;
-		}
-		return true;
-	}
-	
-	private boolean[] merge(boolean[] array, int index){
-		for(int i = 0; i < m_constraints[index].length; i++){
-			 array[i] = m_constraints[index][i] || array[i];
-		}
-		return array;
-	}
-	
-}
 
 class MinPath{
 	

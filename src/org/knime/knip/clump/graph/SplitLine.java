@@ -65,6 +65,7 @@ extends AbstractCursor<T>{
 		return m_index;
 	}
 	
+	
 	public double euclideanDistance(){
 		double out = 0.0d;
 		long[] p1 = new long[ numDimensions() ];

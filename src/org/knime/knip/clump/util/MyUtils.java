@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.imglib2.Cursor;
+import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
@@ -23,6 +24,16 @@ import org.knime.knip.core.util.ImgUtils;
 public class MyUtils {
 	
 	private MyUtils(){ };
+	
+	public static<T extends RealType<T>> boolean areEqual(Point p1, Point p2){
+		if( p1.numDimensions() != p2.numDimensions() )
+			return false;
+		for(int i = 0; i < p1.numDimensions(); i++){
+			if( p1.getLongPosition(i) != p2.getLongPosition(i))
+				return false;
+		}
+		return true;
+	}
 	
 	public static<T extends RealType<T>> int numElements(RandomAccessibleInterval<T> ra){
 		int out = 1;

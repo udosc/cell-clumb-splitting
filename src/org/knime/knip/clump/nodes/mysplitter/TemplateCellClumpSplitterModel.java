@@ -215,16 +215,18 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 			}
 
 //			cs.printMatrix( cs.createMatrix() );
-			List<SplitLine<BitType>> points = new Post().compute(
-					cs.getSolutions( list ), 
-					new LinkedList<SplitLine<T>>() );
+//			List<SplitLine<BitType>> points = new Post<BitType>( binaryImg ).compute(
+//					cs.getSolutions( list ), 
+//					new LinkedList<SplitLine<BitType>>() );
+//			
+			List<SplitLine<BitType>> points = cs.getSolutions( list );
 			
 			if( points == null ){
 				continue;
 			}
 			
 			
-			for(SplitLine<BitType> line: cs.getSolutions( list )){
+			for(SplitLine<BitType> line: points){
 				while( line.hasNext() ){
 					line.next().set( false );
 				}
