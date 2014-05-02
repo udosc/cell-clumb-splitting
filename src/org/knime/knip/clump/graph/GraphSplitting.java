@@ -10,6 +10,7 @@ import java.util.Set;
 import net.imglib2.Cursor;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.region.BresenhamLine;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
@@ -41,7 +42,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private List<Node> m_nodes;
 	
-	private Img<BitType> m_img;
+	private RandomAccessibleInterval<BitType> m_img;
 	
 	private final ContourDistance<T> m_distance;
 	
@@ -57,16 +58,16 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	
 	private List<Pair<Integer, Integer>> m_pairs;
 	
-	public GraphSplitting(ContourDistance<T> distance, Img<BitType> img, double factor){
+	public GraphSplitting(ContourDistance<T> distance, RandomAccessibleInterval<BitType> img){
 //		m_templates = Arrays.asList( templates );
 		m_img = img;
 		m_distance = distance;
-		m_factor = factor;
 		m_type = distance.getType();
 		for(Contour c: distance.getTemplates() ){
 			if( c.size() > m_maxSize )
 				m_maxSize = c.size();
 		}
+		m_maxSize *= 1.2;
 	}
 
 	
@@ -169,24 +170,27 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			validate(m_img, 2);
 //		validate(m_img, 1);
 		
-//		System.out.println( this );
+
+		
+		if ( m_cell.size() < MIN_SIZE )
+			return null;
 		
 		final double shapeDistance = m_distance.compute( m_cell, m_type).getRealDouble();
 		
-		if( contour.size() > m_maxSize * 2.0d )
+		if( m_cell.size() > m_maxSize * 2.0d )
 			m_totalSim = Double.MAX_VALUE;
 		else
 			m_totalSim = shapeDistance;
 		
-		System.out.println( "Shape Distance: " + shapeDistance);
-		
+//		System.out.println( "Shape Distance: " + shapeDistance);
+		System.out.println( this );
 //		RandomAccessibleInterval<T> curvature = new KCosineCurvature<T>(m_distance.getType(), 5).createCurvatureImg(contour);
 				
 		for(int i = 0; i < m_weights.length; i++){
 			for(int j = 0; j < m_weights[i].length; j++){
 				
 							
-				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < MIN_SIZE  ){
+				if ( !m_weights[i][j].isValid() || m_contour[i][j].size() < MIN_SIZE ){
 					continue;
 				}
 				
@@ -194,8 +198,8 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //				double sim =   m_distance.compute( m_contour[i][j], m_type).getRealDouble()  ;
 
 				double sim = m_distance.compute( new Contour(m_contour[i][j]), m_type).getRealDouble();
-				
-				double dist =  m_factor * (calculateDistance(i, j) / m_contour[i][j].size());
+				double dist = 0.0d;
+//				double dist =  m_factor * (calculateDistance(i, j) / m_contour[i][j].size());
 				double res =    sim + dist;
 //						( m_contour[i][j].size() / Math.abs( (double)m_cell.size() ) );
 				
@@ -205,11 +209,11 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //					m_weights[i][j].setWeight( res  );
 //				}
 				
-
-				m_weights[i][j].setWeight( res  );
-				
-				if ( m_contour[i][j].size() < m_maxSize * 1.5d)
-					out.add( new Nuclei<BitType>(asBooleanArray(i, j), getSplitLine(i, j) , res));
+				if( m_contour[i][j].size() < m_maxSize ){
+					m_weights[i][j].setWeight( res  );
+					out.add( new Nuclei<BitType>(asBooleanArray(i, j), getSplitLine(i, j) , res, m_contour[i][j].size()));
+				}  else
+					m_weights[i][j].setWeight( Double.MAX_VALUE  );
 				
 				double min = Double.MAX_VALUE;
 //				double temp = Double.MAX_VALUE;
@@ -218,41 +222,35 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				//Check if a contour lying inside the cell fits better
 //				for(int k = j+1; k < m_nodes.size(); k++){
 //					for(int l = k + 1; l < m_nodes.size(); l++){
-				
-				if( i == 1 && j == 0){
-					System.out.println();
-				}
+			
 				
 				List<Integer> l1 =  getPointsBetween(i, j);
 				if( l1.size() > 3)
 					l1 = l1.subList(0, 3);
 				
-				for(int k: l1){
+				for(int k: getPointsBetween(i, j)){
 					for(int l: getPointsBetween(k, j)){
-						if( !m_weights[k][l].isValid() )
+						if( k == l || !m_weights[k][l].isValid() )
 							continue;
 						Contour c = createContour(i, k, l, j);
-						
-						if( out.size() == 7 )
-							System.out.println();
-						
-						if ( c.size() > m_maxSize * 1.5d || c.size() < MIN_SIZE )
+							
+						if ( c.size() > m_maxSize || c.size() < MIN_SIZE )
 							continue;
 						
 						double tmp = m_distance.compute(c, m_type).getRealDouble();
-						tmp += m_factor * ( calculateDistance(i, j) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
+//						tmp += m_factor * ( calculateDistance(i, j) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
 //						tmp +=  m_factor * ((calculateDistance(i, j) + calculateDistance(k, l)) / ( m_contour[i][k].size() + m_contour[l][j].size() ));
 						
 //						tmp *=
 //								(( m_contour[i][k].size() + m_contour[l][j].size() ) / ((double) m_cell.size() ))  ;
 						
-						if ( tmp > m_weights[i][j].getWeight() )
-							continue;
+//						if ( tmp > m_weights[i][j].getWeight() )
+//							continue;
 						
 						List<SplitLine<BitType>> list = new LinkedList<SplitLine<BitType>>();
 						list.add( getSplitLine(i, j));
 						list.add( getSplitLine(k, l));
-						out.add( new Nuclei<BitType>(asBooleanArray(i, j, k, l), list , tmp));
+						out.add( new Nuclei<BitType>(asBooleanArray(i, j, k, l), list , tmp, c.size()));
 						
 						if( tmp < min){
 							min = tmp;
@@ -265,26 +263,26 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 				
 					
 				
-				if( p1 > 0 && p2 > 0 && min < m_weights[i][p1].getWeight() + m_weights[p2][j].getWeight() ){
-//					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
-					m_weights[i][j].setWeight( min ) ;
-//					m_weights[i][j].setSplitLine(new Pair<Point, Point>( 
-//							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
-					m_weights[i][j].setBoundaries( asBooleanArray(i, j, p1, p2) );
-//					m_weights[i][j].getSplitLines().add(new SplitLine<BitType>(m_img, 
-//							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
-					m_weights[i][j].setValid(true);
-//					m_weights[i][p1].connectTo( m_weights[p2][j] );
-//					m_weights[p2][j].connectTo( m_weights[i][p1] );
-//					m_weights[p2][j].setWeight( temp * ( m_contour[p2][j].size() ) / Math.abs( m_cell.size() )) ;
-//					m_weights[p2][j].setSplitLine(new Pair<Point, Point>( 
-//							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
-//					m_split[][]
-					List<SplitLine<BitType>> list = new LinkedList<SplitLine<BitType>>();
-					list.add( getSplitLine(i, p1));
-					list.add( getSplitLine(p2, j));
-					out.add( new Nuclei<BitType>(asBooleanArray(i, j, p1, p2), list , min));
-				} 
+//				if( p1 > 0 && p2 > 0 && min < m_weights[i][p1].getWeight() + m_weights[p2][j].getWeight() ){
+////					m_weights[i][j].setWeight( temp * ( m_contour[i][p1].size() ) / Math.abs( m_cell.size() )) ;
+//					m_weights[i][j].setWeight( min ) ;
+////					m_weights[i][j].setSplitLine(new Pair<Point, Point>( 
+////							new Point( m_nodes.get(i).getPosition()), new Point(m_nodes.get(j).getPosition())) );
+//					m_weights[i][j].setBoundaries( asBooleanArray(i, j, p1, p2) );
+////					m_weights[i][j].getSplitLines().add(new SplitLine<BitType>(m_img, 
+////							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
+//					m_weights[i][j].setValid(true);
+////					m_weights[i][p1].connectTo( m_weights[p2][j] );
+////					m_weights[p2][j].connectTo( m_weights[i][p1] );
+////					m_weights[p2][j].setWeight( temp * ( m_contour[p2][j].size() ) / Math.abs( m_cell.size() )) ;
+////					m_weights[p2][j].setSplitLine(new Pair<Point, Point>( 
+////							new Point( m_nodes.get(p1).getPosition()), new Point(m_nodes.get(p2).getPosition())) );
+////					m_split[][]
+//					List<SplitLine<BitType>> list = new LinkedList<SplitLine<BitType>>();
+//					list.add( getSplitLine(i, p1));
+//					list.add( getSplitLine(p2, j));
+//					out.add( new Nuclei<BitType>(asBooleanArray(i, j, p1, p2), list , min));
+//				} 
 			}
 		}
 		System.out.println( this.toString()  );
@@ -343,7 +341,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		return out;
 	}
 
-	public void validate(Img<BitType> img, int tolarate){
+	public void validate(RandomAccessibleInterval<BitType> img, int tolarate){
 		RandomAccess<BitType> ra = img.randomAccess();
 		m_solutions = 0;
 		for(int i=0; i < m_weights.length;i++){
@@ -500,13 +498,17 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 	public List<SplitLine<BitType>> getSolutions(List<Nuclei<BitType>> nuclei){
 		List<SplitLine<BitType>> out = new LinkedList<SplitLine<BitType>>();
 
-		Solution<BitType> s = new Solution<BitType>( nuclei, m_boundaries.length);
+		Solution<BitType> s = new Solution<BitType>( nuclei, m_boundaries.length, m_cell.size());
 		
 //		MinPath min = new MinPath(m_bCosts, temp);
 //		min.printMatrix();
 //		Solutions solutions = new Solutions(m_bCosts, temp);
 //		List<Integer> solution = min.getSolution();
+		
 		List<Nuclei<BitType>> solution = s.calc();
+		
+		System.out.println(m_totalSim + " - Split-Cost: " + s.getCost());
+		
 		if(m_totalSim < s.getCost() )
 			return out;
 		if ( solution == null )
@@ -636,11 +638,20 @@ class Solution<T extends RealType<T>>{
 	
 	private double m_final;
 	
-	public Solution(List<Nuclei<T>> nuclei, int length){
+	private final long m_size;
+	
+	public Solution(List<Nuclei<T>> nuclei, int length, long size){
 		m_nuclei = nuclei;
 		m_length = length;
 		m_steps = new LinkedList<List<Integer>>();
 		m_solution = new LinkedList<Pair<List<Integer>, Double>>();
+		m_size = size;
+		for(Nuclei<T> n:nuclei){
+			for(boolean b: n.getConstrains()){
+				System.out.print( b + ",");
+			}
+			System.out.print("\n");
+		}
 	}
 	
 	public List<Nuclei<T>> calc(){
@@ -651,19 +662,29 @@ class Solution<T extends RealType<T>>{
 		List<Nuclei<T>> out = new LinkedList<Nuclei<T>>();
 		m_final = Double.MAX_VALUE;
 		for(Pair<List<Integer>, Double> pair: m_solution){
-
+			System.out.println(pair.getFirst() + ": " + pair.getSecond());
 //			double res = Double.MAX_VALUE;
 			if( pair.getSecond() <  m_final){
 				out = getNuclei( pair.getFirst() );
 				m_final = pair.getSecond();
 			}
 		}
-		System.out.println("Solution: " + out + ": " + m_final);
+//		System.out.println("Solution: " + out + ": " + m_final);
+//		m_final = m_final / out.size();
+		m_final = normalizedCosts(out);
 		return out;
 	}
 	
 	public double getCost(){
 		return m_final;
+	}
+	
+	private double normalizedCosts(List<Nuclei<T>> nucleis){
+		double out = 0.0d;
+		for(Nuclei<T> i: nucleis){
+			out +=( i.getSize() / (double)(m_size) ) * i.getSimilarity();
+		}
+		return out;
 	}
 	
 	private List<Nuclei<T>> getNuclei(List<Integer> list){

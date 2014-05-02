@@ -25,8 +25,6 @@ public abstract class AbstractBinaryFactory
 	public abstract long[][] getStructuringElement();
 	
 	public static ContourFactory<BitType> factory(RandomAccessibleInterval<BitType> img, long[] start, String element){
-		System.out.println( element + " - " + ConnectedType.EIGHT_CONNECTED.toString() );
-		System.out.println( element.equals(ConnectedType.EIGHT_CONNECTED.toString()) );
 		if (element.equals(ConnectedType.EIGHT_CONNECTED.toString())) {
             return new BinaryFactory8Connected(img, start);
         } else {

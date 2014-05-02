@@ -8,9 +8,6 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSetFactory;
 import org.knime.core.node.config.ConfigRO;
-import org.knime.knip.clump.nodes.mysplitter.CurvatureSplitterFactory;
-import org.knime.knip.clump.nodes.mysplitter.DFTSplitterFactory;
-import org.knime.knip.clump.nodes.mysplitter.TemplateCellClumpSplitterFactory;
 
 
 /**
@@ -19,7 +16,7 @@ import org.knime.knip.clump.nodes.mysplitter.TemplateCellClumpSplitterFactory;
  */
 public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 
-	private Map<String, String> m_nodeFactories = new HashMap<String, String>();
+	private final Map<String, String> m_nodeFactories = new HashMap<String, String>();
 
 	/**
 	 * {@inheritDoc}
@@ -35,9 +32,7 @@ public class ClumpSplittingNodeSetFactory implements NodeSetFactory {
 				"/master");
 		m_nodeFactories.put(MyContourExtracter.class.getCanonicalName(), 
 				"/master");
-		m_nodeFactories.put(CurvatureSplitterFactory.class.getCanonicalName(),
-				"/master");
-		m_nodeFactories.put(DFTSplitterFactory.class.getCanonicalName(),
+		m_nodeFactories.put(TemplateCellClumpSplitterFactory.class.getCanonicalName(),
 				"/master");
 		m_nodeFactories.put(CurvatureNodeFactory.class.getCanonicalName(),
 				"/master");

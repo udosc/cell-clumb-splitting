@@ -1,4 +1,4 @@
-package org.knime.knip.clump.nodes.mysplitter;
+package org.knime.knip.clump.nodes;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -24,6 +24,7 @@ import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.view.Views;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -53,6 +54,7 @@ import org.knime.knip.clump.contour.FindStartingPoints;
 import org.knime.knip.clump.curvature.factory.CurvatureFactory;
 import org.knime.knip.clump.curvature.factory.KCosineCurvature;
 import org.knime.knip.clump.dist.contour.ContourDistance;
+import org.knime.knip.clump.dist.contour.CurvatureFourier;
 import org.knime.knip.clump.graph.Edge;
 import org.knime.knip.clump.graph.GraphSplitting;
 import org.knime.knip.clump.graph.Nuclei;
@@ -67,7 +69,7 @@ import org.knime.knip.clump.split.CurvatureSplittingPoints;
  * @param <L>
  * @param <T>
  */
-public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends RealType<T> & NativeType<T>>
+public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends RealType<T> & NativeType<T>>
 	extends ValueToCellNodeModel<LabelingValue<L>, LabelingCell<Integer>>{
 
 	private int m_templateIndex;
@@ -79,10 +81,10 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
     private final SettingsModelDouble m_sigma = createSigmaModel();
        
     private final SettingsModelInteger m_smOrder = createOrderModel();
-    
-    private final SettingsModelDouble m_smFactor = createFactorModel();
-    
+        
     private final SettingsModelString m_type = createTypeModel();
+    
+    private final SettingsModelInteger m_numberOfDescriptors = createDiscriptorModel();
    	
 	private LabelingCellFactory m_labCellFactory;
 		
@@ -102,8 +104,8 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
     	return new SettingsModelDouble("Sigma: ", 2.0d);
     }
     
-    protected static SettingsModelDoubleBounded createFactorModel(){
-    	return new SettingsModelDoubleBounded("Factor ", 0.1, 0.0, 100.0);
+    protected static SettingsModelInteger createDiscriptorModel(){
+    	return new SettingsModelInteger("Used descriptors: ", 31);
     }
     
     
@@ -120,7 +122,9 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 		super(new PortType[]{BufferedDataTable.TYPE});
 	}
 	
-	protected abstract ContourDistance<DoubleType> createContourDistance();
+	protected ContourDistance<DoubleType> createContourDistance() {
+		return new CurvatureFourier<DoubleType>(getTemplates(), createCurvatureFactory(), m_numberOfDescriptors.getIntValue());
+	}
 	
 	protected CurvatureFactory<DoubleType> createCurvatureFactory(){
 		return new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue());
@@ -139,8 +143,8 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 		settingsModels.add(m_smTemplateColumn);
 		settingsModels.add(m_smOrder);
 		settingsModels.add(m_sigma);
-		settingsModels.add(m_smFactor);
 		settingsModels.add(m_type);
+		settingsModels.add(m_numberOfDescriptors);
 	}
 	
 	@Override
@@ -164,20 +168,23 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 	@Override
 	protected LabelingCell<Integer> compute(LabelingValue<L> cellValue) throws Exception {
 		
+		long runtime = System.currentTimeMillis();
 		
 		Labeling<L> labeling = cellValue.getLabelingCopy();
 		long[] dim = new long[ labeling.numDimensions() ]; 
 		labeling.dimensions(dim);
 		
-		Img<BitType> binaryImg = new ArrayImgFactory<BitType>().create(labeling, new BitType());
+		RandomAccessibleInterval<BitType> binaryImg = new ArrayImgFactory<BitType>().create(labeling, new BitType());
 		new LabelingToImg<L, BitType>().compute(labeling, 
-					binaryImg);
+					Views.iterable( binaryImg ));
 		
-		RandomAccess<BitType> raBinaryImg = binaryImg.randomAccess();
-		
+		if( binaryImg.numDimensions() > 2){
+			binaryImg = Views.hyperSlice(binaryImg, 2, 0);
+		}
+				
 		final Labeling<Integer> lab =
                 new NativeImgLabeling<Integer, IntType>(
-                		new ArrayImgFactory<IntType>().create(labeling, new IntType()));
+                		new ArrayImgFactory<IntType>().create(new long[]{ dim[0], dim[1] }, new IntType()));
 
 		Collection<Pair<L, long[]>> map = new FindStartingPoints<L>().compute(
 				labeling, 
@@ -200,8 +207,7 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 //					new CurvatureFourier<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 32),
 //	        		new CurvatureDistance<DoubleType>(m_templates, new KCosineCurvature<DoubleType>(new DoubleType(), m_smOrder.getIntValue()), 1, this.getExecutorService(), m_sigma.getDoubleValue()),
 //					new MinimalContourDistance<DoubleType>(m_templates, new DoubleType(), 64, true),
-	        		binaryImg, 
-	        		m_smFactor.getDoubleValue());
+	        		binaryImg);
 			
 			
 			
@@ -237,6 +243,8 @@ public abstract class TemplateCellClumpSplitterModel<L extends Comparable<L>, T 
 		new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
                         new BitType(false) ).compute(binaryImg, lab);
 
+		System.out.println("My Runtime: " + (System.currentTimeMillis() - runtime));
+		
 		return 
     		m_labCellFactory.createCell(lab, cellValue.getLabelingMetadata()) ;
 		

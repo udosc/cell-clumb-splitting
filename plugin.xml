@@ -15,7 +15,7 @@
     </extension>
    
    <extension point="org.knime.workbench.repository.nodesets">
-        <nodeset 
+        <nodeset 	
         	expert-flag="false" 
         	factory-class="org.knime.knip.clump.nodes.ClumpSplittingNodeSetFactory" 
         	id="org.knime.knip.clumb.nodes.ClumbSplittingNodeSetFactory">
@@ -27,16 +27,10 @@
 		<node 
 			category-path="/master" 
 			expert-flag="false" 
-			factory-class="org.knime.knip.clump.nodes.curvature.CurvatureNodeFactory" 
-			id="org.knime.knip.clump.nodes.curvature.CurvatureNodeFactory">
-		</node>
-		
-		<node 
-			category-path="/master" 
-			expert-flag="false" 
 			factory-class="org.knime.knip.clump.nodes.ftcurvature.FTCurvatureNodeFactory" 
 			id="org.knime.knip.clump.nodes.ftcurvature.FTCurvatureNodeFactory">
 		</node>
+		
 
 	</extension>
 </plugin>
