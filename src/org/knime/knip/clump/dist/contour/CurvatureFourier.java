@@ -56,7 +56,7 @@ implements ContourDistance<T>{
 ////					createCoefficent( rai, m_type),
 //					new FourierOfCurvature<T>( rai ).getDescriptors(m_numberOfDesc),
 //					m_type.createVariable()).getRealDouble(); 
-			final double actual = distance(d, ref) / ref.length;
+			final double actual = distance(d, ref) ;
 			if ( actual < min )
 				min = actual;
 		}

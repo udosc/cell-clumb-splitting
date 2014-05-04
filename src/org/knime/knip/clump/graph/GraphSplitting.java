@@ -183,7 +183,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 			m_totalSim = shapeDistance;
 		
 //		System.out.println( "Shape Distance: " + shapeDistance);
-		System.out.println( this );
+//		System.out.println( this );
 //		RandomAccessibleInterval<T> curvature = new KCosineCurvature<T>(m_distance.getType(), 5).createCurvatureImg(contour);
 				
 		for(int i = 0; i < m_weights.length; i++){
@@ -285,7 +285,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 //				} 
 			}
 		}
-		System.out.println( this.toString()  );
+//		System.out.println( this.toString()  );
 		
 		return out;
 //		
@@ -662,7 +662,7 @@ class Solution<T extends RealType<T>>{
 		List<Nuclei<T>> out = new LinkedList<Nuclei<T>>();
 		m_final = Double.MAX_VALUE;
 		for(Pair<List<Integer>, Double> pair: m_solution){
-			System.out.println(pair.getFirst() + ": " + pair.getSecond());
+//			System.out.println(pair.getFirst() + ": " + pair.getSecond());
 //			double res = Double.MAX_VALUE;
 			if( pair.getSecond() <  m_final){
 				out = getNuclei( pair.getFirst() );
@@ -671,7 +671,7 @@ class Solution<T extends RealType<T>>{
 		}
 //		System.out.println("Solution: " + out + ": " + m_final);
 //		m_final = m_final / out.size();
-		m_final = normalizedCosts(out);
+//		m_final = normalizedCosts(out);
 		return out;
 	}
 	
