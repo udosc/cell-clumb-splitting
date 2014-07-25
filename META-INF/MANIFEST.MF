@@ -5,10 +5,7 @@ Bundle-SymbolicName: org.knime.knip; singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Vendor: Udo Schlegel
 Require-Bundle: org.knime.base,
- org.knime.knip.base;bundle-version="1.0.3",
- org.knime.knip.core;bundle-version="1.0.3",
- org.junit,
- org.knime.knip.imagej2.core;bundle-version="0.7.6"
+ org.junit
 Export-Package: org.knime.knip.clump.nodes
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ClassPath: lib/commons-math3-3.2.jar,
@@ -18,4 +15,10 @@ Bundle-ClassPath: lib/commons-math3-3.2.jar,
  lib/VIB-lib-2.0.0-SNAPSHOT.jar,
  lib/jdt.jar
 Bundle-ActivationPolicy: lazy
+Import-Package: net.imglib2,
+ net.imglib2.img,
+ net.imglib2.labeling,
+ net.imglib2.meta,
+ net.imglib2.type.logic,
+ net.imglib2.type.numeric.integer
 

@@ -191,6 +191,8 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 				new LinkedList<Pair<L, long[]>>());
 		
 		final ContourDistance<DoubleType> cd = createContourDistance();
+		
+		int numberOfLines = 0;
 
 		for(Pair<L, long[]> start: map){
 			Contour contour = AbstractBinaryFactory.factory(binaryImg, start.getSecond(), m_type.getStringValue()).createContour();
@@ -199,7 +201,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 			if( contour.length() < 20)
 				continue;
 			
-			System.out.println(cellValue.getLabelingMetadata().getName() + " Processing Label: " + start.getFirst());
+//			System.out.println(cellValue.getLabelingMetadata().getName() + " Processing Label: " + start.getFirst());
 			
 
 			GraphSplitting<DoubleType, Integer> cs = new GraphSplitting<DoubleType, Integer>(
@@ -231,7 +233,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 				continue;
 			}
 			
-			
+			numberOfLines += points.size();
 			for(SplitLine<BitType> line: points){
 				while( line.hasNext() ){
 					line.next().set( false );
@@ -242,7 +244,7 @@ public class TemplateCellClumpSplitterModel<L extends Comparable<L>, T extends R
 		
 		new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
                         new BitType(false) ).compute(binaryImg, lab);
-
+		System.out.println(cellValue.toString() + " Split lines: " + numberOfLines);
 		System.out.println("My Runtime: " + (System.currentTimeMillis() - runtime));
 		
 		return 

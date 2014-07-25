@@ -48,7 +48,7 @@ implements UnaryOperation<Collection<Pair<Point, Point>>, Collection<Pair<Point,
 			Complex vectorJI = new Complex(e.getFirst().getLongPosition(0) - e.getSecond().getLongPosition(0),
 					e.getFirst().getLongPosition(1) - e.getSecond().getLongPosition(1));
 			final double tmp1 = Math.abs((vectorJI.re() * tangentD.re() + vectorJI.im() * tangentD.im()) / vectorJI.getMagnitude());
-			System.out.println("Sigma_T" + (tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im()) + " - Sigma_beta" + Math.max(tmp0, tmp1));
+		
 			if(  tangentS.re() * tangentD.re() + tangentS.im() * tangentD.im() <= m_t && 
 					Math.max(tmp0, tmp1) <= m_beta )
 				arg1.add( e );

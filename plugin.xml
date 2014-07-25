@@ -22,6 +22,7 @@
         </nodeset>
     </extension>
     
+    
     <extension point="org.knime.workbench.repository.nodes">  
       	
 		<node 
@@ -29,6 +30,13 @@
 			expert-flag="false" 
 			factory-class="org.knime.knip.clump.nodes.ftcurvature.FTCurvatureNodeFactory" 
 			id="org.knime.knip.clump.nodes.ftcurvature.FTCurvatureNodeFactory">
+		</node>
+		
+		<node 
+			category-path="/master" 
+			expert-flag="false" 
+			factory-class="org.knime.knip.clump.nodes.fdcurvature.FourierDescriptorNodeFactory" 
+			id="org.knime.knip.clump.nodes.fdcurvature.FourierDescriptorNodeFactory">
 		</node>
 		
 

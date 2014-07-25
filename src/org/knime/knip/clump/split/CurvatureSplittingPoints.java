@@ -69,7 +69,7 @@ public class CurvatureSplittingPoints<T extends RealType<T> & NativeType<T>>
 			
 			m_threshold = mean + std;
 			
-			System.out.println( "Setting the threshold to " + m_threshold);
+//			System.out.println( "Setting the threshold to " + m_threshold);
 		}
 
 		final PriorityQueue<Pair<Integer, Double>> queue = new PriorityQueue<Pair<Integer, Double>>(

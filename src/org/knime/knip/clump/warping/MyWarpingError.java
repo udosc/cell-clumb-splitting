@@ -34,9 +34,7 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<T>> {
 	private WarpingErrorEnums[] m_errors;
 	
 	private double m_warpingError;
-	
-	private double m_randError;
-	
+		
 	private int m_radius;
 	
 	private T m_type;
@@ -57,11 +55,7 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<T>> {
 		final UnaryOutputOperation<ImgPlus<? extends RealType<?>>, ImagePlus> op = 
 				new ImgToIJ();
 		
-		RandError re = new RandError(op.compute(
-				new ImgPlus<BitType>(inputA), new ImagePlus()), 
-				op.compute(new ImgPlus<BitType>(inputB), new ImagePlus()));
 		
-		m_randError = re.getMetricValue(0.1d);
 		
 		WarpingError we = new WarpingError(
 //				new ConvertToImagePlus<BitType>().compute(inputA, null),
@@ -137,21 +131,17 @@ implements BinaryOperation<Img<BitType>, Img<BitType>, Img<T>> {
 		return m_warpingError;
 	}
 	
-	public double getRandError(){
-		return m_randError;
-	}
-	
 	public ClusteredWarpingMismatches getMismatches(){
 		return m_stat;
 	}
 
 	private ImagePlus createMask(int size){
-		final ImgPlus<FloatType> img = ImgPlus.wrap( new ArrayImgFactory<FloatType>().
-				create(new long[]{size, size}, new FloatType()));
+		final ImgPlus<BitType> img = ImgPlus.wrap( new ArrayImgFactory<BitType>().
+				create(new long[]{size, size}, new BitType()));
 		
-		Cursor<FloatType> c = img.cursor();
+		final Cursor<BitType> c = img.cursor();
 		while( c.hasNext() ){
-			c.next().setReal( 1.0f );
+			c.next().set( true );
 		}
 		
 		return new ImgToIJ().compute(img, new ImagePlus());

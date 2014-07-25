@@ -86,6 +86,36 @@ public class FourierOfCurvature<T extends RealType<T> >{
 		}
 		return out;
 	}
+	
+	//TODO
+	public double[] getInvariantDescriptors(int cutOff){
+		double[] magnitudes = getMagnitudes(cutOff, false);
+		Complex[] desc = getDescriptors(cutOff, false);
+		
+//		for(int i = 0; i < cutOff; i++){
+//			magnitudes[0] *= Math.exp(arg0)
+//		}
+		
+		return null;
+		
+	}
+	
+	public Complex[] getDescriptors(int cutOff, boolean invariant) {
+		final int N = m_descriptor.length;
+
+		final Complex[] out = new Complex[ cutOff ];
+		
+		// delete frequencies
+		for(int i = 0; i < cutOff; i++){
+			final Complex element = m_descriptor[i+1]; 
+			out[i] = i < cutOff ? 
+					(invariant ? new Complex( element.re() / m_magnitude, element.im() / m_magnitude): element ): 
+						new Complex(0.0d , 0.0d);
+		}
+
+		return out;
+		
+	}
 
 	public Complex[] getDescriptors(int cutOff) {
 		final int N = m_descriptor.length;

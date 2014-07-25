@@ -26,16 +26,13 @@ import org.knime.knip.clump.util.MyUtils;
 
 public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Comparable<L>> {
 	
-//	static final double NOT_CONNECTED = Double.MAX_VALUE;
 		
 	private static final int MIN_SIZE = 32;
 
 	private Edge<BitType>[][] m_weights;
 	
 	private Contour[][] m_contour;
-	
-	private double m_factor;
-	
+		
 	private double m_totalSim;
 	
 	private Contour m_cell;
@@ -507,7 +504,7 @@ public class GraphSplitting<T extends RealType<T> & NativeType<T>, L extends Com
 		
 		List<Nuclei<BitType>> solution = s.calc();
 		
-		System.out.println(m_totalSim + " - Split-Cost: " + s.getCost());
+//		System.out.println(m_totalSim + " - Split-Cost: " + s.getCost());
 		
 		if(m_totalSim < s.getCost() )
 			return out;
@@ -646,12 +643,12 @@ class Solution<T extends RealType<T>>{
 		m_steps = new LinkedList<List<Integer>>();
 		m_solution = new LinkedList<Pair<List<Integer>, Double>>();
 		m_size = size;
-		for(Nuclei<T> n:nuclei){
-			for(boolean b: n.getConstrains()){
-				System.out.print( b + ",");
-			}
-			System.out.print("\n");
-		}
+//		for(Nuclei<T> n:nuclei){
+//			for(boolean b: n.getConstrains()){
+//				System.out.print( b + ",");
+//			}
+//			System.out.print("\n");
+//		}
 	}
 	
 	public List<Nuclei<T>> calc(){

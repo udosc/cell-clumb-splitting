@@ -142,6 +142,8 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				
 				System.out.println("Processing row: " +  cellValue.getLabelingMetadata().getName());
 				
+				long time = System.currentTimeMillis();
+				
 				Labeling<L> labeling = cellValue.getLabelingCopy();
 				long[] dim = new long[ labeling.numDimensions() ]; 
 				labeling.dimensions(dim);
@@ -169,7 +171,6 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 					if( c.length() < 20 )
 						continue;
 					
-					System.out.println("Tracking label: " + i++);
 					
 					final List<long[]> splittingPoints = new CurvatureSplittingPoints<DoubleType>(5, 
 							10, 
@@ -201,6 +202,8 @@ public class DTFactory<L extends Comparable<L>, T extends RealType<T> & NativeTy
 				
 				new CCA<BitType>(AbstractRegionGrowing.get4ConStructuringElement(2), 
                         new BitType(false) ).compute(img, lab);
+				
+				System.out.println( cellValue + " - Runtime " + (System.currentTimeMillis() - time));
 				
 				return m_labCellFactory.createCell(lab, cellValue.getLabelingMetadata());
 			}

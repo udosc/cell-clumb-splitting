@@ -101,7 +101,7 @@ public class WarpingErrorModel
 		
 		MyWarpingError<UnsignedByteType> we = new MyWarpingError<UnsignedByteType>(
 				new UnsignedByteType(), 
-				100, 
+				10, 
 				WarpingErrorEnums.MERGE,
 				WarpingErrorEnums.SPLIT);
 		
@@ -111,9 +111,8 @@ public class WarpingErrorModel
 				groundTruth, 
 				refImg,
 				ImgUtils.createEmptyCopy(refImg, new UnsignedByteType()));
-		m_warpingError.add( we.getWarpingError() * 100000);
-		m_randError.add( we.getRandError() * 100000 );
-		
+		m_warpingError.add( we.getWarpingError() * 1000);
+			
 		
 		Labeling<String> out = new NativeImgLabeling<String, UnsignedByteType>(
 				ImgUtils.createEmptyCopy(res));
@@ -189,7 +188,7 @@ public class WarpingErrorModel
         	
         	for(int i = 0; i <  tmp.length; i++)
         		cells[i + 1] = new DoubleCell( tmp[i].getNumberOfErrors() );
-        	cells[ dataSpec.length -1 ] = new DoubleCell( m_randError.get( n ) );
+        	cells[ dataSpec.length -1 ] = new DoubleCell( 0.0d );
         	container.addRowToTable( new DefaultRow( new RowKey(pair.getFirst()), cells) );
         	n++;
         }
