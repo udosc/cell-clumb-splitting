@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry exported="true" kind="lib" path="lib/VIB-lib-2.0.0-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/vecmath.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ij-1.47i.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/Trainable_Segmentation-2.0.0-SNAPSHOT.jar" sourcepath="C:/Users/Udo/workspace/Uni Konstanz/fiji/src-plugins/Trainable_Segmentation"/>
+	<classpathentry kind="lib" path="lib/jdt.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.knime.knip.imagej2.core"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
